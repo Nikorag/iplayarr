@@ -36,7 +36,7 @@ defineProps({
     width: 100%;
     position: relative; /* Needed for absolute positioning of the text */
     background-color: white;
-    border: 2px solid white;
+    /*border: 2px solid white;*/
     border-radius: 5px;
     overflow: hidden;
 }

@@ -1,5 +1,7 @@
 <template>
-    <QueueTable :queue="queue" :history="history" />
+    <div class="queue-content">
+        <QueueTable :queue="queue" :history="history" />
+    </div>
 </template>
 
 <script setup>
@@ -10,3 +12,9 @@
     const queue = inject('queue');
     const history = inject('history');
 </script>
+
+<style>
+    .queue-content {
+        padding: 1rem;
+    }
+</style>

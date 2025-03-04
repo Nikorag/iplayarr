@@ -1,0 +1,34 @@
+name: Run Jest Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 23
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Run Jest Tests
+      run: |
+        npm test
+
+#   - name: Publish Test Results
+#     uses: EnricoMi/publish-unit-test-result-action@v2
+#     if: always()
+#     with:
+#       files: |
+#         test-results/junit.xml    

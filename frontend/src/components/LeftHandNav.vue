@@ -4,39 +4,18 @@
         <li class="mobileOnly pull-right">
           <font-awesome-icon :icon="['fas', 'xmark']" @click="toggleLHN"/>
         </li>
-        <RouterLink to="/queue">
-          <li :class="route.path === '/queue' ? 'active' : ''" @click="closeLHN">
-              <span>
-                <font-awesome-icon :icon="['fas', 'tasks']" />
-                <span class="menuText">Queue</span>
-              </span>
-          </li>
-        </RouterLink>
-        <RouterLink to="/logs">
-          <li :class="route.path === '/logs' ? 'active' : ''" @click="closeLHN">
-              <span>
-                <font-awesome-icon :icon="['fas', 'history']" />
-                <span class="menuText">Logs</span>
-              </span>
-          </li>
-        </RouterLink>
-        <RouterLink to="/about">
-          <li :class="[route.path === '/about' ? 'active' : '', 'clickable']" @click="closeLHN">
-              <span>
-                <font-awesome-icon :icon="['fas', 'circle-info']" />
-                <span class="menuText">About</span>
-              </span>
-          </li>
-      </RouterLink>
+        <LeftHandNavLink label="Queue" icon="tasks" path="/queue" @option-clicked="closeLHN"/>
+        <LeftHandNavLink label="Logs" icon="history" path="/logs" @option-clicked="closeLHN"/>
+        <LeftHandNavLink label="Settings" icon="cog" path="/settings" @option-clicked="closeLHN"/>
+        <LeftHandNavLink label="Synonyms" icon="arrows-rotate" path="/synonyms" @option-clicked="closeLHN"/>
+        <LeftHandNavLink label="About" icon="circle-info" path="/about" @option-clicked="closeLHN"/>
       </ul>
     </div>
   </template>
 
   <script setup>
     import {ref, defineExpose} from 'vue';
-    import { useRoute } from 'vue-router';
-
-    const route = useRoute();
+    import LeftHandNavLink from './LeftHandNavLink.vue';
 
     const lhn = ref(null);
 
@@ -51,7 +30,7 @@
     defineExpose({ toggleLHN });
   </script>
   
-  <style scoped>
+  <style>
   .LeftHandNav {
     width: 210px;
     background-color: rgb(42, 42, 42);
@@ -77,7 +56,7 @@
     }
 
     .LeftHandNav li {
-      border-bottom: 1px solid white;
+      border-bottom: 1px solid rgb(229, 229, 229);
       padding-bottom: 1rem;
     }
   }

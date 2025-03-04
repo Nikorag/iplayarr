@@ -1,23 +1,23 @@
 <template>
     <tr class=''>
         <td class='text' data-title='Filename'>
-            <RouterLink :to="{ path: '/logs', query: { filter: renderItem.id } }">{{ renderItem.filename }}</RouterLink>
+            <RouterLink :to="{ path: '/logs', query: { filter: item.pid } }">{{ item.nzbName }}</RouterLink>
         </td>
-        <td class='desktopOnly' data-title='Start'>{{ renderItem.start }}</td>
-        <td class='desktopOnly' data-title='Size'>{{ formatStorageSize(renderItem.size) }}</td>
+        <td class='desktopOnly' data-title='Start'>{{ item.details.start }}</td>
+        <td class='desktopOnly' data-title='Size'>{{ formatStorageSize(item.details.size) }}</td>
         <td class='' data-title='Progress'>
-            <ProgressBar :progress="renderItem.progress" :history="history" :idle="renderItem.status == 'Idle'"/>
+            <ProgressBar :progress="item.details.progress" :history="history" :idle="item.status == 'Idle'"/>
         </td>
-        <td class='mobileOnly mobileInline' data-title='Start'>{{ renderItem.start }}</td>
-        <td class='mobileOnly mobileInline' data-title='Size'>{{ formatStorageSize(renderItem.size) }}</td>
-        <td class='mobileInline' data-title='ETA'>{{ renderItem.eta }}</td>
-        <td class='mobileInline' data-title='Speed'>{{ renderItem.speed }} {{ renderItem.speed != '' ? 'MB/s' : '' }}</td>
+        <td class='mobileOnly mobileInline' data-title='Start'>{{ item.details.start }}</td>
+        <td class='mobileOnly mobileInline' data-title='Size'>{{ formatStorageSize(item.details.size) }}</td>
+        <td class='mobileInline' data-title='ETA'>{{ item.details.eta }}</td>
+        <td class='mobileInline' data-title='Speed'>{{ item.details.speed }} {{ item.details.speed != '' ? 'MB/s' : '' }}</td>
         <td class='actionCol' data-title='Action'>
             <span v-if="history">
-                <font-awesome-icon class="clickable" :icon="['fas', 'trash']" @click="trash(renderItem.id)" />
+                <font-awesome-icon class="clickable" :icon="['fas', 'trash']" @click="trash(item.pid)" />
             </span>
             <span v-if="!history">
-                <font-awesome-icon class="clickable" :icon="['fas', 'xmark']" @click="cancel(renderItem.id)" />
+                <font-awesome-icon class="clickable" :icon="['fas', 'xmark']" @click="cancel(item.pid)" />
             </span>
         </td>
     </tr>
@@ -25,9 +25,11 @@
 
 <script setup>
 import ProgressBar from './ProgressBar.vue';
-import { defineProps, computed } from 'vue';
+import { defineProps } from 'vue';
 
-const props = defineProps({
+const host = process.env.NODE_ENV != 'production' ? `http://${window.location.hostname}:4404` : '';
+
+defineProps({
     item: {
         type: Object,
         required: true
@@ -39,56 +41,32 @@ const props = defineProps({
     }
 });
 
-const renderItem = computed(() => {
-    if (props.history) {
-        return props.item;
-    } else {
-        let queueItem = {
-            ...props.item.details,
-            filename: props.item.nzbName,
-            status : props.item.status,
-            id: props.item.pid,            
-        };
-
-        if (!props.item.details?.start || queueItem.status == 'Idle'){
-            queueItem = {
-                ...queueItem,
-                start: queueItem.status == 'Idle' ? 'Queued' : 'Pending',
-                size: '?',
-                eta: '??:??:??',
-                speed: '0',
-                progress: '0'
-            }
-        }
-        return queueItem;
-    }
-});
-
-
-
 const trash = async (pid) => {
     if (confirm("Are you sure you want to delete this history item?")) {
-        await fetch(`/json-api/history?pid=${pid}`, { method: 'DELETE' });
+        await fetch(`${host}/json-api/history?pid=${pid}`, { method: 'DELETE' });
     }
 }
 
 const cancel = async (pid) => {
     if (confirm("Are you sure you want to cancel this download?")) {
-        await fetch(`/json-api/queue?pid=${pid}`, { method: 'DELETE' });
+        await fetch(`${host}/json-api/queue?pid=${pid}`, { method: 'DELETE' });
     }
 }
 
 const formatStorageSize = (mb) => {
-    if (mb >= 1024) {
-        return (mb / 1024).toFixed(2) + " GB";
+    if (mb){
+        if (mb >= 1024) {
+            return (mb / 1024).toFixed(2) + " GB";
+        }
+        return mb.toFixed(2) + " MB";
     }
-    return mb.toFixed(2) + " MB";
+    return;
 }
 </script>
 
 <style scoped>
 a {
-    color: white;
+    color: rgb(229, 229, 229);
     text-decoration: none;
 }
 

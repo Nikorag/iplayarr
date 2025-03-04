@@ -2,19 +2,21 @@
   "name": "iplayarr",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "scripts": {
+    "build:backend": "tsc",
     "build:frontend": "cd frontend && npm run build",
     "watch:frontend": "chokidar 'frontend/src/**/*.{vue,js,css}' -c \"npm run build:frontend\"",
-    "start": "npm run build:frontend && node index.js",
-    "dev": "npm run build:frontend && concurrently \"nodemon index.js\" \"npm run watch:frontend\""
+    "serve:frontend": "cd frontend && npm run serve",
+    "start": "npm run build:frontend && npm run build:backend && node dist/src/server.js",
+    "dev": "DEBUG=true concurrently \"nodemon src/server.ts\" \"npm run serve:frontend\"",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "axios": "^1.7.9",
-    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
@@ -22,13 +24,27 @@
     "node-cache": "^5.1.2",
     "node-cron": "^3.0.3",
     "node-persist": "^4.0.4",
-    "nodemon": "^3.1.9",
     "socket.io": "^4.8.1",
     "uuid": "^11.0.5",
     "vue-router": "^4.5.0",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
-    "chokidar-cli": "^3.0.0"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.13.5",
+    "@types/node-cron": "^3.0.11",
+    "@types/node-persist": "^3.1.8",
+    "@types/xml2js": "^0.4.14",
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^9.1.2",
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "nodemon": "^3.1.9",
+    "ts-jest": "^29.2.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
   }
 }

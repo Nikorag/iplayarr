@@ -1,16 +1,18 @@
 <template>
-    <p v-if="filter.length > 0">
-        Applied Filters: {{ filter.join(",")}}
-    </p>
-    <div>
-      <label for="follow">Follow?</label>
-      <input type="checkbox" id="follow" v-model="followlog"/>
+    <div class="logs-content">
+      <p v-if="filter.length > 0">
+          Applied Filters: {{ filter.join(",")}}
+      </p>
+      <div>
+        <label for="follow">Follow?</label>
+        <input type="checkbox" id="follow" v-model="followlog"/>
+      </div>
+      <ul ref="logView">
+          <li v-for="log in filteredLogs" :key="`${log.id}_${log.timestamp}`">
+              [ {{ log.id }} ] - {{ log.timestamp }} - {{ log.message }}
+          </li>
+      </ul>
     </div>
-    <ul ref="logView">
-        <li v-for="log in filteredLogs" :key="`${log.id}_${log.timestamp}`">
-            [ {{ log.id }} ] - {{ log.timestamp }} - {{ log.message }}
-        </li>
-    </ul>
 </template>
 
 <script setup>
@@ -52,6 +54,10 @@ watch(filteredLogs, () => {
 </script>
 
 <style scoped>
+.logs-content {
+  padding: 1rem;
+}
+
 ul {
     list-style: none;
     font-family: monospace;

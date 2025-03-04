@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 .node-persist
+
+test-results

@@ -51,6 +51,7 @@ export const removeParameter = async (parameter: IplayarrParameter) : Promise<vo
     delete configMap[parameter];
     await storage.setItem('config', configMap);
 }
+
 export const getAllConfig = async () : Promise<ConfigMap> =>  {
     let configMap : ConfigMap = {};
     for (const param of Object.values(IplayarrParameter)){

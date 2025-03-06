@@ -10,5 +10,7 @@ module.exports = {
       outputDirectory: "./test-results",
       outputName: "junit.xml"
     }]
-  ]
+  ],
+  collectCoverage: true,
+  coverageReporters: ["lcov", "text"],
 };

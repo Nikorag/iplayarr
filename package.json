@@ -7,9 +7,9 @@
     "build:frontend": "cd frontend && npm run build",
     "watch:frontend": "chokidar 'frontend/src/**/*.{vue,js,css}' -c \"npm run build:frontend\"",
     "serve:frontend": "cd frontend && npm run serve",
-    "start": "node dist/src/server.js",
+    "start": "node dist/server.js",
     "dev": "DEBUG=true concurrently \"nodemon src/server.ts\" \"npm run serve:frontend\"",
-    "test": "jest"
+    "test": "jest ./tests"
   },
   "author": "",
   "license": "ISC",

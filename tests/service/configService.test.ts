@@ -6,7 +6,7 @@ jest.mock('node-persist', () => ({
 }));
 
 //Object being tested
-import { getParameter, resetConfigService, setParameter } from '../../src/service/configService';
+import { getParameter, removeParameter, resetConfigService, setParameter } from '../../src/service/configService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 
 afterEach(() => {
@@ -59,4 +59,15 @@ describe('setParameter', () => {
         result = await getParameter('TEST_PARAM' as IplayarrParameter);
         expect(result).toBe('newValue');
     });
-})
+});
+
+describe('removeParameter', () => {
+    it('should remove the parameter from storage', async () => {
+        const mockConfig = {'TEST_PARAM' : 'storedValue', 'TO_REMOVE' : 'toRemove'};
+        const expected = {'TEST_PARAM' : 'storedValue'};
+        (storage.getItem as jest.Mock).mockResolvedValue(mockConfig);
+
+        await removeParameter('TO_REMOVE' as IplayarrParameter);
+        expect((storage.setItem as jest.Mock)).toHaveBeenCalledWith("config", expected);
+    });
+});

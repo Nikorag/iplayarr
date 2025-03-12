@@ -1,6 +1,7 @@
-import { Server, Socket } from "socket.io";
-import queueService from "./queueService";
-import historyService from "./historyService";
+import { Server, Socket } from 'socket.io';
+
+import historyService from './historyService';
+import queueService from './queueService';
 
 const sockets : {
     [key : string] : Socket
@@ -11,7 +12,7 @@ const socketService = {
 
     registerIo : (server : Server) => {
         io = server;
-        io.on("connection", (socket) => {
+        io.on('connection', (socket) => {
             socketService.registerSocket(socket);
         });
     },

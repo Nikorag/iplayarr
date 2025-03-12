@@ -1,5 +1,5 @@
 <template>
-    <div class="queue-content">
+    <div class="inner-content scroll-x">
         <QueueTable :queue="queue" :history="history" />
     </div>
 </template>
@@ -12,10 +12,3 @@
     const queue = inject('queue');
     const history = inject('history');
 </script>
-
-<style>
-    .queue-content {
-        padding: 1rem;
-        overflow-x: auto;
-    }
-</style>

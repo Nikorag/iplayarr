@@ -1,6 +1,7 @@
-import { v4 } from "uuid";
-import { Synonym } from "../types/Synonym";
 import storage from 'node-persist';
+import { v4 } from 'uuid';
+
+import { Synonym } from '../types/Synonym';
 
 let isStorageInitialized : boolean = false;
 
@@ -21,7 +22,7 @@ const synonymService = {
             await storage.init(storageOptions);
             isStorageInitialized = true;
         }
-        return (await storage.getItem("synonyms")) || [];
+        return (await storage.getItem('synonyms')) || [];
     },
 
     addSynonym : async (synonym : Synonym) : Promise<void> => {

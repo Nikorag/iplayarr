@@ -1,29 +1,29 @@
-import { IplayarrParameter } from "../types/IplayarrParameters";
-import { LogLine, LogLineLevel } from "../types/LogLine";
-import { getParameter } from "./configService";
-import socketService from "./socketService";
+import { IplayarrParameter } from '../types/IplayarrParameters';
+import { LogLine, LogLineLevel } from '../types/LogLine';
+import configService from './configService';
+import socketService from './socketService';
 
 const loggingService = {
     log: (...params : any[]) => {
         console.log(...params);
         const message = joinOrReturn(params);
-        const logLine : LogLine = {level : LogLineLevel.INFO, id: 'SYSTEM', message, timestamp : new Date()}
+        const logLine : LogLine = {level : LogLineLevel.INFO, id: 'INFO', message, timestamp : new Date()}
         socketService.emit('log', logLine);
     },
 
     error: (...params : any[]) => {
         console.error(params);
         const message = joinOrReturn(params);
-        const logLine : LogLine = {level : LogLineLevel.ERROR, id: 'SYSTEM-ERROR', message, timestamp : new Date()};
+        const logLine : LogLine = {level : LogLineLevel.ERROR, id: 'ERROR', message, timestamp : new Date()};
         socketService.emit('log', logLine);
     },
 
     debug: (...params : any[]) => {
-        getParameter(IplayarrParameter.DEBUG).then((debug) => {
+        configService.getParameter(IplayarrParameter.DEBUG).then((debug) => {
             const message = joinOrReturn(params);
             if (debug && debug.toLowerCase() == 'true'){
                 console.log(...params);
-                const logLine : LogLine = {level : LogLineLevel.DEBUG, id: 'SYSTEM-DEBUG', message, timestamp : new Date()};
+                const logLine : LogLine = {level : LogLineLevel.DEBUG, id: 'DEBUG', message, timestamp : new Date()};
                 socketService.emit('log', logLine);
             }
         });
@@ -42,7 +42,7 @@ function joinOrReturn(input : string | any[]) : string {
     } else if (typeof input === 'string') {
       return input;
     }
-    return "";
+    return '';
   }
 
 export default loggingService;

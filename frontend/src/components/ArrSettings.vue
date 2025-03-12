@@ -1,7 +1,20 @@
 <template>
     <legend>{{ name }}</legend>
-    <SettingsTextInput name="URL" :tooltip="`${name} Hostname`" v-model="localValue.url" />
+    <SettingsTextInput name="URL" :tooltip="`${name} URL, including protocol & port`" v-model="localValue.url" />
     <SettingsTextInput name="API Key" :tooltip="`${name} API Key`" v-model="localValue.api_key" />
+    <div class="button-container">
+        <button class="test-button" @click="test">
+            <template v-if="testStatus == 'INITIAL'">
+                Test {{ name }}
+            </template>
+            <template v-if="testStatus == 'PENDING'">
+                <font-awesome-icon class="test-pending" :icon="['fas', 'spinner']" />
+            </template>
+            <template v-if="testStatus == 'SUCCESS'">
+                <font-awesome-icon class="test-success" :icon="['fas', 'check']" />
+            </template>
+        </button>
+    </div>
     <div class="arrContainer">
         <div>
             <legend class="sub">Download Client</legend>
@@ -30,7 +43,7 @@
 import { defineProps, defineEmits, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import SettingsTextInput from '@/components/SettingsTextInput.vue';
-import { getHost } from '@/lib/utils';
+import { ipFetch } from '@/lib/ipFetch';
 
 const router = useRouter();
 
@@ -38,7 +51,9 @@ const placeholders = ref({
     host : window.location.hostname,
     protocol : window.location.protocol,
     port : window.location.port
-})
+});
+
+const testStatus = ref("INITIAL");
 
 const props = defineProps({
     name: {
@@ -69,47 +84,47 @@ watch(
 
 const unlinkDownload = async () => {
     if (confirm(`Are you sure you want to unlink ${props.name} Download Client? All changes will be lost`)){
-        await fetch(`${getHost()}/json-api/${props.name.toLowerCase()}/download_client`, { method: 'DELETE', credentials : "include" });
+        await ipFetch(`json-api/${props.name.toLowerCase()}/download_client`, 'DELETE');
         router.go(0);
     }
 }
 
 const unlinkIndexer = async () => {
     if (confirm(`Are you sure you want to unlink ${props.name} Indexer? All changes will be lost`)){
-        await fetch(`${getHost()}/json-api/${props.name.toLowerCase()}/indexer`, { method: 'DELETE', credentials : "include" });
+        await ipFetch(`json-api/${props.name.toLowerCase()}/indexer`, 'DELETE');
         router.go(0);
+    }
+}
+
+const test = async () => {
+    testStatus.value = "PENDING";
+    const {data, ok} = await ipFetch('json-api//arr/test', 'POST', {HOST : localValue.value.url, API_KEY : localValue.value.api_key});
+    if (!ok){
+        alert(`Error Connecting to ${props.name} : ${data.message}`);
+        testStatus.value = "INITIAL";
+    } else {
+        testStatus.value = "SUCCESS";
     }
 }
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 @media (min-width: 768px) {
     .arrContainer {
         display: flex;
+
+        div {
+            flex: 1
+        }
     }
-
-    .arrContainer div {
-        flex: 1;
-    }
 }
 
-.button-container {
-    justify-content: flex-end;
-    text-align: right;
-    max-width: 650px;
-}
-
-button {
-    background-color: #333;
-    border: 1px solid #393f45;
-    padding: 6px 16px;
-    font-size: 14px;
-    color: white;
-    border-radius: 4px;
-}
-
-button:hover {
-    border-color: #5a6265;
-    background-color: #444;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

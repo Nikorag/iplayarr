@@ -1,75 +1,57 @@
-import sonarrService from "../service/sonarrService";
-import { Request } from "express";
 import * as crypto from 'crypto';
-import { getParameter } from "../service/configService";
-import { IplayarrParameter } from "../types/IplayarrParameters";
+import { Request } from 'express';
 import Handlebars from 'handlebars';
-import { FilenameTemplateContext } from "../types/FilenameTemplateContext";
 
-const seasonRegex = /(?:Series|Season)\s(\d+)/;
-const episodeRegex = /(?:Episode|Ep)\s(\d+)/;
+import configService from '../service/configService';
+import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
+import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
+import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
 
 export function formatBytes(bytes: number, unit: boolean = true, decimals: number = 2): string {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) return '0 Bytes';
 
     const k: number = 1024;
-    const sizes: string[] = ["Bytes", "KB", "MB", "G", "TB", "PB"];
+    const sizes: string[] = ['Bytes', 'KB', 'MB', 'G', 'TB', 'PB'];
     const i: number = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + (unit ? " " + sizes[i] : '');
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + (unit ? ' ' + sizes[i] : '');
 }
 
-export async function createNZBName(title: string, line: string) : Promise<string | undefined> {
-    let season: number | undefined = undefined;
-    let episode: number | undefined = undefined;
-    const seasonMatch = seasonRegex.exec(line);
-    const episodeMatch = episodeRegex.exec(line);
-    if (seasonMatch) {
-        season = parseInt(seasonMatch[1]);
-    } else {
-        return;
-    }
-    if (episodeMatch) {
-        episode = parseInt(episodeMatch[1]);
-    } else {
-        episode = await sonarrService.getEpisodeFromTitle(title, season, line);
-    }
-
-    if (season && episode) {
-        const tvFilenameTemplate : string = (await getParameter(IplayarrParameter.TV_FILENAME_TEMPLATE)) as string;
-        const context : FilenameTemplateContext= {
-            title : title.replaceAll(" ", "."),
-            season : season.toString().padStart(2, '0'),
-            episode : episode.toString().padStart(2, '0')
-        }
-        return  Handlebars.compile(tvFilenameTemplate)(context);
-    }
+export async function createNZBName(type: VideoType, context: FilenameTemplateContext) {
+    context.quality = (await getQualityPofile()).quality;
+    const templateKey: IplayarrParameter = type == VideoType.MOVIE ? IplayarrParameter.MOVIE_FILENAME_TEMPLATE : IplayarrParameter.TV_FILENAME_TEMPLATE;
+    const template = await configService.getParameter(templateKey) as string;
+    return Handlebars.compile(template)(context);
 }
 
-export async function legacyCreateNZBName(input: string) : Promise<string> {
-    const suffix = getParameter(IplayarrParameter.FALLBACK_FILENAME_SUFFIX);
-    let filename = input.replaceAll("_", ".");
-    filename = filename.replaceAll(" ", ".");
-    filename = filename.replaceAll(":", "");
-    filename = formatInlineDates(filename);
-    filename = formatSeriesString(filename);
-    return `${filename}.${suffix}`;
-}
-
-export function formatInlineDates(str: string) : string {
-    return str.replace(/\b(\d{2})-(\d{2})-(\d{4})\b/g, (_, day, month, year) => `${year}-${month}-${day}`);
-}
-
-export function formatSeriesString(input: string) : string {
-    return input.replace(/Series\.(\d+)\.-(?:\.\d+\.?)?\.Episode\.(\d+)/, (match, season, episode) => {
-        return `S${season.padStart(2, '0')}E${episode.padStart(2, '0')}`;
-    });
-}
-
-export function getBaseUrl(req: Request) : string {
+export function getBaseUrl(req: Request): string {
     return `${req.protocol}://${req.hostname}:${req.socket.localPort}`;
 };
 
 export function md5(input: string): string {
     return crypto.createHash('md5').update(input).digest('hex');
 }
+
+export function createNZBDownloadLink({ pid, nzbName, type }: IPlayerSearchResult, apiKey: string): string {
+    return `/api?mode=nzb-download&pid=${pid}&nzbName=${nzbName}&type=${type}&apikey=${apiKey}`
+}
+
+export async function getQualityPofile(): Promise<QualityProfile> {
+    const videoQuality = await configService.getParameter(IplayarrParameter.VIDEO_QUALITY) as string;
+    return qualityProfiles.find(({ id }) => id == videoQuality) as QualityProfile;
+}
+
+export function removeAllQueryParams(str: string): string {
+    const url = new URL(str);
+    url.search = '';
+    return url.toString();
+}
+
+export function splitArrayIntoChunks(arr: any[], chunkSize: number) {
+    const chunks: any[] = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        chunks.push(arr.slice(i, i + chunkSize));
+    }
+    return chunks;
+} 

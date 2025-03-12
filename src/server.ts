@@ -1,23 +1,24 @@
-import express, {Express, NextFunction, Request, Response} from 'express';
-import session from 'express-session'
-import loggingService from './service/loggingService';
-import http, { Server } from 'http';
-import { Server as SocketIOServer } from "socket.io";
-import { IplayarrParameter } from './types/IplayarrParameters';
-import ApiRoute from './routes/ApiRoute';
-import JsonApiRoute from './routes/JsonApiRoute';
-import path from 'path';
-import socketService from './service/socketService';
 import cors from 'cors'
-import { getParameter, setParameter } from './service/configService';
-import iplayerService from './service/iplayerService';
+import express, {Express, NextFunction, Request, Response} from 'express';
+import http, { Server } from 'http';
 import cron from 'node-cron';
+import path from 'path';
+import { Server as SocketIOServer } from 'socket.io';
+
+import ApiRoute from './routes/ApiRoute';
 import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
+import JsonApiRoute from './routes/JsonApiRoute';
+import configService from './service/configService';
+import episodeCacheService from './service/episodeCacheService';
+import iplayerService from './service/iplayerService';
+import loggingService from './service/loggingService';
+import socketService from './service/socketService';
+import { IplayarrParameter } from './types/IplayarrParameters';
 
 const isDebug = process.env.DEBUG == 'true';
 
 const app : Express = express();
-const port : number = parseInt(process.env[IplayarrParameter.PORT.toString()] || "4404");
+const port : number = parseInt(process.env[IplayarrParameter.PORT.toString()] || '4404');
 
 if (isDebug){
     app.use(cors({
@@ -64,8 +65,9 @@ server.listen(port, () => {
 });
 
 //Cron
-getParameter(IplayarrParameter.REFRESH_SCHEDULE).then((cronSchedule) => {
+configService.getParameter(IplayarrParameter.REFRESH_SCHEDULE).then((cronSchedule) => {
     cron.schedule(cronSchedule as string, () => {
         iplayerService.refreshCache();
+        episodeCacheService.recacheAllSeries();
     });
 });

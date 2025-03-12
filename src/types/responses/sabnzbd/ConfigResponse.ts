@@ -20,25 +20,25 @@ export interface SabNZBDConfigMiscResponse {
 }
 
 export const configSkeleton : Partial<SabNZBDConfigResponse> = {
-    "categories": [
+    'categories': [
         {
-            "name": "*",
-            "order": 0,
-            "pp": "3",
-            "script": "None",
-            "dir": "",
-            "newzbin": "",
-            "priority": 0
+            'name': '*',
+            'order': 0,
+            'pp': '3',
+            'script': 'None',
+            'dir': '',
+            'newzbin': '',
+            'priority': 0
         },
         {
-            "name": "iplayer",
-            "order": 1,
-            "pp": "",
-            "script": "Default",
-            "dir": "",
-            "newzbin": "",
-            "priority": -100
+            'name': 'iplayer',
+            'order': 1,
+            'pp': '',
+            'script': 'Default',
+            'dir': '',
+            'newzbin': '',
+            'priority': -100
         }
     ],
-    "servers": [],
+    'servers': [],
 }

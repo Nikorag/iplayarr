@@ -1,7 +1,7 @@
 <template>
-  <NavBar />
+  <NavBar ref="navBar"/>
   <div class="main-layout">
-    <LeftHandNav ref="leftHandNav" v-if="authState.user"/>
+    <LeftHandNav ref="leftHandNav" v-if="authState.user" @clear-search="clearSearch"/>
     <div class="content">
       <RouterView />
     </div>
@@ -9,24 +9,25 @@
 </template>
 
 <script setup>
+import { ipFetch } from '@/lib/ipFetch';
+import { enforceMaxLength } from './lib/utils';
 import NavBar from './components/NavBar.vue';
 import LeftHandNav from './components/LeftHandNav.vue';
 import { RouterView } from 'vue-router';
 
 import { io } from "socket.io-client";
-import { ref, provide, onMounted, inject } from 'vue';
-import { getHost } from './lib/utils';
+import { ref, provide, watch, inject } from 'vue';
 
 const authState = inject("authState");
-const [queue, history, logs, socket] = [ref([]), ref([]), ref([]), ref(null)];
+const [queue, history, logs, socket, hiddenSettings] = [ref([]), ref([]), ref([]), ref(null), ref({})];
+
+const navBar = ref(null);
 
 const leftHandNav = ref(null);
 
 const updateQueue = async () => {
-  const queueResponse = await fetch(`${getHost()}/json-api/queue`, {credentials : "include"});
-  queue.value = await queueResponse.json();
-  const historyResponse = await fetch(`${getHost()}/json-api/history`, {credentials : "include"});
-  history.value = await historyResponse.json();
+  queue.value = (await ipFetch('json-api/queue')).data;
+  history.value = (await ipFetch('json-api/history')).data;
 }
 
 const toggleLeftHandNav = () => {
@@ -39,76 +40,136 @@ provide('socket', socket);
 provide('logs', logs);
 provide('updateQueue', updateQueue);
 provide('toggleLeftHandNav', toggleLeftHandNav);
+provide('hiddenSettings', hiddenSettings);
 
-onMounted(async () => {
-  await updateQueue();
-  if (process.env.NODE_ENV == 'production'){
-    socket.value = io();
-  } else {
-    const socketUrl = `http://${window.location.hostname}:4404`
-    socket.value = io(socketUrl);
+const pageSetup = async () => {
+  if (socket.value == null){
+    document.body.scrollTop = document.documentElement.scrollTop = 0;
+    await updateQueue();
+    if (process.env.NODE_ENV == 'production') {
+      socket.value = io();
+    } else {
+      const socketUrl = `http://${window.location.hostname}:4404`
+      socket.value = io(socketUrl);
+    }
+
+    socket.value.on('queue', (data) => {
+      queue.value = data;
+    });
+
+    socket.value.on('history', (data) => {
+      history.value = data;
+    });
+
+    socket.value.on('log', (data) => {
+      logs.value.push(data);
+      enforceMaxLength(logs.value, 5000);
+    })
+
+    hiddenSettings.value = (await ipFetch('json-api/hiddenSettings')).data;
   }
+}
 
-  socket.value.on('queue', (data) => {
-    queue.value = data;
-  });
+watch(authState, async (newAuthState) => {
+  if (newAuthState.user){
+    pageSetup();
+  }
+}, {immediate : true});
 
-  socket.value.on('history', (data) => {
-    history.value = data;
-  });
-
-  socket.value.on('log', (data) => {
-    logs.value.push(data);
-  })
-});
+const clearSearch = () => {
+  navBar.value.clearSearch();
+}
 </script>
 
-<style>
+<style lang="less">
 body {
   padding: 0px;
   margin: 0px;
   font-family: "Roboto", "open sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
-  color: rgb(229, 229, 229);
-  background-color: rgb(32, 32, 32);
+  color: @primary-text-color;
+  background-color: @page-background-color;
   min-height: 100vh;
 }
+
 .main-layout {
   display: flex;
 }
+
 .content {
   width: 100%;
-}
-.clickable {
-  cursor: pointer;
-}
-.pull-right {
-  text-align: right;
-}
-@media (min-width: 768px) {
-  .mobileOnly {
-    display: none;
+
+  .inner-content {
+    padding: 1rem;
   }
 }
 
-@media (max-width: 768px) {
+.clickable {
+  cursor: pointer;
+}
+
+.pull-right {
+  text-align: right;
+}
+
+@media (min-width: @mobile-breakpoint) {
+  .mobileOnly {
+    display: none !important;
+  }
+}
+
+@media (max-width: @mobile-breakpoint) {
   .desktopOnly {
-    display: none;
+    display: none !important;
   }
 }
 
 legend {
   font-size: 21px;
-  border-bottom: 1px solid rgb(229, 229, 229);
+  border-bottom: 1px solid @primary-text-color;
   line-height: 32.1px;
   margin-bottom: 21px;
-}
 
-legend.sub {
-  font-size: 16px;
+  &.sub {
+    font-size: 16px;
+  }
 }
 
 .block-reset {
   display: block;
   clear: both;
 }
+
+.scroll-x {
+  overflow-x: auto;
+}
+
+
+.pill {
+    padding: 1px 3px;
+    font-size: 11px;
+    border-radius: 2px;
+    display: inline-block;
+    background-color: @warn-color;
+    border-color: @warn-color;
+    color: @warn-text-color;
+    text-align: center;
+
+    &.TV {
+        background-color: @primary-color;
+        border-color: @primary-color;
+        color: @primary-text-color;
+    }
+
+    &.MOVIE {
+        background-color: @error-color;
+        border-color: @error-color;
+        color: @error-text-color;
+    }
+}
+
+input:focus, textarea:focus, select:focus, button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 </style>

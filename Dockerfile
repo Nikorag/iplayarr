@@ -26,15 +26,12 @@ ENV STORAGE_LOCATION=/config
 
 WORKDIR /app
 
-RUN mkdir /config
+RUN mkdir /config && mkdir /app/frontend
 COPY package*.json ./
-RUN mkdir frontend
 COPY frontend/package*.json ./frontend/
 
-RUN npm install
-RUN cd frontend && npm install
+RUN npm run install:both
 COPY . .
-RUN npm run build:frontend
-RUN npm run build:backend
+RUN npm run build:frontend && npm run build:backend
 
 CMD ["npm", "run", "start"]

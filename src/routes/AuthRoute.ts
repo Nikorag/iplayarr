@@ -1,11 +1,12 @@
-import User from '../types/User'
-import {Router, Express, Request, Response, NextFunction} from 'express';
+import {Express, NextFunction,Request, Response, Router} from 'express';
 import session from 'express-session'
-import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
-import { defaultConfigMap, getParameter, setParameter } from '../service/configService';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { md5 } from '../utils/Utils';
 import { v4 } from 'uuid';
+
+import configService from '../service/configService';
+import { IplayarrParameter } from '../types/IplayarrParameters';
+import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
+import User from '../types/User'
+import { md5 } from '../utils/Utils';
 
 declare module 'express-session' {
     interface SessionData {
@@ -16,13 +17,13 @@ declare module 'express-session' {
 const isDebug = process.env.DEBUG == 'true';
 const router : Router = Router();
 
-let token : String = "";
+let token : string = '';
 let resetTimer : NodeJS.Timeout | undefined;
 
 export const addAuthMiddleware = (app : Express) => {
     const sessionCookieSettings : any = {secure : false, maxAge: 1000 * 60 * 60 * 24}
     if (isDebug){
-        sessionCookieSettings.sameSite = "lax";
+        sessionCookieSettings.sameSite = 'lax';
     }
 
     app.use(session({
@@ -32,7 +33,7 @@ export const addAuthMiddleware = (app : Express) => {
         cookie: sessionCookieSettings
     }));
 
-    app.use("/json-api/*", (req: Request, res: Response, next: NextFunction) => {    
+    app.use('/json-api/*', (req: Request, res: Response, next: NextFunction) => {    
         if (!req.session?.user) {
             res.status(401).json({ error: ApiError.NOT_AUTHORISED } as ApiResponse);
             return;
@@ -43,8 +44,8 @@ export const addAuthMiddleware = (app : Express) => {
 
 router.post('/login', async (req: Request, res: Response) => {
     const [AUTH_USERNAME, AUTH_PASSWORD] = await Promise.all([
-        getParameter(IplayarrParameter.AUTH_USERNAME),
-        getParameter(IplayarrParameter.AUTH_PASSWORD),
+        configService.getParameter(IplayarrParameter.AUTH_USERNAME),
+        configService.getParameter(IplayarrParameter.AUTH_PASSWORD),
     ])
     const { username, password } = req.body;
 
@@ -59,7 +60,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
 });
 
-router.get("/logout", (req, res) => {
+router.get('/logout', (req, res) => {
     req.session.destroy(() => {
       res.json(true);
     });
@@ -81,18 +82,18 @@ router.get('/generateToken', (_ : Request, res : Response) => {
     if (resetTimer){
         clearTimeout(resetTimer);
     }
-    resetTimer = setTimeout(() => token="", 300000);
+    resetTimer = setTimeout(() => token='', 300000);
     res.json(true);
 });
 
 router.post('/resetPassword', async (req : Request, res : Response) => {
     const {key} = req.body;
 
-    if (token != "" && key == token){
-        token = "";
+    if (token != '' && key == token){
+        token = '';
         clearTimeout(resetTimer);
-        await setParameter(IplayarrParameter.AUTH_USERNAME, defaultConfigMap.AUTH_USERNAME);
-        await setParameter(IplayarrParameter.AUTH_PASSWORD, defaultConfigMap.AUTH_PASSWORD)
+        await configService.setParameter(IplayarrParameter.AUTH_USERNAME, configService.defaultConfigMap.AUTH_USERNAME);
+        await configService.setParameter(IplayarrParameter.AUTH_PASSWORD, configService.defaultConfigMap.AUTH_PASSWORD)
     }
 
     res.json(true);

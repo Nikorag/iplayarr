@@ -29,21 +29,23 @@ defineProps({
 });
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .progress-bar {
     width: 100%;
     position: relative;
-    background-color: rgb(38, 38, 38);
+    background-color: @input-background-color;
     border-radius: 5px;
     overflow: hidden;
-}
 
-.progress {
-    height: 15px;
-    background-color: #5d9cec;
-}
+    .progress {
+        height: 15px;
+        background-color: @primary-color;
+    }
 
-.history .progress  {
-    background-color: rgb(122, 67, 182);
+    &.history {
+        .progress {
+            background-color: @complete-color;
+        }
+    }
 }
 </style>

@@ -1,11 +1,11 @@
-import { NextFunction, Request, Response } from "express"
-import { EndpointDirectory } from "../EndpointDirectory";
-import { TrueFalseResponse } from "../../types/responses/sabnzbd/TrueFalseResponse";
-import iplayerService from "../../service/iplayerService";
-import { QueueEntry } from "../../types/QueueEntry";
-import queueService from "../../service/queueService";
-import { queueEntrySkeleton, QueueEntryStatus, queueSkeleton, QueueStatus, SabNZBDQueueResponse, SabNZBQueueEntry } from "../../types/responses/sabnzbd/QueueResponse";
-import historyService from "../../service/historyService";
+import { NextFunction, Request, Response } from 'express'
+
+import historyService from '../../service/historyService';
+import queueService from '../../service/queueService';
+import { QueueEntry } from '../../types/QueueEntry';
+import { queueEntrySkeleton, QueueEntryStatus, queueSkeleton, QueueStatus, SabNZBDQueueResponse, SabNZBQueueEntry } from '../../types/responses/sabnzbd/QueueResponse';
+import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse';
+import { EndpointDirectory } from '../EndpointDirectory';
 
 interface QueueQuery {
     name? : string
@@ -41,14 +41,14 @@ function convertEntries(slot : QueueEntry, index : number) : SabNZBQueueEntry {
         mb: slot.details?.size || 0,
         mbleft: slot.details?.sizeLeft || 100,
         filename: slot.nzbName,
-        timeleft: slot.details?.eta || "00:00:00",
-        percentage: slot.details?.progress || 0,
+        timeleft: slot.details?.eta || '00:00:00',
+        percentage: slot.details?.progress ? Math.trunc(slot.details.progress) : 0,
         nzo_id: slot.pid,
     } as SabNZBQueueEntry;
 }
 
 const actionDirectory : EndpointDirectory = {
-    delete : async (req : Request, res : Response, next : NextFunction) => {
+    delete : async (req : Request, res : Response) => {
         const {value} = req.query as QueueQuery;
         if (value){
             queueService.cancelItem(value);

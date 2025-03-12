@@ -1,37 +1,37 @@
 export enum HistoryStatus {
-    COMPLETED = "Completed"
+    COMPLETED = 'Completed'
 }
 
 export const historySkeleton : Partial<SabNZBDHistoryResponse> = {
-    "noofslots": 220,
-    "ppslots": 1,
-    "day_size": "1.9 G",
-    "week_size": "30.4 G",
-    "month_size": "167.3 G",
-    "total_size": "678.1 G",
-    "last_history_update": 1469210913,
+    'noofslots': 220,
+    'ppslots': 1,
+    'day_size': '1.9 G',
+    'week_size': '30.4 G',
+    'month_size': '167.3 G',
+    'total_size': '678.1 G',
+    'last_history_update': 1469210913,
 }
 
 export const historyEntrySkeleton : Partial<SABNZBDHistoryEntryResponse> = {
-    "action_line": "",
-    "meta": null,
-    "fail_message": "",
-    "loaded": false,
-    "category": "iplayer",
-    "pp": "D",
-    "retry": 0,
-    "script": "None",
-    "download_time": 64,
-    "has_rating": false,
-    "status": HistoryStatus.COMPLETED,
-    "script_line": "",
-    "report": "",
-    "password": "",
-    "postproc_time": 40,
-    "md5sum": "d2c16aeecbc1b1921d04422850e93013",
-    "archive": false,
-    "url_info": "",
-    "stage_log": []
+    'action_line': '',
+    'meta': null,
+    'fail_message': '',
+    'loaded': false,
+    'category': 'iplayer',
+    'pp': 'D',
+    'retry': 0,
+    'script': 'None',
+    'download_time': 64,
+    'has_rating': false,
+    'status': HistoryStatus.COMPLETED,
+    'script_line': '',
+    'report': '',
+    'password': '',
+    'postproc_time': 40,
+    'md5sum': 'd2c16aeecbc1b1921d04422850e93013',
+    'archive': false,
+    'url_info': '',
+    'stage_log': []
 }
 
 export interface SabNZBDHistoryResponse {

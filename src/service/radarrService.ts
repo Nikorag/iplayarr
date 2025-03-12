@@ -1,17 +1,17 @@
-import { IplayarrParameter } from "../types/IplayarrParameters";
-import { CreateDownloadClientForm } from "../types/requests/form/CreateDownloadClientForm";
-import { CreateIndexerForm } from "../types/requests/form/CreateIndexerForm";
-import { DownloadClientResponse } from "../types/responses/arr/DownloadClientResponse";
-import { IndexerResponse } from "../types/responses/arr/IndexerResponse";
-import arrService, { ArrConfig } from "./arrService";
-import { getParameter } from "./configService";
+import { IplayarrParameter } from '../types/IplayarrParameters';
+import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
+import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';
+import { DownloadClientResponse } from '../types/responses/arr/DownloadClientResponse';
+import { IndexerResponse } from '../types/responses/arr/IndexerResponse';
+import arrService, { ArrConfig } from './arrService';
+import configService from './configService';
 
 const radarrService = {
     getConfig: async (): Promise<ArrConfig> => {
-        const API_KEY = await getParameter(IplayarrParameter.RADARR_API_KEY) as string;
-        const HOST = await getParameter(IplayarrParameter.RADARR_HOST) as string;
-        const RADARR_DOWNLOAD_CLIENT_ID = await getParameter(IplayarrParameter.RADARR_DOWNLOAD_CLIENT_ID);
-        const RADARR_INDEXER_ID = await getParameter(IplayarrParameter.RADARR_INDEXER_ID);
+        const API_KEY = await configService.getParameter(IplayarrParameter.RADARR_API_KEY) as string;
+        const HOST = await configService.getParameter(IplayarrParameter.RADARR_HOST) as string;
+        const RADARR_DOWNLOAD_CLIENT_ID = await configService.getParameter(IplayarrParameter.RADARR_DOWNLOAD_CLIENT_ID);
+        const RADARR_INDEXER_ID = await configService.getParameter(IplayarrParameter.RADARR_INDEXER_ID);
 
         return {
             API_KEY,
@@ -22,7 +22,7 @@ const radarrService = {
     },
 
     getDownloadClient : async() : Promise<DownloadClientResponse | undefined> => {
-        const client_id = await getParameter(IplayarrParameter.RADARR_DOWNLOAD_CLIENT_ID);
+        const client_id = await configService.getParameter(IplayarrParameter.RADARR_DOWNLOAD_CLIENT_ID);
         if (client_id){
             const config : ArrConfig = await radarrService.getConfig();
             return await arrService.getDownloadClient(parseInt(client_id), config);
@@ -42,7 +42,7 @@ const radarrService = {
     },
 
     getIndexer : async() : Promise<IndexerResponse | undefined> => {
-        const client_id = await getParameter(IplayarrParameter.RADARR_INDEXER_ID);
+        const client_id = await configService.getParameter(IplayarrParameter.RADARR_INDEXER_ID);
         if (client_id){
             const config : ArrConfig = await radarrService.getConfig();
             return await arrService.getIndexer(parseInt(client_id), config);

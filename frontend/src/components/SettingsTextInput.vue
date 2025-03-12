@@ -66,64 +66,68 @@ watch(
 );
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .form-group {
     display: flex;
     max-width: 650px;
     margin-bottom: 1rem;
-}
 
-.form-group label {
-    flex: 0 0 250px;
-    display: flex;
-    justify-content: flex-end;
-    margin-right: 20px;
-    padding-top: 8px;
-    min-height: 35px;
-    text-align: end;
-    font-weight: bold;
-    font-size: 14px;
-    color: rgb(204, 204, 204);
-}
+    label {
+        flex: 0 0 250px;
+        display: flex;
+        justify-content: flex-end;
+        margin-right: 20px;
+        padding-top: 8px;
+        min-height: 35px;
+        text-align: end;
+        font-weight: bold;
+        font-size: 14px;
+        color: @table-text-color;
 
-@media (max-width: 768px) {
-    .form-group label {
-        flex: 0 0 80px;
+        @media (max-width: @mobile-breakpoint) {
+            flex: 0 0 80px;
+        }
     }
-}
 
-.form-group .inputBox {
-    flex: 1 1 auto;
-    box-sizing: border-box;
-}
+    .inputBox {
+        flex: 1 1 auto;
+        box-sizing: border-box;
 
-.form-group .inputBox input {
-    box-sizing: border-box;
-    padding: 6px 16px;
-    width: 100%;
-    height: 35px;
-    border: 1px solid #dde6e9;
-    border-radius: 4px;
-    background-color: rgb(51, 51, 51);
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-    color: white;
-}
+        input {
+            box-sizing: border-box;
+            padding: 6px 16px;
+            width: 100%;
+            height: 35px;
+            border: 1px solid @input-border-color;
+            border-radius: 4px;
+            background-color: @input-background-color;
+            box-shadow: inset 0 1px 1px @primary-box-shadow;
+            color: @input-text-color;
+        }
 
-.form-group .inputBox.error input {
-    border-color: red;
-}
+        &.error {
+            font-size: 14px;
+            color: @error-color;
 
-.form-group .tooltip {
-    font-size: 14px;
-    color: #909293;
-}
+            input {
+                border-color: @error-color;
+            }
+        }
+    }
 
-.error {
-    font-size: 14px;
-    color: red;
-}
+    .tooltip {
+        font-size: 14px;
+        color: @subtle-text-color;
+    }
 
-.advanced label, .advanced .tooltip {
-    color: #ffa500;
+    &.advanced {
+        label {
+            color: @warn-color;
+        }
+
+        .tooltip {
+            color: @warn-color;
+        }
+    }
 }
 </style>

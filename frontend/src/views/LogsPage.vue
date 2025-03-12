@@ -1,88 +1,49 @@
 <template>
-    <div class="logs-content">
-      <p v-if="filter.length > 0">
-          Applied Filters: {{ filter.join(",")}}
-      </p>
-      <div>
-        <label for="follow">Follow?</label>
-        <input type="checkbox" id="follow" v-model="followlog"/>
-      </div>
-      <ul ref="logView">
-          <li v-for="log in filteredLogs" :key="`${log.id}_${log.timestamp}`">
-            <pre :class="log.level">[ {{ log.id }} ] - {{ log.timestamp }} - {{ log.message.trim() }}</pre>  
-          </li>
-      </ul>
-    </div>
+  <SettingsPageToolbar :icons="['follow', 'filter']" :follow-status="followlog" @toggle-follow="toggleFollow" :filter-enabled="filter != null" :filter-options="availableFilters" :selected-filter="selectedFilter" @select-filter="selectFilter"/>
+  <div class="inner-content">
+    <LogPanel :filter="filter" :follow="followlog"/>
+  </div>
 </template>
 
 <script setup>
-import { inject, computed, ref, watch, nextTick } from 'vue';
+import LogPanel from '@/components/LogPanel.vue';
+import SettingsPageToolbar from '@/components/SettingsPageToolbar.vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-const logs = inject('logs');
 const route = useRoute();
-const logView = ref(null);
+
 const followlog = ref(true);
 
-const filter = ref([]);
+const filter = ref(null);
+const defaultAvailableFilter = [
+  'ALL',
+  'INFO',
+  'DEBUG',
+  'ERROR'
+];
+const availableFilters = ref(defaultAvailableFilter);
 
-// Update filter when the route query changes
 watch(() => route.query.filter, (newFilter) => {
-    filter.value = newFilter ? newFilter.split(',') : [];
+  availableFilters.value = defaultAvailableFilter;
+  if (newFilter){
+    availableFilters.value.push(newFilter);
+    filter.value = newFilter;
+  } else {
+    filter.value = null;
+  }
 }, { immediate: true });
 
-const filteredLogs = computed(() => 
-    filter.value.length === 0 
-        ? logs.value 
-        : logs.value.filter(log => filter.value.includes(log.id))
-);
+const selectedFilter = computed(() => {
+  return filter.value == null ? 'ALL' : filter.value;
+});
 
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (logView.value) {
-      logView.value.scrollTop = logView.value.scrollHeight;
-    }
-  });
-};
+const toggleFollow = () => {
+  followlog.value = !followlog.value
+}
 
-watch(filteredLogs, () => {
-    if (followlog.value) {
-      scrollToBottom();
-    }
-}, { deep: true });
+const selectFilter = (option) => {
+  filter.value = option == 'ALL' ? null : option;
+}
 
 </script>
-
-<style scoped>
-.logs-content {
-  padding: 1rem;
-}
-
-ul {
-    list-style: none;
-    font-family: monospace;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: black;
-    padding: 2rem;
-    line-break: loose;
-    max-height: 75vh;
-    overflow-y: auto;
-    max-width: 80%;
-}
-pre {
-  margin: 0px;
-}
-
-pre.INFO { 
-  color: #00853d;
-}
-
-pre.DEBUG {
-  color: #ffa500;
-}
-
-pre.ERROR {
-  color: #f05050;
-}
-</style>

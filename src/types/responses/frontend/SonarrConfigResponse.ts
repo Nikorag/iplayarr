@@ -1,5 +1,5 @@
-import { DownloadClientResponse } from "../arr/DownloadClientResponse";
-import { IndexerResponse } from "../arr/IndexerResponse";
+import { DownloadClientResponse } from '../arr/DownloadClientResponse';
+import { IndexerResponse } from '../arr/IndexerResponse';
 
 export interface SonarrConfigResponse {
     url : string,

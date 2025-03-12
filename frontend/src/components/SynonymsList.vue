@@ -45,72 +45,68 @@
     }
 </script>
 
-<style>
+<style lang="less">
     .synonymButton {
         width: 290px;
-        background-color: rgb(51, 51, 51);
+        background-color: @nav-active-background-color;
 
         position: relative;
         margin: 10px;
         padding: 10px;
         border-radius: 3px;
-        box-shadow: 0 0 10px 1px #111;
+        box-shadow: 0 0 10px 1px @primary-box-shadow;
 
         outline: none;
         border: 0;
         text-decoration: none;
         text-align: left;
-        color: white;
+        color: @primary-text-color;
         height: 100px;
-    }
 
-    @media (min-width: 768px) {
-        .synonymButton {
+        @media (min-width: @mobile-breakpoint) {
             float: left;
         }
-    }
 
-    @media (max-width: 768px) {
-        .synonymButton {
+        @media (max-width: @mobile-breakpoint) {
             display: block;
             margin-left: auto;
             margin-right: auto;
         }
-    }
 
-    .addSynonymButton {
-        text-align: center;
-    }
+        &.addSynonymButton {
+            text-align: center;
 
-    .synonymCenter {
-        display: inline-block;
-        padding: 5px 20px 0;
-        border: 1px solid #858585;
-        border-radius: 4px;
-        background-color: rgb(42, 42, 42);
-        color: white;
-        font-size: 45px;
-    }
-    
-    .synonymName {
-        font-size: 24px;
-    }
+            .synonymCenter {
+                display: inline-block;
+                padding: 5px 20px 0;
+                border: 1px solid @table-border-color;
+                border-radius: 4px;
+                background-color: @nav-background-color;
+                color: white;
+                font-size: 45px;
+            }
+        }
 
-    .synonymTarget {
-        font-size: 18px;
-    }
+        .synonymName {
+            font-size: 24px;
+        }
 
-    .synonymExemptions {
-        font-size: 14px;
-    }
+        .synonymTarget {
+            font-size: 18px;
+        }
 
-    .actionContainer {
-        text-align: right;
-    }
+        .synonymExemptions {
+            font-size: 14px;
+        }
 
-    .actionContainer button {
-        background: none;
-        border: none;
-        color: white;
+        .actionContainer {
+            text-align: right;
+
+            button {
+                background: none;
+                border: none;
+                color: white;
+            }
+        }
     }
 </style>

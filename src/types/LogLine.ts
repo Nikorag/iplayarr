@@ -6,7 +6,7 @@ export interface LogLine {
 }
 
 export enum LogLineLevel {
-    INFO = "INFO",
-    ERROR = "ERROR",
-    DEBUG = "DEBUG"
+    INFO = 'INFO',
+    ERROR = 'ERROR',
+    DEBUG = 'DEBUG'
 }

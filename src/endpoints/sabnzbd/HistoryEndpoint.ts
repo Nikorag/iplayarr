@@ -1,12 +1,15 @@
-import { Request, Response, NextFunction } from "express"
-import { EndpointDirectory } from "../EndpointDirectory"
-import { TrueFalseResponse } from "../../types/responses/sabnzbd/TrueFalseResponse"
-import historyService from "../../service/historyService"
-import { getParameter } from "../../service/configService"
-import { IplayarrParameter } from "../../types/IplayarrParameters"
-import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, SabNZBDHistoryResponse } from "../../types/responses/sabnzbd/HistoryResponse"
-import { formatBytes } from "../../utils/Utils"
-import { QueueEntry } from "../../types/QueueEntry"
+import { NextFunction,Request, Response } from 'express'
+
+import configService from '../../service/configService'
+import historyService from '../../service/historyService'
+import { IplayarrParameter } from '../../types/IplayarrParameters'
+import { QueueEntry } from '../../types/QueueEntry'
+import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, SabNZBDHistoryResponse } from '../../types/responses/sabnzbd/HistoryResponse'
+import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse'
+import { formatBytes } from '../../utils/Utils'
+import { EndpointDirectory } from '../EndpointDirectory'
+
+const sizeFactor : number = 1048576; 
 
 interface HistoryQuery {
     name? : string
@@ -20,7 +23,7 @@ export default async (req : Request, res : Response, next : NextFunction) => {
         return
     } else {
         const history : QueueEntry[] = await historyService.getHistory();
-        const completeDir : string = await getParameter(IplayarrParameter.COMPLETE_DIR) as string;
+        const completeDir : string = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
 
         const historyObject : SabNZBDHistoryResponse = {
             ...historySkeleton,
@@ -34,21 +37,21 @@ function createHistoryEntry(completeDir : string, item : QueueEntry) : SABNZBDHi
     return {
         ...historyEntrySkeleton,
         duplicate_key : item.pid,
-        size : formatBytes(item.details?.size as number),
+        size : formatBytes(item.details?.size as number * sizeFactor),
         nzb_name: `${item.nzbName}.nzb`,
         storage : `${completeDir}/${item.nzbName}.mp4`,
-        completed : item.details?.size as number,
-        downloaded : item.details?.size as number,
+        completed : item.details?.size as number * sizeFactor,
+        downloaded : item.details?.size as number * sizeFactor,
         nzo_id: item.pid,
         path : `${completeDir}/${item.nzbName}.mp4`,
         name: `${item.nzbName}.mp4`,
         url: `${item.nzbName}.nzb`,
-        bytes: item.details?.size as number
+        bytes: item.details?.size as number * sizeFactor
     } as SABNZBDHistoryEntryResponse
 }
 
 const actionDirectory : EndpointDirectory = {
-    delete : async (req : Request, res : Response, next : NextFunction) => {
+    delete : async (req : Request, res : Response) => {
         const {value} = req.query as HistoryQuery;
         if (value){
             await historyService.removeHistory(value)

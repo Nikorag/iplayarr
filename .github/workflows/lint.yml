@@ -29,6 +29,12 @@ jobs:
       - name: Install Node.js dependencies
         run: npm run install:both
 
+      - name: Reset any package-lock changes backend
+        run: git checkout -- package-lock.json
+
+      - name: Reset any package-lock changes frontend
+        run: git checkout -- frontend/package-lock.json  
+
       - name: Run linters
         uses: wearerequired/lint-action@v2
         with:

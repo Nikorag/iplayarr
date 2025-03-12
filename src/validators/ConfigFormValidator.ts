@@ -1,6 +1,6 @@
 import Handlebars from 'handlebars';
 
-import sabzbdService from '../service/sabnzbdService';
+import nzbFacade from '../facade/nzbFacade';
 import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
 import { Validator } from './Validator';
 
@@ -35,11 +35,19 @@ export class ConfigFormValidator extends Validator {
         if (!this.compilesSuccessfully(input.MOVIE_FILENAME_TEMPLATE)){
             validatorError['MOVIE_FILENAME_TEMPLATE'] = 'Template does not compile';
         }
-        if (input.SABNZBD_URL || input.SABNZBD_API_KEY){
-            const response : string | boolean = await sabzbdService.testConnection(input.SABNZBD_URL, input.SABNZBD_API_KEY);
+        if (input.NZB_URL || input.NZB_API_KEY || input.NZB_TYPE || input.NZB_USERNAME || input.NZB_PASSWORD){
+            const response : string | boolean = await nzbFacade.testConnection(
+                input.NZB_TYPE,
+                input.NZB_URL,
+                input.NZB_API_KEY,
+                input.NZB_USERNAME,
+                input.NZB_PASSWORD
+            )
             if (response != true){
-                validatorError['SABNZBD_URL'] = response as string;
-                validatorError['SABNZBD_API_KEY'] = response as string;
+                validatorError['NZB_URL'] = response as string;
+                validatorError['NZB_API_KEY'] = response as string;
+                validatorError['NZB_USERNAME'] = response as string;
+                validatorError['NZB_PASSWORD'] = response as string;
             }
         }
         return validatorError;

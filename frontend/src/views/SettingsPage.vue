@@ -27,32 +27,10 @@
                 tooltip="Extra parameters to pass to get_iplayer for download"
                 v-model="config.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS"
                 :error="validationErrors.config?.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS" />
+                <NZBSettings @config-updated="processNZBUpdate" :validationErrors="validationErrors"/>
         </template>
 
-        <template v-if="showAdvanced">
-            <div class="sabnzbd-settings">
-                <legend class="sub">SABNzbd Passthrough</legend>
-                <p>If your *arr client accidentally sends a real NZB, Where should it be forwarded?</p>
-                <SettingsTextInput name="SABNzbd URL" tooltip="URL For SABNzbd passthrough" v-model="config.SABNZBD_URL"
-                    :error="validationErrors.config?.SABNZBD_URL" :advanced="true" />
-                <SettingsTextInput name="SABNzbd Api Key" tooltip="API Key for SABNzbd passthrough"
-                    v-model="config.SABNZBD_API_KEY" :error="validationErrors.config?.SABNZBD_API_KEY"
-                    :advanced="true" />
-                    <div class="button-container">
-                        <button class="test-button" @click="testSAB">
-                            <template v-if="sabStatus == 'INITIAL'">
-                                Test {{ name }}
-                            </template>
-                            <template v-if="sabStatus == 'PENDING'">
-                                <font-awesome-icon class="test-pending" :icon="['fas', 'spinner']" />
-                            </template>
-                            <template v-if="sabStatus == 'SUCCESS'">
-                                <font-awesome-icon class="test-success" :icon="['fas', 'check']" />
-                            </template>
-                        </button>
-                    </div>    
-            </div>
-        </template>
+        
 
         <legend class="sub">Authentication</legend>
         <SettingsTextInput name="Username" tooltip="The Login Username." v-model="config.AUTH_USERNAME"
@@ -76,6 +54,7 @@ import { onMounted, ref, watch, computed } from 'vue';
 import { ipFetch } from '@/lib/ipFetch';
 import SettingsSelectInput from '@/components/SettingsSelectInput.vue';
 import { onBeforeRouteLeave } from 'vue-router';
+import NZBSettings from '@/components/NZBSettings.vue';
 
 const loading = ref(false);
 
@@ -100,8 +79,6 @@ const validationErrors = ref({
 });
 
 const qualityProfiles = ref([]);
-
-const sabStatus = ref('INITIAL');
 
 const saveEnabled = computed(() => {
     return configChanges.value || sonarrChanges.value || radarrChanges.value;
@@ -171,17 +148,12 @@ const toggleAdvanced = () => {
     showAdvanced.value = !showAdvanced.value;
 }
 
-const testSAB = async () => {
-    sabStatus.value = "PENDING";
-    const {SABNZBD_URL, SABNZBD_API_KEY} = config.value;
-    const {data, ok} = await ipFetch('json-api/sabnzbd/test', 'POST', {SABNZBD_URL, SABNZBD_API_KEY});
-    if (!ok){
-        alert(`Error Connecting to SABNzbd : ${data.message}`);
-        sabStatus.value = "INITIAL";
-    } else {
-        sabStatus.value = "SUCCESS";
+const processNZBUpdate = ((update) => {
+    config.value = {
+        ...config.value,
+        ...update
     }
-}
+});
 
 onBeforeRouteLeave((_, __, next) => {
     if (saveEnabled.value) {
@@ -192,20 +164,10 @@ onBeforeRouteLeave((_, __, next) => {
         }
     }
     next();
-})
+});
 </script>
 
 <style lang="less">
-.sabnzbd-settings {
-    legend {
-        color: @warn-color;
-    }
-
-    p {
-        color: @warn-color;
-    }
-}
-
 .button-container {
     justify-content: flex-end;
     text-align: right;

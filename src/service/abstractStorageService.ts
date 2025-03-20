@@ -12,7 +12,7 @@ if (process.env.STORAGE_LOCATION){
     storageOptions.dir = process.env.STORAGE_LOCATION;
 }
 
-export default abstract class AbstractStorageService<T extends AbstractStoredType> extends AbstractExposedService<T> {
+export default abstract class AbstractStorageService<T extends AbstractStoredType> extends AbstractExposedService<string, T> {
     type : string;
 
     constructor(type : string){
@@ -32,10 +32,8 @@ export default abstract class AbstractStorageService<T extends AbstractStoredTyp
         return all.find((item) => item.id == id);
     }
 
-    async setItem(value: T): Promise<T> {
-        if (!value.id){
-            value.id = v4();
-        }
+    async setItem(id : string | undefined, value: T): Promise<T> {
+        value.id = id ?? v4();
         let all = await this.all();
         all = all.filter(({id}) => id != value.id);
         all.push(value);
@@ -43,7 +41,7 @@ export default abstract class AbstractStorageService<T extends AbstractStoredTyp
         return value;
     }
 
-    async updateItem(value: Partial<T>): Promise<T | undefined> {
+    async updateItem(id : string | undefined, value: Partial<T>): Promise<T | undefined> {
         if (value.id){
             let existing : T | undefined = await this.getItem(value.id);
             if (existing){
@@ -52,7 +50,7 @@ export default abstract class AbstractStorageService<T extends AbstractStoredTyp
                     ...value
                 }
                 await this.removeItem(value.id)
-                await this.setItem(existing);
+                await this.setItem(value.id, existing);
                 return existing;
             }
         }

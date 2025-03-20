@@ -17,11 +17,11 @@ export class AbstractStorageRoute<T extends AbstractStoredType> extends Abstract
     }
 
     async create(t : T) : Promise<T | ApiResponse> {
-        return this.service.setItem(t);
+        return this.service.setItem(t.id, t);
     }
 
     async update(form : Partial<T>) : Promise<T | ApiResponse> {
-        const response : T | undefined = await this.service.updateItem(form);
+        const response : T | undefined = await this.service.updateItem(form.id, form);
         if (response){
             return response;
         } else {

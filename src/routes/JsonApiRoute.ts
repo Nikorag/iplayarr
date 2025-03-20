@@ -1,10 +1,10 @@
 import { Request, Response, Router } from 'express';
 
-import nzbFacade from '../facade/nzbFacade';
+import historyService from '../service/historyService';
 import iplayerService from '../service/iplayerService';
 import queueService from '../service/queueService';
-import { ApiError, ApiResponse } from '../shared/types/responses/ApiResponse';
 import { IPlayerSearchResult } from '../shared/types/responses/iplayer/IPlayerSearchResult';
+import { AbstractStorageRoute } from './json-api/AbstractStorageRoute';
 import AppsRoute from './json-api/AppsRoute';
 import OffScheduleRoute from './json-api/OffScheduleRoute';
 import QueueRoute from './json-api/QueueRoute';
@@ -14,22 +14,13 @@ import SynonymsRoute from './json-api/SynonymsRoute';
 const router : Router = Router();
 
 router.use('/synonyms', SynonymsRoute);
-
-router.use('/config', SettingsRoute);
-router.use('/synonym', SynonymsRoute);
-router.use('/queue', QueueRoute);
 router.use('/offSchedule', OffScheduleRoute);
 router.use('/apps', AppsRoute)
 
-router.post('/nzb/test', async (req : Request, res : Response) => {
-    const {NZB_URL, NZB_API_KEY, NZB_TYPE, NZB_USERNAME, NZB_PASSWORD} = req.body;
-    const result : string | boolean = await nzbFacade.testConnection(NZB_TYPE, NZB_URL, NZB_API_KEY, NZB_USERNAME, NZB_PASSWORD);
-    if (result == true){
-        res.json({status : true});
-    } else {
-        res.status(500).json({error: ApiError.INTERNAL_ERROR, message : result} as ApiResponse)
-    }
-});
+router.use('/config', SettingsRoute);
+router.use('/queue', QueueRoute);
+router.use('/history', new AbstractStorageRoute(historyService).router);
+
 
 router.get('/search', async (req : Request, res : Response) => {
     const {q} = req.query as any;

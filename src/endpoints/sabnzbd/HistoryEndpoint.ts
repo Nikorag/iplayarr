@@ -22,8 +22,8 @@ export default async (req : Request, res : Response, next : NextFunction) => {
         actionDirectory[name](req, res, next);
         return
     } else {
-        const history : QueueEntry[] = await historyService.getHistory();
-        const completeDir : string = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
+        const history : QueueEntry[] = await historyService.all();
+        const completeDir : string = await configService.getItem(IplayarrParameter.COMPLETE_DIR) as string;
 
         const historyObject : SabNZBDHistoryResponse = {
             ...historySkeleton,
@@ -54,7 +54,7 @@ const actionDirectory : EndpointDirectory = {
     delete : async (req : Request, res : Response) => {
         const {value} = req.query as HistoryQuery;
         if (value){
-            await historyService.removeHistory(value)
+            await historyService.removeItem(value)
             res.json({status:true} as TrueFalseResponse);
         } else {
             res.json({status:false} as TrueFalseResponse);

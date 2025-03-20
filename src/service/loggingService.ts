@@ -19,7 +19,7 @@ const loggingService = {
     },
 
     debug: (...params : any[]) => {
-        configService.getParameter(IplayarrParameter.DEBUG).then((debug) => {
+        configService.getItem(IplayarrParameter.DEBUG).then((debug) => {
             const message = joinOrReturn(params);
             if (debug && debug.toLowerCase() == 'true'){
                 console.log(...params);

@@ -6,7 +6,7 @@
     <TextInput v-model="config.DOWNLOAD_DIR" name="Download Directory" tooltip="Directory for in-progress Downloads." :error="validationErrors.config?.DOWNLOAD_DIR" />
     <TextInput v-model="config.COMPLETE_DIR" name="Complete Directory" tooltip="Directory for completed Downloads." :error="validationErrors.config?.COMPLETE_DIR" />
     <TextInput v-model="config.ACTIVE_LIMIT" name="Download Limit" tooltip="The number of simultaneous downloads." type-override="number" :error="validationErrors.config?.ACTIVE_LIMIT" />
-    <SelectInput v-model="config.VIDEO_QUALITY" name="Video Quality" tooltip="Maximum video quality (Where available)" :error="validationErrors.config?.ACTIVE_LIMIT" :options="qualityProfiles" />
+    <SelectInput v-model="config.VIDEO_QUALITY" name="Video Quality" tooltip="Maximum video quality (Where available)" :error="validationErrors.config?.VIDEO_QUALITY" :options="qualityProfiles" />
 
     <template v-if="showAdvanced">
       <TextInput v-model="config.REFRESH_SCHEDULE" :advanced="true" name="Refresh Schedule" tooltip="Cron Expression for schedule refresh." :error="validationErrors.config?.REFRESH_SCHEDULE" />
@@ -31,7 +31,7 @@
 
 <script setup>
 import { v4 } from 'uuid';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, inject,onMounted, ref, watch } from 'vue';
 import { useModal } from 'vue-final-modal'
 import { onBeforeRouteLeave } from 'vue-router';
 
@@ -46,7 +46,8 @@ import { ipFetch } from '@/lib/ipFetch';
 const loading = ref(false);
 let originalApiKey = undefined;
 
-const config = ref({});
+const { config, refreshConfig, updateConfig } = inject('config');
+console.log(`config is ${config}`);
 const configChanges = ref(false);
 const showAdvanced = ref(false);
 
@@ -61,13 +62,9 @@ const saveEnabled = computed(() => {
 })
 
 onMounted(async () => {
-    const [configResponse, qpResponse] = await Promise.all([
-        ipFetch('json-api/config'),
-        ipFetch('json-api/config/qualityProfiles')
-    ]);
-
-    config.value = configResponse.data;
-    originalApiKey = configResponse.data.API_KEY;
+    const qpResponse = await ipFetch('json-api/config/qualityProfiles');
+    await refreshConfig();
+    originalApiKey = config.value.API_KEY;
     qualityProfiles.value = qpResponse.data.map(({ id, name, quality }) => ({ 'key': id, 'value': `${name} (${quality})` }));
 
     watch(config, () => { configChanges.value = true }, { deep: true });
@@ -78,16 +75,14 @@ const saveConfig = async () => {
     if (configChanges.value) {
         validationErrors.value.config = {};
 
-        const configResponse = await ipFetch('json-api/config', 'PUT', config.value);
-
-        if (!configResponse.ok) {
-            const errorData = configResponse.data;
-            validationErrors.value.config = errorData.invalid_fields;
-            return;
-        } else {
-            dialogService.alert('Success', 'Save Successful');
-            configChanges.value = false;
-        }
+        await updateConfig(config.value, 
+            () => {
+                dialogService.alert('Success', 'Save Successful');
+                configChanges.value = false;
+            }, 
+            ({ data }) => {
+                validationErrors.value.config = data.invalid_fields
+            });
     }
 
     loading.value = false;

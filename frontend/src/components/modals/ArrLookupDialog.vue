@@ -46,7 +46,7 @@ const loading = ref(true);
 const filterText = ref('');
 
 onMounted(async () => {
-    const response = await ipFetch(`json-api/synonym/lookup/${props.app.id}${props.term ? `?term=${props.term}` : ''}`);
+    const response = await ipFetch(`json-api/synonyms/lookup/${props.app.id}${props.term ? `?term=${props.term}` : ''}`);
     if (response.ok) {
         results.value = response.data;
         loading.value = false;

@@ -1,40 +1,25 @@
-import { Request, Response, Router } from 'express';
+import { Router } from 'express';
 
-import historyService from '../../service/historyService';
 import queueService from '../../service/queueService';
-import socketService from '../../service/socketService';
 import { QueueEntry } from '../../shared/types/models/QueueEntry';
+import { ApiError, ApiResponse } from '../../shared/types/responses/ApiResponse';
+import { AbstractExposedRoute } from './AbstractExposedRoute';
 
-const router = Router();
+const router : Router = new (class extends AbstractExposedRoute<QueueEntry> {
+    async getAll(): Promise<QueueEntry[] | ApiResponse> {
+        return await queueService.all();
+    }
+    async create(t: QueueEntry): Promise<QueueEntry | ApiResponse> {
+        return await queueService.setItem(t.pid, t);
+    }
+    async update(t: Partial<QueueEntry>): Promise<QueueEntry | ApiResponse> {
+        const response : QueueEntry | undefined = await queueService.updateItem(t.pid as string, t);
+        return response ?? {error: ApiError.INVALID_INPUT};
+    }
+    async delete(pid: string): Promise<void> {
+        await queueService.cancelItem(pid);
+    }
+})().getRouter();
 
-interface DeleteRequest {
-    pid : string
-}
-
-router.get('/queue', (_ : Request, res : Response) => {
-    const queue : QueueEntry[] = queueService.getQueue() || [];
-    res.json(queue);
-});
-
-router.get('/history', async (_ : Request, res : Response) => {
-    const history : QueueEntry[] = await historyService.getHistory() || [];
-    res.json(history);
-});
-
-router.delete('/history', async (req : Request, res : Response) => {
-    const {pid} = req.query as any as DeleteRequest;
-    await historyService.removeHistory(pid);
-    const history = await historyService.getHistory() || [];
-    socketService.emit('history', history);
-    res.json(history);
-});
-
-router.delete('/queue', async (req : Request, res : Response) => {
-    const {pid} = req.query as any as DeleteRequest;
-    queueService.cancelItem(pid);
-    const queue : QueueEntry[] = queueService.getQueue() || [];
-    socketService.emit('queue', queue);
-    res.json(queue);
-});
 
 export default router;

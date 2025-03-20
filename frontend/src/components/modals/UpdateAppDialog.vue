@@ -11,7 +11,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="app of apps" :key="app.id">
+        <tr v-for="app of filteredApps" :key="app.id">
           <td>
             <div class="appDisplay">
               <img class="appImg" :src="`/img/${app.type.toLowerCase()}.svg`">
@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { defineEmits, inject, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed,defineEmits, inject, onBeforeUnmount, onMounted, ref } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
 
@@ -47,10 +47,12 @@ const appStatus = ref({});
 
 const emit = defineEmits(['close'])
 
+const filteredApps = computed(() => {
+    return apps.value.filter(({ type }) => features.value[type]?.includes('callback'));
+});
+
 onMounted(async () => {
     features.value = (await ipFetch('json-api/apps/types')).data;
-
-    apps.value = apps.value.filter(({ type }) => features.value[type].includes('callback'));
 
     if (apps.value.length == 0) {
         emit('close');

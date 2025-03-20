@@ -20,8 +20,8 @@ const socketService = {
     registerSocket : async (socket : Socket) => {
         sockets[socket.id] = socket;
 
-        const queue = queueService.getQueue();
-        const history = await historyService.getHistory();
+        const queue = await queueService.all();
+        const history = await historyService.all();
 
         socket.emit('queue', queue);
         socket.emit('history', history);

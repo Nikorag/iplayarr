@@ -104,6 +104,15 @@ watch(
     flex: 1 1 auto;
     box-sizing: border-box;
 
+    &.error {
+      font-size: 14px;
+      color: @error-color;
+
+      input {
+        border-color: @error-color !important;
+      }
+    }
+
     .inputWithButton {
       position: relative;
       display: flex;
@@ -144,15 +153,6 @@ watch(
         background-color: @input-background-color;
         box-shadow: inset 0 1px 1px @primary-box-shadow;
         color: @input-text-color;
-      }
-
-      &.error {
-        font-size: 14px;
-        color: @error-color;
-
-        input {
-          border-color: @error-color;
-        }
       }
     }
   }

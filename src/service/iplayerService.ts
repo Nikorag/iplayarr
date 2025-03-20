@@ -35,8 +35,8 @@ const timestampFile = 'iplayarr_timestamp';
 const iplayerService = {
     download : async (pid : string) : Promise<ChildProcess> => {
         const uuid : string = v4();
-        const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
-        const completeDir = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
+        const downloadDir = await configService.getItem(IplayarrParameter.DOWNLOAD_DIR) as string;
+        const completeDir = await configService.getItem(IplayarrParameter.COMPLETE_DIR) as string;
 
         const [exec, args] = await getIPlayerExec();
         const additionalParams : string[] = await getAddDownloadParams();
@@ -47,8 +47,8 @@ const iplayerService = {
         loggingService.debug(`Executing get_iplayer with args: ${allArgs.join(' ')}`);
         const downloadProcess = spawn(exec as string, allArgs);
 
-        downloadProcess.stdout.on('data', (data) => {
-            if (queueService.getFromQueue(pid)){
+        downloadProcess.stdout.on('data', async (data) => {
+            if (await queueService.getItem(pid)){
                 const logLine : LogLine = {level : LogLineLevel.INFO, id : pid, message : data.toString(), timestamp : new Date()}
                 socketService.emit('log', logLine);
                 console.log(data.toString());
@@ -72,7 +72,7 @@ const iplayerService = {
                             sizeLeft
                         }
 
-                        queueService.updateQueue(pid, deltaDetails);
+                        queueService.updateItem(pid, {details : deltaDetails});
                     }
                 }
             }
@@ -80,7 +80,7 @@ const iplayerService = {
 
         downloadProcess.on('close', async (code) => {
             if (code === 0) {
-                const queueItem : QueueEntry | undefined = queueService.getFromQueue(pid);
+                const queueItem : QueueEntry | undefined = await queueService.getItem(pid);
                 if (queueItem){
                     try {
                         const uuidPath = path.join(downloadDir, uuid);
@@ -101,13 +101,13 @@ const iplayerService = {
                         loggingService.debug(pid, `Deleting old directory ${uuidPath}`);
                         fs.rmSync(uuidPath, { recursive: true, force: true });
 
-                        await historyService.addHistory(queueItem);
+                        await historyService.setItem(queueItem.pid, queueItem);
                     } catch (err) {
                         loggingService.error(err);
                     }
                 }
             }
-            queueService.removeFromQueue(pid);
+            queueService.removeItem(pid);
         });
 
         return downloadProcess;
@@ -147,7 +147,7 @@ const iplayerService = {
     },
 
     refreshCache: async () => {
-        const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
+        const downloadDir = await configService.getItem(IplayarrParameter.DOWNLOAD_DIR) as string;
         const [exec, args] = await getIPlayerExec();
 
         //Refresh the cache
@@ -353,7 +353,7 @@ function extractSeriesNumber(title : string, series : string) : any[]{
 }
 
 async function getIPlayerExec() : Promise<(string | RegExpMatchArray)[]> {
-    const fullExec : string = await configService.getParameter(IplayarrParameter.GET_IPLAYER_EXEC) as string;
+    const fullExec : string = await configService.getItem(IplayarrParameter.GET_IPLAYER_EXEC) as string;
     const args : RegExpMatchArray = fullExec.match(/(?:[^\s"]+|"[^"]*")+/g) as RegExpMatchArray;
 
     const exec : string = args.shift() as string;
@@ -362,13 +362,13 @@ async function getIPlayerExec() : Promise<(string | RegExpMatchArray)[]> {
 }
 
 async function getQualityParam() : Promise<string> {
-    const videoQuality = await configService.getParameter(IplayarrParameter.VIDEO_QUALITY) as string;
+    const videoQuality = await configService.getItem(IplayarrParameter.VIDEO_QUALITY) as string;
 
     return `--tv-quality=${videoQuality}`;
 }
 
 async function getAddDownloadParams() : Promise<string[]> {
-    const additionalParams = await configService.getParameter(IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS);
+    const additionalParams = await configService.getItem(IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS);
 
     if (additionalParams){
         return additionalParams.split(' ');

@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, inject } from 'vue';
+import { inject,onMounted, ref } from 'vue';
 import { useModal } from 'vue-final-modal'
 
 import ListEditor from '@/components/common/ListEditor.vue';

@@ -48,7 +48,7 @@ const episodeCacheService = {
     recacheSeries : async (series : EpisodeCacheDefinition) : Promise<void> => {
         await episodeCacheService.cacheEpisodesForUrl(series.url);
         series.cacheRefreshed = new Date();
-        await offScheduleService.updateItem(series);
+        await offScheduleService.updateItem(series.id, series);
     },
 
     cacheEpisodesForUrl : async (inputUrl : string) : Promise<boolean> => {

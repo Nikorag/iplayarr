@@ -8,8 +8,8 @@ if (process.env.STORAGE_LOCATION){
 }
 
 class SynonymService extends AbstractStorageService<Synonym> {
-    async setItem(synonym: Synonym): Promise<Synonym> {
-        const updated = await super.setItem(synonym);
+    async setItem(id : string, synonym: Synonym): Promise<Synonym> {
+        const updated = await super.setItem(id, synonym);
         iplayerService.removeFromSearchCache(synonym.target);
         return updated;
     }

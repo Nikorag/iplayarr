@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { defineEmits, onMounted, ref, inject } from 'vue';
+import { defineEmits, inject,onMounted, ref } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
 
@@ -53,7 +53,7 @@ const {apps} = inject('apps');
 const emit = defineEmits(['select']);
 
 onMounted(async () => {
-    searchHistory.value = (await ipFetch('json-api/synonym/searchHistory')).data
+    searchHistory.value = (await ipFetch('json-api/synonyms/searchHistory')).data
 });
 
 const getAppForId = (id) => {

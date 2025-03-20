@@ -1,4 +1,4 @@
-import { AbstractStoredType } from "../../models/AbstractStoredType"
+import { AbstractStoredType } from '../../models/AbstractStoredType'
 
 export interface IPlayerDataLayerResponse {
     header : {

@@ -18,9 +18,9 @@ export default async (req : Request, res : Response, next : NextFunction) => {
         actionDirectory[name](req, res, next);
         return
     } else {
-        const queue : QueueEntry[] = queueService.getQueue();
+        const queue : QueueEntry[] = await queueService.all();
         const downloadQueue : QueueEntry[] = queue.filter(({status}) => status == QueueEntryStatus.DOWNLOADING);
-        const iplayerComplete = await historyService.getHistory();
+        const iplayerComplete = await historyService.all();
         const queueResponse : SabNZBDQueueResponse = {
             ...queueSkeleton,
             status : downloadQueue.length > 0 ? QueueStatus.DOWNLOADING : QueueStatus.IDLE,

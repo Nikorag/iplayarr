@@ -34,11 +34,11 @@ router.put('/', async (req : Request, res : Response) => {
     }
     for (const key of Object.keys(req.body)){
         if (key != 'AUTH_PASSWORD'){
-            await configService.setParameter(key as IplayarrParameter, req.body[key]);
+            await configService.setItem(key as IplayarrParameter, req.body[key]);
         } else {
-            const existingPassword = await configService.getParameter(IplayarrParameter.AUTH_PASSWORD);
+            const existingPassword = await configService.getItem(IplayarrParameter.AUTH_PASSWORD);
             if (existingPassword != req.body[key]){
-                await configService.setParameter(key as IplayarrParameter, md5(req.body[key]));
+                await configService.setItem(key as IplayarrParameter, md5(req.body[key]));
             }
         }
     }

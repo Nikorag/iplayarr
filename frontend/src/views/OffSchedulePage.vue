@@ -60,7 +60,7 @@ const remove = async ({id}) => {
 const saveCacheDefinition = async (form) => {
     const method = form.id ? updateOffschedule : createOffschedule;
     return new Promise((resolve) => {
-        method(form, ({data}) => {
+        method(form, null, ({data}) => {
             dialogService.alert('Validation Error', data.invalid_fields?.url);
             resolve(false);
         }).then(() => resolve(true))

@@ -65,7 +65,7 @@ server.listen(port, () => {
 });
 
 //Cron
-configService.getParameter(IplayarrParameter.REFRESH_SCHEDULE).then((cronSchedule) => {
+configService.getItem(IplayarrParameter.REFRESH_SCHEDULE).then((cronSchedule) => {
     cron.schedule(cronSchedule as string, () => {
         iplayerService.refreshCache();
         episodeCacheService.recacheAllSeries();

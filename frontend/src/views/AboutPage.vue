@@ -46,7 +46,7 @@
 <script setup>
 import { computed, inject } from 'vue';
 
-const hiddenSettings = inject('hiddenSettings');
+const {hiddenSettings} = inject('hiddenSettings');
 
 const isAppleDevice = computed(() => {
     return /Mac|iPhone|iPod|iPad/.test(navigator.userAgent);

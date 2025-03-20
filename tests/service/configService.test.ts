@@ -44,13 +44,13 @@ describe('configService', () => {
     });
 
     it('should get a parameter from the default config if not set', async () => {
-        const parameter = await configService.getParameter(IplayarrParameter.DEBUG);
+        const parameter = await configService.getItem(IplayarrParameter.DEBUG);
         expect(parameter).toBe('false');
     });
 
     it('should get a parameter from environment variables if set', async () => {
         process.env.DEBUG = 'true';
-        const parameter = await configService.getParameter(IplayarrParameter.DEBUG);
+        const parameter = await configService.getItem(IplayarrParameter.DEBUG);
         expect(parameter).toBe('true');
         delete process.env.DEBUG;
     });
@@ -59,7 +59,7 @@ describe('configService', () => {
         (storage as any).config = { [IplayarrParameter.DEBUG]: 'true' };
         (storage.getItem as jest.Mock).mockResolvedValue((storage as any).config);
 
-        const parameter = await configService.getParameter(IplayarrParameter.DEBUG);
+        const parameter = await configService.getItem(IplayarrParameter.DEBUG);
         expect(parameter).toBe('true');
     });
 

@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { defineEmits, onMounted, ref, inject } from 'vue';
+import { defineEmits, inject,onMounted, ref } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
 

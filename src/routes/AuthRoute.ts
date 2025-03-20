@@ -44,8 +44,8 @@ export const addAuthMiddleware = (app : Express) => {
 
 router.post('/login', async (req: Request, res: Response) => {
     const [AUTH_USERNAME, AUTH_PASSWORD] = await Promise.all([
-        configService.getParameter(IplayarrParameter.AUTH_USERNAME),
-        configService.getParameter(IplayarrParameter.AUTH_PASSWORD),
+        configService.getItem(IplayarrParameter.AUTH_USERNAME),
+        configService.getItem(IplayarrParameter.AUTH_PASSWORD),
     ])
     const { username, password } = req.body;
 
@@ -92,8 +92,8 @@ router.post('/resetPassword', async (req : Request, res : Response) => {
     if (token != '' && key == token){
         token = '';
         clearTimeout(resetTimer);
-        await configService.setParameter(IplayarrParameter.AUTH_USERNAME, configService.defaultConfigMap.AUTH_USERNAME);
-        await configService.setParameter(IplayarrParameter.AUTH_PASSWORD, configService.defaultConfigMap.AUTH_PASSWORD)
+        await configService.setItem(IplayarrParameter.AUTH_USERNAME, configService.defaultConfigMap.AUTH_USERNAME);
+        await configService.setItem(IplayarrParameter.AUTH_PASSWORD, configService.defaultConfigMap.AUTH_PASSWORD)
     }
 
     res.json({status : true});

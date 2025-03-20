@@ -11,16 +11,11 @@ import QueueRoute from './json-api/QueueRoute';
 import SettingsRoute from './json-api/SettingsRoute';
 import SynonymsRoute from './json-api/SynonymsRoute';
 
+import { createRoutes } from './RouteUtils';
+
 const router : Router = Router();
 
-router.use('/synonyms', SynonymsRoute);
-router.use('/offSchedule', OffScheduleRoute);
-router.use('/apps', AppsRoute)
-
-router.use('/config', SettingsRoute);
-router.use('/queue', QueueRoute);
-router.use('/history', new AbstractStorageRoute(historyService).router);
-
+createRoutes(router)
 
 router.get('/search', async (req : Request, res : Response) => {
     const {q} = req.query as any;

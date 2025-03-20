@@ -1,4 +1,4 @@
-import { ServiceLibrary } from '@shared/ServiceLibrary.mjs';
+import { ServiceLibrary } from '@shared/ServiceLibrary.ts';
 import { io } from 'socket.io-client';
 import { computed,inject, provide, ref, watch } from 'vue';
 

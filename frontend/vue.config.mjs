@@ -1,7 +1,15 @@
 import { defineConfig } from '@vue/cli-service';
+import path from 'path';
 
 export default defineConfig({
     transpileDependencies: true,
+    configureWebpack: {
+        resolve: {
+            alias: {
+                '@shared': path.resolve(process.cwd(), '../src/shared')
+            }
+        }
+    },
     css: {
         loaderOptions: {
             less: {

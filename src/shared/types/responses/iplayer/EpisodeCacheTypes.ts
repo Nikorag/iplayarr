@@ -1,3 +1,5 @@
+import { AbstractStoredType } from "../../models/AbstractStoredType"
+
 export interface IPlayerDataLayerResponse {
     header : {
         title : string,
@@ -27,8 +29,7 @@ export interface IPlayerDataLayerResponse {
     }
 }
 
-export interface EpisodeCacheDefinition {
-    id : string,
+export interface EpisodeCacheDefinition extends AbstractStoredType {
     url : string,
     name : string,
     cacheRefreshed? : Date

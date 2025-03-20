@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { Builder } from 'xml2js';
 
-import { VideoType } from '../../types/IPlayerSearchResult';
-import { NZBFileResponse, NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
+import { VideoType } from '../../shared/types/responses/iplayer/IPlayerSearchResult';
+import { NZBFileResponse, NZBMetaEntry } from '../../shared/types/responses/newznab/NZBFileResponse';
 
 interface DownloadNZBRequest {
     pid : string,

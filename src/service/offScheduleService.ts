@@ -1,0 +1,8 @@
+import { EpisodeCacheDefinition } from '../shared/types/responses/iplayer/EpisodeCacheTypes';
+import AbstractStorageService from './abstractStorageService';
+
+class OffScheduleService extends AbstractStorageService<EpisodeCacheDefinition> {
+
+}
+
+export default new OffScheduleService('series-cache-definition');

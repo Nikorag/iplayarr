@@ -3,8 +3,8 @@ import { AxiosResponse } from 'axios';
 import loggingService from '../service/loggingService';
 import nzbGetService from '../service/nzbgetService';
 import sabzbdService from '../service/sabnzbdService';
-import { App } from '../types/App';
-import { AppType } from '../types/AppType';
+import { AppType } from '../shared/types/enums/AppType';
+import { App } from '../shared/types/models/App';
 
 const nzbFacade = {
     testConnection : async (type : string, url : string, apiKey? : string, username? : string, password? : string) : Promise<string | boolean> => {

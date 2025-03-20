@@ -1,29 +1,29 @@
-import { Request, Response,Router } from 'express';
+import { Request, Response } from 'express';
 
+import AbstractStorageService from '../../service/abstractStorageService';
 import appService from '../../service/appService';
-import { App } from '../../types/App';
-import { appFeatures } from '../../types/AppType';
-import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
+import { appFeatures } from '../../shared/types/enums/AppType';
+import { App } from '../../shared/types/models/App';
+import { ApiError, ApiResponse } from '../../shared/types/responses/ApiResponse';
 import { AppFormValidator } from '../../validators/AppFormValidator';
+import { AbstractStorageRoute } from './AbstractStorageRoute';
 
-const router = Router();
+const route = new (class extends AbstractStorageRoute<App>{
+    create(app: App): Promise<App | ApiResponse> {
+        return this.upsert(app, 'setItem');
+    }
 
-router.get('/', async (_, res : Response) => {
-    const allApps : App[] = await appService.getAllApps();
-    res.json(allApps);
-});
+    update(app: App): Promise<App | ApiResponse> {
+        return this.upsert(app, 'updateItem');
+    }
 
-const updateApp = async (req : Request, res : Response) => {
-    const appServiceMethod = req.method === 'POST' ? 'addApp' : 'updateApp';
-    const appFormValidator : AppFormValidator = new AppFormValidator();
-    const form : App = req.body as any as App;
-    const validationResult = await appFormValidator.validate(form);
-    if (Object.keys(validationResult).length == 0){
-        const updatedForm : App | undefined = await appService[appServiceMethod](form);
+    async upsert(app : App, appServiceMethod : keyof AbstractStorageService<App>) : Promise<App | ApiResponse> {
+        const updatedForm : App | undefined = await (this.service[appServiceMethod] as any)(app);
         if (updatedForm){
             try {
                 await appService.createUpdateIntegrations(updatedForm);
             } catch (err : any) {
+                const validationResult : Record<string, string> = {};
                 if (err.type == 'download_client'){
                     validationResult['download_client_name'] = err?.message;
                 } else {
@@ -32,44 +32,29 @@ const updateApp = async (req : Request, res : Response) => {
                 }
 
                 //Delete the half complete app if it's new
-                if (req.method === 'POST'){
-                    await appService.removeApp(updatedForm.id);
+                if (appServiceMethod === 'setItem'){
+                    await appService.removeItem(updatedForm.id);
                 }
                 
                 const apiResponse : ApiResponse = {
                     error : ApiError.INVALID_INPUT,
                     invalid_fields : validationResult
                 }
-                res.status(400).json(apiResponse);
-                return;
+                return apiResponse;
             } 
-            res.json(updatedForm);
+            return updatedForm;
         } else {
+            const validationResult : Record<string, string> = {};
             validationResult['name'] = 'Error Saving App';
             const apiResponse : ApiResponse = {
                 error : ApiError.INVALID_INPUT,
                 invalid_fields : validationResult
             }
-            res.status(400).json(apiResponse);
+            return apiResponse;
         }
-    } else {
-        const apiResponse : ApiResponse = {
-            error : ApiError.INVALID_INPUT,
-            invalid_fields : validationResult
-        }
-        res.status(400).json(apiResponse);
-        return;
     }
-};
-
-router.post('/', updateApp);
-router.put('/', updateApp);
-
-router.delete('/', async (req : Request, res : Response) => {
-    const {id} = req.body;
-    await appService.removeApp(id);
-    res.json(true);
-});
+})(appService, new AppFormValidator());
+const router = route.getRouter();
 
 router.get('/types', async (_, res :Response) => {
     res.json(appFeatures);

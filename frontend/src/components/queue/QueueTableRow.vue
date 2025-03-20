@@ -70,7 +70,7 @@ defineProps({
     }
 });
 
-const apps = inject('apps');
+const {apps} = inject('apps');
 
 const trash = async (pid) => {
     if (await dialogService.confirm('Delete', 'Are you sure you want to delete this history item?')) {

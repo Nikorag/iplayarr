@@ -3,8 +3,8 @@ import { Request, Response, Router } from 'express';
 import nzbFacade from '../facade/nzbFacade';
 import iplayerService from '../service/iplayerService';
 import queueService from '../service/queueService';
-import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
-import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
+import { ApiError, ApiResponse } from '../shared/types/responses/ApiResponse';
+import { IPlayerSearchResult } from '../shared/types/responses/iplayer/IPlayerSearchResult';
 import AppsRoute from './json-api/AppsRoute';
 import OffScheduleRoute from './json-api/OffScheduleRoute';
 import QueueRoute from './json-api/QueueRoute';
@@ -12,6 +12,8 @@ import SettingsRoute from './json-api/SettingsRoute';
 import SynonymsRoute from './json-api/SynonymsRoute';
 
 const router : Router = Router();
+
+router.use('/synonyms', SynonymsRoute);
 
 router.use('/config', SettingsRoute);
 router.use('/synonym', SynonymsRoute);

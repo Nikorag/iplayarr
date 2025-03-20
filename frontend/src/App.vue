@@ -11,7 +11,7 @@
 
 <script setup>
 import { io } from 'socket.io-client';
-import { inject, provide, ref, watch } from 'vue';
+import { inject, provide, ref } from 'vue';
 import { ModalsContainer } from 'vue-final-modal';
 import { RouterView } from 'vue-router';
 
@@ -20,6 +20,7 @@ import { ipFetch } from '@/lib/ipFetch';
 import LeftHandNav from './components/common/LeftHandNav.vue';
 import NavBar from './components/common/NavBar.vue';
 import { enforceMaxLength } from './lib/utils';
+import JsonApiLoader from './lib/JsonApiLoader';
 
 const authState = inject('authState');
 const [queue, history, logs, socket, hiddenSettings] = [ref([]), ref([]), ref([]), ref(null), ref({})];
@@ -73,11 +74,14 @@ const pageSetup = async () => {
     }
 }
 
-watch(authState, async (newAuthState) => {
-    if (newAuthState.user) {
-        pageSetup();
-    }
-}, { immediate: true });
+JsonApiLoader(pageSetup);
+
+// watch(authState, async (newAuthState) => {
+//     if (newAuthState.user) {
+        
+//         pageSetup();
+//     }
+// }, { immediate: true });
 
 const clearSearch = () => {
     navBar.value.clearSearch();

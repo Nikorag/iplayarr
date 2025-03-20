@@ -1,7 +1,7 @@
-import { AppType } from './AppType';
+import { AppType } from '../enums/AppType';
+import { AbstractStoredType } from './AbstractStoredType';
 
-export interface App {
-    id : string
+export interface App extends AbstractStoredType {
     type : AppType,
     name : string,
     url : string,

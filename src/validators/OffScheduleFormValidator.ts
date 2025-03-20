@@ -1,5 +1,5 @@
 import episodeCacheService from '../service/episodeCacheService';
-import { IPlayerDataLayerResponse } from '../types/responses/EpisodeCacheTypes';
+import { IPlayerDataLayerResponse } from '../shared/types/responses/iplayer/EpisodeCacheTypes';
 import { Validator } from './Validator';
 
 export class OffScheduleFormValidator extends Validator {

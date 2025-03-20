@@ -1,10 +1,10 @@
 import { ChildProcess, spawn } from 'child_process';
 
-import { DownloadDetails } from '../types/DownloadDetails';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { VideoType } from '../types/IPlayerSearchResult';
-import { QueueEntry } from '../types/QueueEntry'
-import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
+import { DownloadDetails } from '../shared/types/data/DownloadDetails';
+import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
+import { QueueEntry } from '../shared/types/models/QueueEntry'
+import { VideoType } from '../shared/types/responses/iplayer/IPlayerSearchResult';
+import { QueueEntryStatus } from '../shared/types/responses/sabnzbd/QueueResponse';
 import configService from './configService';
 import iplayerService from './iplayerService';
 import socketService from './socketService';

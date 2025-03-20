@@ -1,4 +1,4 @@
-import { formatBytes } from '../../../utils/Utils'
+import { formatBytes } from '../../../../utils/Utils'
 
 export enum QueueStatus {
     DOWNLOADING = 'Downloading',

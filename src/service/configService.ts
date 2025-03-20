@@ -1,9 +1,9 @@
 import dotenv from 'dotenv'
 
-import { QueuedStorage } from '../types/QueuedStorage'
+import { QueuedStorage } from '../shared/types/helpers/QueuedStorage'
 const storage : QueuedStorage = new QueuedStorage();
 
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
 
 dotenv.config();
 

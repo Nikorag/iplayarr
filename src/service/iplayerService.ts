@@ -4,13 +4,13 @@ import NodeCache from 'node-cache';
 import path from 'path';
 import { v4 } from 'uuid';
 
-import { DownloadDetails } from '../types/DownloadDetails';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
-import { LogLine, LogLineLevel } from '../types/LogLine';
-import { QueueEntry } from '../types/QueueEntry';
-import { Synonym } from '../types/Synonym';
+import { DownloadDetails } from '../shared/types/data/DownloadDetails';
+import { IPlayerDetails } from '../shared/types/data/IPlayerDetails';
+import { LogLine, LogLineLevel } from '../shared/types/data/LogLine';
+import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
+import { QueueEntry } from '../shared/types/models/QueueEntry';
+import { Synonym } from '../shared/types/models/Synonym';
+import { IPlayerSearchResult, VideoType } from '../shared/types/responses/iplayer/IPlayerSearchResult';
 import { createNZBName, getQualityPofile } from '../utils/Utils';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';
@@ -117,7 +117,7 @@ const iplayerService = {
         //Sanitize the term, BBC don't put years on their movies
         const term = !season ? removeLastFourDigitNumber(inputTerm) : inputTerm;
 
-        const synonym = await synonymService.getSynonym(inputTerm);
+        const synonym = await synonymService.getItem(inputTerm);
         const searchTerm = synonym ? synonym.target : term;
 
         //Check the cache

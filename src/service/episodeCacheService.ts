@@ -1,13 +1,13 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
-import { v4 } from 'uuid';
 
-import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
-import { QueuedStorage } from '../types/QueuedStorage'
-import { EpisodeCacheDefinition, IPlayerDataLayerResponse } from '../types/responses/EpisodeCacheTypes';
+import { IPlayerDetails } from '../shared/types/data/IPlayerDetails';
+import { QueuedStorage } from '../shared/types/helpers/QueuedStorage'
+import { EpisodeCacheDefinition, IPlayerDataLayerResponse } from '../shared/types/responses/iplayer/EpisodeCacheTypes';
+import { IPlayerSearchResult, VideoType } from '../shared/types/responses/iplayer/IPlayerSearchResult';
 import { createNZBName, getQualityPofile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerService from './iplayerService';
+import offScheduleService from './offScheduleService';
 const storage : QueuedStorage = new QueuedStorage();
 
 let isStorageInitialized : boolean = false;
@@ -36,33 +36,9 @@ const episodeCacheService = {
         const episodeCache = allStorage.find((item) => item.url && item.url == url);
         return episodeCache?.results || [];
     },
-    getCachedSeries : async () : Promise<EpisodeCacheDefinition[]> => {
-        await episodeCacheService.initStorage();
-        return (await storage.getItem('series-cache-definition')) || [];
-    },
-
-    addCachedSeries : async (url : string, name : string) : Promise<void> => {
-        const id = v4();
-        const cachedSeries = await episodeCacheService.getCachedSeries();
-        cachedSeries.push({url, name, id});
-        await storage.setItem('series-cache-definition', cachedSeries);
-    },
-
-    updateCachedSeries : async (def : EpisodeCacheDefinition) : Promise<void> => {
-        await episodeCacheService.removeCachedSeries(def.id);
-        const cachedSeries = await episodeCacheService.getCachedSeries();
-        cachedSeries.push(def);
-        await storage.setItem('series-cache-definition', cachedSeries);
-    },
-
-    removeCachedSeries : async (id : string) : Promise<void> => {
-        let cachedSeries = await episodeCacheService.getCachedSeries();
-        cachedSeries = cachedSeries.filter(({id : savedId}) => savedId != id);
-        await storage.setItem('series-cache-definition', cachedSeries);
-    },
 
     recacheAllSeries : async () : Promise<boolean> => {
-        const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.getCachedSeries();
+        const cachedSeries : EpisodeCacheDefinition[] = await offScheduleService.all();
         for (const series of cachedSeries){
             await episodeCacheService.recacheSeries(series);
         }
@@ -72,7 +48,7 @@ const episodeCacheService = {
     recacheSeries : async (series : EpisodeCacheDefinition) : Promise<void> => {
         await episodeCacheService.cacheEpisodesForUrl(series.url);
         series.cacheRefreshed = new Date();
-        await episodeCacheService.updateCachedSeries(series);
+        await offScheduleService.updateItem(series);
     },
 
     cacheEpisodesForUrl : async (inputUrl : string) : Promise<boolean> => {

@@ -1,7 +1,7 @@
 import storage from 'node-persist';
 
 import configService from '../../src/service/configService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
+import { IplayarrParameter } from '../../src/shared/types/enums/IplayarrParameters';
 
 // Mocking node-persist
 jest.mock('node-persist', () => {

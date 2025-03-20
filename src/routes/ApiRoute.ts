@@ -3,8 +3,8 @@ import multer, { Multer } from 'multer';
 
 import { EndpointDirectory, NewzNabEndpointDirectory, SabNZBDEndpointDirectory } from '../endpoints/EndpointDirectory';
 import configService from '../service/configService';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
+import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
+import { ApiError, ApiResponse } from '../shared/types/responses/ApiResponse';
 
 const router : Router = Router();
 const upload : Multer = multer();

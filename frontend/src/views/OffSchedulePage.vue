@@ -2,7 +2,7 @@
   <div class="inner-content">
     <legend>Off Schedule</legend>
     <p>By default, only media broadcast in the last 30 days is returned, to extend this, you need to index specific iPlayer URLs</p>
-    <ListEditor v-slot="{ item }" :items="cacheDefinitions" :actions="[['refresh', refreshCacheDefinition], ['trash', remove]]" @create="openForm">
+    <ListEditor v-slot="{ item }" :items="offSchedule" :actions="[['refresh', refreshCacheDefinition], ['trash', remove]]" @create="openForm">
       <div class="major">
         {{ item.name }}
       </div>
@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { inject } from 'vue';
 import { useModal } from 'vue-final-modal'
 import { useRouter } from 'vue-router';
 
@@ -30,13 +30,7 @@ import { deepCopy } from '@/lib/utils';
 
 const router = useRouter();
 
-const cacheDefinitions = ref([]);
-
-const refreshCacheDefinitions = async () => {
-    cacheDefinitions.value = (await ipFetch('json-api/offSchedule')).data;
-}
-
-onMounted(refreshCacheDefinitions);
+const {offSchedule, deleteOffschedule, createOffschedule, updateOffschedule} = inject('offSchedule');
 
 const openForm = (cacheDef) => {
     const formModal = useModal({
@@ -46,6 +40,7 @@ const openForm = (cacheDef) => {
             action: cacheDef ? 'Edit' : 'Create',
             onSave: async (form, success) => {
                 const result = await saveCacheDefinition(form);
+                alert(result);
                 if (result) {
                     formModal.close();
                     success();
@@ -56,23 +51,20 @@ const openForm = (cacheDef) => {
     formModal.open();
 }
 
-const remove = async (id) => {
+const remove = async ({id}) => {
     if (await dialogService.confirm('Delete Cache Definition', 'Are you sure you want to delete this Cache Definition?')) {
-        await ipFetch('json-api/offSchedule', 'DELETE', { id });
-        refreshCacheDefinitions();
+        await deleteOffschedule(id);
     }
 }
 
 const saveCacheDefinition = async (form) => {
-    const method = form.id ? 'PUT' : 'POST';
-    const response = await ipFetch('json-api/offSchedule', method, form);
-    if (response.ok) {
-        refreshCacheDefinitions();
-        return true;
-    } else {
-        dialogService.alert('Validation Error', response.data.invalid_fields?.url);
-        return false;
-    }
+    const method = form.id ? updateOffschedule : createOffschedule;
+    return new Promise((resolve) => {
+        method(form, ({data}) => {
+            dialogService.alert('Validation Error', data.invalid_fields?.url);
+            resolve(false);
+        }).then(() => resolve(true))
+    })
 }
 
 const refreshCacheDefinition = async (def) => {

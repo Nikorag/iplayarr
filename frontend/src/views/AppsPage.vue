@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, inject } from 'vue';
 import { useModal } from 'vue-final-modal'
 
 import ListEditor from '@/components/common/ListEditor.vue';
@@ -45,11 +45,11 @@ import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
 
-const apps = ref([]);
+const {apps, refreshApps : refresh} = inject('apps')
 const features = ref([]);
 
 const refreshApps = async () => {
-    apps.value = (await ipFetch('json-api/apps')).data;
+    await refresh();
     features.value = (await ipFetch('json-api/apps/types')).data;
     console.log(features.value);
 }

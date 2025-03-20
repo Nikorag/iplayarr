@@ -5,9 +5,9 @@ import nzbFacade from '../../facade/nzbFacade';
 import appService from '../../service/appService';
 import loggingService from '../../service/loggingService';
 import queueService from '../../service/queueService';
-import { AppType } from '../../types/AppType';
-import { VideoType } from '../../types/IPlayerSearchResult';
-import { NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
+import { AppType } from '../../shared/types/enums/AppType';
+import { VideoType } from '../../shared/types/responses/iplayer/IPlayerSearchResult';
+import { NZBMetaEntry } from '../../shared/types/responses/newznab/NZBFileResponse';
 
 const parser = new Parser();
 
@@ -39,7 +39,7 @@ export default async (req : Request, res : Response) => {
             nzo_ids: pids
         });
     } catch (error : any) {
-        let allApps = await appService.getAllApps();
+        let allApps = await appService.all();
         allApps = allApps
             .filter(({type}) => type == AppType.NZBGET || type == AppType.SABNZBD)
             .sort((a, b) => a.priority as number - (b.priority as number));

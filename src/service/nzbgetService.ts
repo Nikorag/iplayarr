@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from 'axios';
 import { v4 } from 'uuid';
 
-import { App } from '../types/App';
-import { NZBGetAppendRequest } from '../types/requests/nzbget/NZBGetAppendRequest';
+import { App } from '../shared/types/models/App';
+import { NZBGetAppendRequest } from '../shared/types/requests/nzbget/NZBGetAppendRequest';
 
 const nzbGetService = {
     testConnection: async (inputUrl: string, username: string, password: string): Promise<string | boolean> => {

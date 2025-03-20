@@ -1,5 +1,5 @@
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { LogLine, LogLineLevel } from '../types/LogLine';
+import { LogLine, LogLineLevel } from '../shared/types/data/LogLine';
+import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
 import configService from './configService';
 import socketService from './socketService';
 

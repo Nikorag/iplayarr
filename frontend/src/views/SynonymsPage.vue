@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { inject } from 'vue';
 import { useModal } from 'vue-final-modal'
 
 import ListEditor from '@/components/common/ListEditor.vue';
@@ -38,13 +38,7 @@ import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
 
-const synonyms = ref([]);
-
-const refreshSynonyms = async () => {
-    synonyms.value = (await ipFetch('json-api/synonym')).data;
-}
-
-onMounted(refreshSynonyms);
+const {synonyms, refreshSynonyms} = inject('synonyms');
 
 const openForm = (synonym, inputApp) => {
     const formModal = useModal({

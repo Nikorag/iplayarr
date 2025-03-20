@@ -6,10 +6,9 @@
 </template>
 
 <script setup>
-import { inject, onMounted, provide, ref } from 'vue';
+import { inject, ref } from 'vue';
 
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
-import { ipFetch } from '@/lib/ipFetch';
 
 import QueueTable from '../components/queue/QueueTable.vue';
 
@@ -23,11 +22,4 @@ const filter = ref('ALL');
 
 const queue = inject('queue');
 const history = inject('history');
-
-const apps = ref([]);
-provide('apps', apps);
-
-onMounted(async () => {
-    apps.value = (await ipFetch('json-api/apps')).data;
-});
 </script>

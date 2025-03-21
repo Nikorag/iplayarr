@@ -56,6 +56,6 @@ export function splitArrayIntoChunks(arr: any[], chunkSize: number) {
     return chunks;
 } 
 
-export function capitalize(word : string) {
-    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-}
+export function capitalize(word : string, lowerRest : boolean = true) {
+    return `${word.charAt(0).toUpperCase()}${lowerRest ? word.slice(1).toLowerCase() : word.slice(1)}`;
+}    

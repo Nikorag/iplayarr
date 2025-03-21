@@ -74,15 +74,13 @@ const saveConfig = async () => {
     loading.value = true;
     if (configChanges.value) {
         validationErrors.value.config = {};
-
-        await updateConfig(config.value, 
-            () => {
-                dialogService.alert('Success', 'Save Successful');
-                configChanges.value = false;
-            }, 
-            ({ data }) => {
-                validationErrors.value.config = data.invalid_fields
-            });
+        const response = await updateConfig(config.value);
+        if (response.ok){
+            dialogService.alert('Success', 'Save Successful');
+            configChanges.value = false;
+        } else {
+          validationErrors.value.config = response.data.invalid_fields
+        }
     }
 
     loading.value = false;

@@ -19,18 +19,16 @@
 <script setup>
 import { defineEmits, inject,onMounted, ref } from 'vue';
 
-import { ipFetch } from '@/lib/ipFetch';
-
 import ListEditor from '../common/ListEditor.vue';
 import IPlayarrModal from './IPlayarrModal.vue';
 
 const emit = defineEmits(['selectApp', 'close']);
 
-const {apps} = inject('apps');
+const {apps, appsTypes} = inject('apps');
 const features = ref([]);
 
 onMounted(async () => {
-    features.value = (await ipFetch('json-api/apps/types')).data;
+    features.value = (await appsTypes()).data;
     apps.value = apps.value.filter(({ type }) => features.value[type].includes('callback'));
 
     if (apps.value.length == 0) {

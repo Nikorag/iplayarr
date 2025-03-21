@@ -31,9 +31,7 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps, onMounted, ref } from 'vue';
-
-import { ipFetch } from '@/lib/ipFetch';
+import { computed, defineEmits, defineProps, onMounted, ref, inject } from 'vue';
 
 import TextInput from '../common/form/TextInput.vue';
 import LoadingIndicator from '../common/LoadingIndicator.vue';
@@ -45,8 +43,10 @@ const props = defineProps({ app: Object, term: String, showFilter: { type: Boole
 const loading = ref(true);
 const filterText = ref('');
 
+const {synonymsLookup} = inject('synonyms');
+
 onMounted(async () => {
-    const response = await ipFetch(`json-api/synonyms/lookup/${props.app.id}${props.term ? `?term=${props.term}` : ''}`);
+    const response = await synonymsLookup({ appId: props.app.id, term: props.term });
     if (response.ok) {
         results.value = response.data;
         loading.value = false;

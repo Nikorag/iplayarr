@@ -42,15 +42,15 @@ import { useModal } from 'vue-final-modal'
 import ListEditor from '@/components/common/ListEditor.vue';
 import AppForm from '@/components/modals/AppForm.vue';
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
 
-const {apps, refreshApps : refresh, deleteApps : del} = inject('apps')
+const appInjection = inject('apps');
+const {apps, refreshApps : refresh, deleteApps : del, appsTypes} = appInjection;
 const features = ref([]);
 
 const refreshApps = async () => {
     await refresh();
-    features.value = (await ipFetch('json-api/apps/types')).data;
+    features.value = (await appsTypes).data;
     console.log(features.value);
 }
 

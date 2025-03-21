@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
 import { ServiceLibrary } from '../shared/ServiceLibrary'
-import { AbstractStorageRoute } from './json-api/AbstractStorageRoute';
+import { AbstractStorageRoute } from './AbstractStorageRoute';
 
 export const createRoutes = (router : Router) : void => {
     for (const {name,route,storageService} of ServiceLibrary){

@@ -18,8 +18,8 @@ export const enforceMaxLength = (arr, maxLength) => {
     }
 }
 
-export function capitalize(word) {
-    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+export function capitalize(word, lowerRest = true) {
+    return `${word.charAt(0).toUpperCase()}${lowerRest ? word.slice(1).toLowerCase() : word.slice(1)}`;
 }
 
 export function deepCopy(input) {

@@ -6,7 +6,7 @@ import { appFeatures } from '../../types/enums/AppType';
 import { App } from '../../types/models/App';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { AppFormValidator } from '../../validators/AppFormValidator';
-import { AbstractStorageRoute } from './AbstractStorageRoute';
+import { AbstractStorageRoute } from '../AbstractStorageRoute';
 
 const route = new (class extends AbstractStorageRoute<App>{
     create(app: App): Promise<App | ApiResponse> {
@@ -63,7 +63,7 @@ router.get('/types', async (_, res :Response) => {
 router.post('/test', async (req : Request, res : Response) => {
     const result = await appService.testAppConnection(req.body);
     if (result == true){
-        res.json({status : true});
+        res.json(true);
     } else {
         res.status(500).json({error: ApiError.INTERNAL_ERROR, message : result} as ApiResponse)
     }

@@ -8,7 +8,7 @@ import { App } from '../../types/models/App';
 import { Synonym } from '../../types/models/Synonym';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { ArrLookupResponse } from '../../types/responses/arr/ArrLookupResponse';
-import { AbstractStorageRoute } from './AbstractStorageRoute';
+import { AbstractStorageRoute } from '../AbstractStorageRoute';
 
 
 const route = new AbstractStorageRoute<Synonym>(synonymService);

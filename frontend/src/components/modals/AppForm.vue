@@ -54,7 +54,6 @@
 <script setup>
 import { computed, defineEmits, defineProps, onMounted, ref, watch } from 'vue';
 
-import { ipFetch } from '@/lib/ipFetch';
 import { capitalize } from '@/lib/utils';
 
 import AppTestButton from '../apps/AppTestButton.vue';
@@ -68,7 +67,7 @@ import {inject} from 'vue';
 const props = defineProps({ action: String, inputObj: Object });
 const emit = defineEmits(['saved']);
 
-const {createApps, updateApps} = inject('apps');
+const {createApps, updateApps, appsTypes} = inject('apps');
 
 const defaultForm = {
     download_client: {},
@@ -89,7 +88,7 @@ const loading = ref(false);
 const types = computed(() => { return Object.keys(features.value).map((k) => ({ key: k, value: capitalize(k) })); });
 
 onMounted(async () => {
-    features.value = (await ipFetch('json-api/apps/types')).data;
+    features.value = (await appsTypes()).data;
 });
 
 const showForm = (type) => {
@@ -120,11 +119,12 @@ watch(() => form.value.type, () => {
 const saveApp = async () => {
     const method = form.value.id ? updateApps : createApps;
     loading.value = true;
-    await method(form.value, () => {
+    const response = await method(form.value);
+    if (response.ok){
       emit('saved');
-    }, (response) => {
+    } else {
       validationErrors.value = response.data.invalid_fields;
-    });
+    }
     loading.value = false;
 }
 

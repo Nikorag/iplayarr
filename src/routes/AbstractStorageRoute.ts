@@ -1,7 +1,7 @@
-import AbstractStorageService from '../../service/abstractStorageService';
-import { AbstractStoredType } from '../../types/models/AbstractStoredType';
-import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
-import { Validator } from '../../validators/Validator';
+import AbstractStorageService from '../service/abstractStorageService';
+import { AbstractStoredType } from '../types/models/AbstractStoredType';
+import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
+import { Validator } from '../validators/Validator';
 import { AbstractExposedRoute } from './AbstractExposedRoute';
 
 export class AbstractStorageRoute<T extends AbstractStoredType> extends AbstractExposedRoute<T> {

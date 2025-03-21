@@ -22,7 +22,7 @@ export default (userCallback) => {
 
 
     // Initialize REST api
-    for (const {name, type, customPath} of ServiceLibrary) {
+    for (const {name, type, customPath, microservices} of ServiceLibrary) {
         const dataRef = ref(type);
         let hasFetched = false;
 
@@ -44,42 +44,23 @@ export default (userCallback) => {
             return dataRef.value;
         });
 
-        const deleteItem = async (id, successCallback, errorCallback) => {
-            const response = await ipFetch(customPath ? `${customPath}` : `json-api/${name}`, 'DELETE', {id});
-            if (response.ok) {
-                refreshData();
-                if (successCallback){
-                    successCallback(response);
-                }
-            } else {
-                if (errorCallback){
-                    errorCallback(response);
-                }
-            }
+        const deleteItem = (id) => {
+            return ipFetch(customPath ? `${customPath}` : `json-api/${name}`, 'DELETE', {id});
         }
 
         const upsertMethod = (httpMethod) => {
-            return async (item, successCallback, errorCallback) => {
-                const response = await ipFetch(customPath ? `${customPath}` : `json-api/${name}`, httpMethod, item);
-                if (response.ok) {
-                    refreshData();
-                    if (successCallback){
-                        successCallback(response);
-                    }
-                } else {
-                    if (errorCallback){
-                        errorCallback(response);
-                    }
-                }
+            return (item) => {
+                return ipFetch(customPath ? `${customPath}` : `json-api/${name}`, httpMethod, item);
             }
         }
 
         const obj = {
             [name] : computedData,
-            [`refresh${capitalize(name)}`] : refreshData,
-            [`delete${capitalize(name)}`] : deleteItem,
-            [`create${capitalize(name)}`] : upsertMethod('POST'),
-            [`update${capitalize(name)}`] : upsertMethod('PUT'),
+            [`refresh${capitalize(name, false)}`] : refreshData,
+            [`delete${capitalize(name, false)}`] : deleteItem,
+            [`create${capitalize(name, false)}`] : upsertMethod('POST'),
+            [`update${capitalize(name, false)}`] : upsertMethod('PUT'),
+            ...createMicroservices(name, microservices)
         }
         console.log(`Providing ${name}`, Object.keys(obj));
         provide(name, obj);
@@ -99,3 +80,37 @@ export default (userCallback) => {
         }
     }, { immediate: true });
 };
+
+function createMicroservices(name, microservices) {
+    if (microservices){
+        return microservices.reduce((acc, ms) => {
+            acc[createMicroserviceName(name, ms)] = createMicroservice(name, ms);
+            return acc;        
+        }, {});
+    } else {
+        return {};
+    }
+}
+
+function createMicroservice(name, {method, path, params, query}){
+    return (item) => {
+        let url = `json-api/${name}${path}`;
+
+        if (params){
+            params.forEach(({name : param}) => {
+                url = url.replace(`{${param}}`, item[param]);
+            });
+        }
+        
+        if (query){
+            const queryString = query.map(({name:q}) => `${q}=${item[q]}`).join('&');
+            url = `${url}?${queryString}`;
+        }
+
+        return ipFetch(url, method, method != 'GET' ? item : undefined);
+    }
+}
+
+function createMicroserviceName(name, {name : msName}){
+    return `${name}${capitalize(msName.replace('/', ''), false)}`;
+}

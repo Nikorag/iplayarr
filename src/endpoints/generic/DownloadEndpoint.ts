@@ -2,8 +2,8 @@ import { Request, Response } from 'express';
 
 import episodeCacheService from '../../service/episodeCacheService';
 import queueService from '../../service/queueService';
-import { IPlayerDataLayerResponse } from '../../shared/types/responses/iplayer/EpisodeCacheTypes';
-import { VideoType } from '../../shared/types/responses/iplayer/IPlayerSearchResult';
+import { IPlayerDataLayerResponse } from '../../types/responses/iplayer/EpisodeCacheTypes';
+import { VideoType } from '../../types/responses/iplayer/IPlayerSearchResult';
 
 export default async (req : Request, res : Response) => {
     const {pid} = req.query as any;

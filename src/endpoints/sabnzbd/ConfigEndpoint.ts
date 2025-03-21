@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 
 import configService from '../../service/configService';
-import { IplayarrParameter } from '../../shared/types/enums/IplayarrParameters';
-import { configSkeleton, SabNZBDConfigResponse } from '../../shared/types/responses/sabnzbd/ConfigResponse';
+import { IplayarrParameter } from '../../types/enums/IplayarrParameters';
+import { configSkeleton, SabNZBDConfigResponse } from '../../types/responses/sabnzbd/ConfigResponse';
 
 export default async (req : Request, res : Response) => {
     const download_dir = await configService.getItem(IplayarrParameter.DOWNLOAD_DIR) as string;

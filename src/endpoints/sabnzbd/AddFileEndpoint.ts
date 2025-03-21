@@ -5,9 +5,9 @@ import nzbFacade from '../../facade/nzbFacade';
 import appService from '../../service/appService';
 import loggingService from '../../service/loggingService';
 import queueService from '../../service/queueService';
-import { AppType } from '../../shared/types/enums/AppType';
-import { VideoType } from '../../shared/types/responses/iplayer/IPlayerSearchResult';
-import { NZBMetaEntry } from '../../shared/types/responses/newznab/NZBFileResponse';
+import { AppType } from '../../types/enums/AppType';
+import { VideoType } from '../../types/responses/iplayer/IPlayerSearchResult';
+import { NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
 
 const parser = new Parser();
 

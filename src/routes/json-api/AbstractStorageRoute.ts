@@ -1,6 +1,6 @@
 import AbstractStorageService from '../../service/abstractStorageService';
-import { AbstractStoredType } from '../../shared/types/models/AbstractStoredType';
-import { ApiError, ApiResponse } from '../../shared/types/responses/ApiResponse';
+import { AbstractStoredType } from '../../types/models/AbstractStoredType';
+import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { Validator } from '../../validators/Validator';
 import { AbstractExposedRoute } from './AbstractExposedRoute';
 

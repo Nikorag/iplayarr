@@ -1,15 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
 
-import { AppType } from '../shared/types/enums/AppType';
-import { App } from '../shared/types/models/App';
-import { ArrCreateDownloadClientRequest, CreateDownloadClientRequestField,createDownloadClientRequestSkeleton } from '../shared/types/requests/arr/CreateDownloadClientRequest';
-import { CreateIndexerRequest, createIndexerRequestSkeleton, createIndexRequestFieldsSkeleton } from '../shared/types/requests/arr/CreateIndexerRequest';
-import { CreateProwlarrIndexerRequest, createProwlarrIndexerRequestSkeleton } from '../shared/types/requests/arr/CreateProwlarrIndexerRequest';
-import { CreateDownloadClientForm } from '../shared/types/requests/form/CreateDownloadClientForm';
-import { CreateIndexerForm } from '../shared/types/requests/form/CreateIndexerForm';
-import { ArrLookupResponse } from '../shared/types/responses/arr/ArrLookupResponse';
-import { DownloadClientResponse } from '../shared/types/responses/arr/DownloadClientResponse';
-import { IndexerResponse } from '../shared/types/responses/arr/IndexerResponse';
+import { AppType } from '../types/enums/AppType';
+import { App } from '../types/models/App';
+import { ArrCreateDownloadClientRequest, CreateDownloadClientRequestField,createDownloadClientRequestSkeleton } from '../types/requests/arr/CreateDownloadClientRequest';
+import { CreateIndexerRequest, createIndexerRequestSkeleton, createIndexRequestFieldsSkeleton } from '../types/requests/arr/CreateIndexerRequest';
+import { CreateProwlarrIndexerRequest, createProwlarrIndexerRequestSkeleton } from '../types/requests/arr/CreateProwlarrIndexerRequest';
+import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
+import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';
+import { ArrLookupResponse } from '../types/responses/arr/ArrLookupResponse';
+import { DownloadClientResponse } from '../types/responses/arr/DownloadClientResponse';
+import { IndexerResponse } from '../types/responses/arr/IndexerResponse';
 
 export interface ArrConfig {
     API_KEY : string,

@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 
-import { QueuedStorage } from '../shared/types/helpers/QueuedStorage';
-import { AbstractStoredType } from '../shared/types/models/AbstractStoredType';
+import { QueuedStorage } from '../types/helpers/QueuedStorage';
+import { AbstractStoredType } from '../types/models/AbstractStoredType';
 import AbstractExposedService from './abstractExposedService';
 
 const storage : QueuedStorage = new QueuedStorage();

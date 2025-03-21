@@ -1,7 +1,7 @@
 import storage from 'node-persist';
 
 import configService from '../../src/service/configService';
-import { IplayarrParameter } from '../../src/shared/types/enums/IplayarrParameters';
+import { IplayarrParameter } from '../../src/types/enums/IplayarrParameters';
 
 // Mocking node-persist
 jest.mock('node-persist', () => {
@@ -68,7 +68,7 @@ describe('configService', () => {
         expect((storage.setItem as jest.Mock).mock.calls[0][1]).toEqual({ 'DEBUG': 'true' });
     });
 
-/*    it('should remove a parameter from storage', async () => {
+    /*    it('should remove a parameter from storage', async () => {
         (storage as any).config = { [IplayarrParameter.DEBUG]: 'true' };
         (storage.getItem as jest.Mock).mockResolvedValue((storage as any).config);
 

@@ -133,3 +133,6 @@ dist
 
 test-results
 .DS_Store
+
+src/controllers/**/*.ts
+src/swagger/swagger.json

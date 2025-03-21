@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import episodeCacheService from '../../service/episodeCacheService';
 import offScheduleService from '../../service/offScheduleService';
-import { EpisodeCacheDefinition } from '../../shared/types/responses/iplayer/EpisodeCacheTypes';
+import { EpisodeCacheDefinition } from '../../types/responses/iplayer/EpisodeCacheTypes';
 import { OffScheduleFormValidator } from '../../validators/OffScheduleFormValidator';
 import { AbstractStorageRoute } from './AbstractStorageRoute';
 

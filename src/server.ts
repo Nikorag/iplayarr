@@ -4,6 +4,7 @@ import http, { Server } from 'http';
 import cron from 'node-cron';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
+import swaggerUi from 'swagger-ui-express';
 
 import ApiRoute from './routes/ApiRoute';
 import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
@@ -13,7 +14,8 @@ import episodeCacheService from './service/episodeCacheService';
 import iplayerService from './service/iplayerService';
 import loggingService from './service/loggingService';
 import socketService from './service/socketService';
-import { IplayarrParameter } from './shared/types/enums/IplayarrParameters';
+import * as swaggerDocument from './swagger/swagger.json';
+import { IplayarrParameter } from './types/enums/IplayarrParameters';
 
 const isDebug = process.env.DEBUG == 'true';
 
@@ -48,6 +50,8 @@ app.use((req : Request, _ : Response, next : NextFunction) => {
 });
 
 // Routes
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.use('/api', ApiRoute);
 app.use('/json-api', JsonApiRoute);
 app.get('*', (req, res) => {

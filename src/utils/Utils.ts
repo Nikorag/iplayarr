@@ -3,10 +3,10 @@ import { Request } from 'express';
 import Handlebars from 'handlebars';
 
 import configService from '../service/configService';
-import { FilenameTemplateContext } from '../shared/types/context/FilenameTemplateContext';
-import { QualityProfile, qualityProfiles } from '../shared/types/data/QualityProfiles';
-import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../shared/types/responses/iplayer/IPlayerSearchResult';
+import { FilenameTemplateContext } from '../types/context/FilenameTemplateContext';
+import { QualityProfile, qualityProfiles } from '../types/data/QualityProfiles';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import { IPlayerSearchResult, VideoType } from '../types/responses/iplayer/IPlayerSearchResult';
 
 export function formatBytes(bytes: number, unit: boolean = true, decimals: number = 2): string {
     if (bytes === 0) return '0 Bytes';
@@ -55,3 +55,7 @@ export function splitArrayIntoChunks(arr: any[], chunkSize: number) {
     }
     return chunks;
 } 
+
+export function capitalize(word : string) {
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}

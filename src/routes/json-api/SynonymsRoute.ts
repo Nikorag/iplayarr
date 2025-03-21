@@ -4,10 +4,10 @@ import appService from '../../service/appService';
 import arrService from '../../service/arrService';
 import searchHistoryService from '../../service/searchHistoryService';
 import synonymService from '../../service/synonymService';
-import { App } from '../../shared/types/models/App';
-import { Synonym } from '../../shared/types/models/Synonym';
-import { ApiError, ApiResponse } from '../../shared/types/responses/ApiResponse';
-import { ArrLookupResponse } from '../../shared/types/responses/arr/ArrLookupResponse';
+import { App } from '../../types/models/App';
+import { Synonym } from '../../types/models/Synonym';
+import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
+import { ArrLookupResponse } from '../../types/responses/arr/ArrLookupResponse';
 import { AbstractStorageRoute } from './AbstractStorageRoute';
 
 

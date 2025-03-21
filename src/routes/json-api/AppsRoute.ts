@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 
 import AbstractStorageService from '../../service/abstractStorageService';
 import appService from '../../service/appService';
-import { appFeatures } from '../../shared/types/enums/AppType';
-import { App } from '../../shared/types/models/App';
-import { ApiError, ApiResponse } from '../../shared/types/responses/ApiResponse';
+import { appFeatures } from '../../types/enums/AppType';
+import { App } from '../../types/models/App';
+import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { AppFormValidator } from '../../validators/AppFormValidator';
 import { AbstractStorageRoute } from './AbstractStorageRoute';
 

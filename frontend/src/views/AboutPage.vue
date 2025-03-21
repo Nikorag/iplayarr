@@ -27,7 +27,10 @@
     <h2 v-if="isAppleDevice">
       Tools
     </h2>
-    <p>
+    <p class="tools">
+      <a href="swagger" target="_blank">
+        Open API Spec
+      </a>
       <a href="shortcuts/Download%20With%20iPlayarr.shortcut" target="_blank">
         Add to iPlayarr iOS Shortcut
       </a>
@@ -84,6 +87,13 @@ a {
     border: none;
     color: white;
     background-color: black;
+  }
+}
+
+.tools {
+  a {
+    display: block;
+    margin: 0.5rem 0;
   }
 }
 </style>

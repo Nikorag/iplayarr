@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
 
-import { IPlayerDetails } from '../shared/types/data/IPlayerDetails';
-import { QueuedStorage } from '../shared/types/helpers/QueuedStorage'
-import { EpisodeCacheDefinition, IPlayerDataLayerResponse } from '../shared/types/responses/iplayer/EpisodeCacheTypes';
-import { IPlayerSearchResult, VideoType } from '../shared/types/responses/iplayer/IPlayerSearchResult';
+import { IPlayerDetails } from '../types/data/IPlayerDetails';
+import { QueuedStorage } from '../types/helpers/QueuedStorage'
+import { EpisodeCacheDefinition, IPlayerDataLayerResponse } from '../types/responses/iplayer/EpisodeCacheTypes';
+import { IPlayerSearchResult, VideoType } from '../types/responses/iplayer/IPlayerSearchResult';
 import { createNZBName, getQualityPofile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerService from './iplayerService';
 import offScheduleService from './offScheduleService';

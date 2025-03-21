@@ -1,4 +1,4 @@
-import { Synonym } from '../shared/types/models/Synonym';
+import { Synonym } from '../types/models/Synonym';
 import AbstractStorageService from './abstractStorageService';
 import iplayerService from './iplayerService';
 

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
 import queueService from '../../service/queueService';
-import { QueueEntry } from '../../shared/types/models/QueueEntry';
-import { ApiError, ApiResponse } from '../../shared/types/responses/ApiResponse';
+import { QueueEntry } from '../../types/models/QueueEntry';
+import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { AbstractExposedRoute } from './AbstractExposedRoute';
 
 const router : Router = new (class extends AbstractExposedRoute<QueueEntry> {

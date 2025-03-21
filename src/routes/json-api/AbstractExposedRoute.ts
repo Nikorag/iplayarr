@@ -1,6 +1,6 @@
 import {Request, Response, Router} from 'express';
 
-import { ApiError, ApiResponse } from '../../shared/types/responses/ApiResponse';
+import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { Validator } from '../../validators/Validator';
 
 export abstract class AbstractExposedRoute<T> {

@@ -1,16 +1,8 @@
 import { Request, Response, Router } from 'express';
 
-import historyService from '../service/historyService';
 import iplayerService from '../service/iplayerService';
 import queueService from '../service/queueService';
-import { IPlayerSearchResult } from '../shared/types/responses/iplayer/IPlayerSearchResult';
-import { AbstractStorageRoute } from './json-api/AbstractStorageRoute';
-import AppsRoute from './json-api/AppsRoute';
-import OffScheduleRoute from './json-api/OffScheduleRoute';
-import QueueRoute from './json-api/QueueRoute';
-import SettingsRoute from './json-api/SettingsRoute';
-import SynonymsRoute from './json-api/SynonymsRoute';
-
+import { IPlayerSearchResult } from '../types/responses/iplayer/IPlayerSearchResult';
 import { createRoutes } from './RouteUtils';
 
 const router : Router = Router();

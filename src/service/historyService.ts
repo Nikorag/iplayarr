@@ -1,4 +1,4 @@
-import { QueueEntry } from '../shared/types/models/QueueEntry';
+import { QueueEntry } from '../types/models/QueueEntry';
 import AbstractStorageService from './abstractStorageService';
 import socketService from './socketService';
 

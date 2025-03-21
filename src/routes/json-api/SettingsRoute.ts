@@ -1,9 +1,9 @@
 import { Request, Response, Router } from 'express';
 
 import configService, { ConfigMap } from '../../service/configService';
-import { qualityProfiles } from '../../shared/types/data/QualityProfiles';
-import { IplayarrParameter } from '../../shared/types/enums/IplayarrParameters';
-import { ApiError, ApiResponse } from '../../shared/types/responses/ApiResponse';
+import { qualityProfiles } from '../../types/data/QualityProfiles';
+import { IplayarrParameter } from '../../types/enums/IplayarrParameters';
+import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { md5 } from '../../utils/Utils';
 import { ConfigFormValidator } from '../../validators/ConfigFormValidator';
 import { Validator } from '../../validators/Validator';

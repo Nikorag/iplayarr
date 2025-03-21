@@ -1,9 +1,9 @@
 import dotenv from 'dotenv'
 
-import { QueuedStorage } from '../shared/types/helpers/QueuedStorage'
+import { QueuedStorage } from '../types/helpers/QueuedStorage'
 const storage : QueuedStorage = new QueuedStorage();
 
-import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import AbstractExposedService from './abstractExposedService';
 
 dotenv.config();

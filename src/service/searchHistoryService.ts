@@ -1,5 +1,5 @@
-import { FixedFIFOQueue } from '../shared/types/helpers/FixedFIFOQueue';
-import { SearchHistoryEntry } from '../shared/types/models/SearchHistoryEntry';
+import { FixedFIFOQueue } from '../types/helpers/FixedFIFOQueue';
+import { SearchHistoryEntry } from '../types/models/SearchHistoryEntry';
 
 const history : FixedFIFOQueue<SearchHistoryEntry> = new FixedFIFOQueue(10);
 

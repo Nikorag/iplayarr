@@ -1,9 +1,9 @@
 import { ChildProcess, spawn } from 'child_process';
 
-import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
-import { QueueEntry } from '../shared/types/models/QueueEntry'
-import { VideoType } from '../shared/types/responses/iplayer/IPlayerSearchResult';
-import { QueueEntryStatus } from '../shared/types/responses/sabnzbd/QueueResponse';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import { QueueEntry } from '../types/models/QueueEntry'
+import { VideoType } from '../types/responses/iplayer/IPlayerSearchResult';
+import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import AbstractExposedService from './abstractExposedService';
 import configService from './configService';
 import iplayerService from './iplayerService';

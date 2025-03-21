@@ -1,9 +1,9 @@
 import nzbFacade from '../facade/nzbFacade';
-import { appCategories, AppFeature, appFeatures, AppType } from '../shared/types/enums/AppType';
-import { IplayarrParameter } from '../shared/types/enums/IplayarrParameters';
-import { App } from '../shared/types/models/App';
-import { CreateDownloadClientForm } from '../shared/types/requests/form/CreateDownloadClientForm';
-import { CreateIndexerForm } from '../shared/types/requests/form/CreateIndexerForm';
+import { appCategories, AppFeature, appFeatures, AppType } from '../types/enums/AppType';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import { App } from '../types/models/App';
+import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
+import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';
 import AbstractStorageService from './abstractStorageService';
 import arrService, { ArrConfig } from './arrService';
 import configService from './configService';

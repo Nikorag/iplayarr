@@ -63,8 +63,12 @@ import TextInput from '../common/form/TextInput.vue';
 import LoadingIndicator from '../common/LoadingIndicator.vue';
 import IPlayarrModal from './IPlayarrModal.vue';
 
+import {inject} from 'vue';
+
 const props = defineProps({ action: String, inputObj: Object });
 const emit = defineEmits(['saved']);
+
+const {createApps, updateApps} = inject('apps');
 
 const defaultForm = {
     download_client: {},
@@ -114,15 +118,14 @@ watch(() => form.value.type, () => {
 }, { immediate: true });
 
 const saveApp = async () => {
-    const method = form.value.id ? 'PUT' : 'POST';
+    const method = form.value.id ? updateApps : createApps;
     loading.value = true;
-    const response = await ipFetch('json-api/apps', method, form.value);
+    await method(form.value, () => {
+      emit('saved');
+    }, (response) => {
+      validationErrors.value = response.data.invalid_fields;
+    });
     loading.value = false;
-    if (response.ok) {
-        emit('saved');
-    } else {
-        validationErrors.value = response.data.invalid_fields;
-    }
 }
 
 </script>

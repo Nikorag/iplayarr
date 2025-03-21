@@ -35,10 +35,9 @@ import AppSelectDialog from '@/components/modals/AppSelectDialog.vue';
 import ArrLookupDialog from '@/components/modals/ArrLookupDialog.vue';
 import SynonymForm from '@/components/modals/SynonymForm.vue';
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
 
-const {synonyms, refreshSynonyms} = inject('synonyms');
+const {synonyms, refreshSynonyms, createSynonyms, updateSynonyms, deleteSynonym} = inject('synonyms');
 
 const openForm = (synonym, inputApp) => {
     const formModal = useModal({
@@ -57,14 +56,14 @@ const openForm = (synonym, inputApp) => {
 }
 
 const saveSynonym = async (synonym) => {
-    const method = synonym.id ? 'PUT' : 'POST';
-    await ipFetch('json-api/synonym', method, synonym);
+    const method = synonym.id ? updateSynonyms : createSynonyms;
+    await method(synonym);
     refreshSynonyms();
 }
 
 const removeSynonym = async ({ id }) => {
     if (await dialogService.confirm('Delete Synonym', 'Are you sure you want to delete this Synonym?')) {
-        await ipFetch('json-api/synonym', 'DELETE', { id });
+        await deleteSynonym(id);
         refreshSynonyms();
     }
 }

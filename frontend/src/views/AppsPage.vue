@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { inject,onMounted, ref } from 'vue';
+import { inject, ref } from 'vue';
 import { useModal } from 'vue-final-modal'
 
 import ListEditor from '@/components/common/ListEditor.vue';
@@ -45,7 +45,7 @@ import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
 
-const {apps, refreshApps : refresh} = inject('apps')
+const {apps, refreshApps : refresh, deleteApps : del} = inject('apps')
 const features = ref([]);
 
 const refreshApps = async () => {
@@ -53,8 +53,6 @@ const refreshApps = async () => {
     features.value = (await ipFetch('json-api/apps/types')).data;
     console.log(features.value);
 }
-
-onMounted(refreshApps);
 
 const openForm = (app) => {
     const formModal = useModal({
@@ -73,7 +71,7 @@ const openForm = (app) => {
 
 const deleteApp = async ({ id, name }) => {
     if (await dialogService.confirm('Delete App', `Are you sure you want to delete ${name}`, 'Indexers and Download Clients in the target Arr, will NOT be deleted')) {
-        await ipFetch('json-api/apps', 'DELETE', { id });
+        await del(id);
         await refreshApps();
     }
 }

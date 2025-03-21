@@ -18,7 +18,7 @@ const route = new (class extends AbstractStorageRoute<App>{
     }
 
     async upsert(app : App, appServiceMethod : keyof AbstractStorageService<App>) : Promise<App | ApiResponse> {
-        const updatedForm : App | undefined = await (this.service[appServiceMethod] as any)(app);
+        const updatedForm : App | undefined = await (this.service[appServiceMethod] as any)(app.id, app);
         if (updatedForm){
             try {
                 await appService.createUpdateIntegrations(updatedForm);

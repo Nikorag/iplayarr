@@ -21,9 +21,7 @@ import { enforceMaxLength } from './lib/utils';
 
 const authState = inject('authState');
 const logs = ref([]);
-
 const navBar = ref(null);
-
 const leftHandNav = ref(null);
 
 const toggleLeftHandNav = () => {

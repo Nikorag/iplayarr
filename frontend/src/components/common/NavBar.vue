@@ -29,13 +29,14 @@
 </template>
 
 <script setup>
-import { defineExpose, inject, ref } from 'vue';
+import { defineExpose, inject, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
 const toggleLeftHandNav = inject('toggleLeftHandNav');
-const {hiddenSettings} = inject('hiddenSettings');
+const {configHiddenSettings} = inject('config');
+const hiddenSettings = ref({});
 const authState = inject('authState');
 const searchTerm = ref('');
 
@@ -48,6 +49,11 @@ const clearSearch = () => {
 }
 
 defineExpose({ clearSearch });
+
+onMounted(async () => {
+    hiddenSettings.value = (await configHiddenSettings()).data;
+});
+
 </script>
 
 <style lang="less" scoped>

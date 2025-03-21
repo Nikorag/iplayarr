@@ -145,13 +145,28 @@ export const ServiceLibrary: Service[] = [
         name: 'config',
         type: {},
         route: 'SettingsRoute',
-        model: 'string',
-        'apiTag': 'Settings'
-    },
-    {
-        name: 'hiddenSettings',
-        type: {},
-        'customPath': 'json-api/config/hiddenSettings'
+        model: 'Record<string,string>',
+        apiTag: 'Settings',
+        microservices: [
+            {
+                name: 'hiddenSettings',
+                method: 'GET',
+                path: '/hiddenSettings',
+                result: 'Record<string, string>'
+            },
+            {
+                name: 'qualityProfiles',
+                method: 'GET',
+                path: '/qualityProfiles',
+                result: 'QualityProfile[]',
+                dependencies: [
+                    {
+                        importFrom: 'QualityProfile',
+                        from: '../data/QualityProfiles'
+                    }
+                ]
+            }
+        ]
     },
     {
         name: 'queue',

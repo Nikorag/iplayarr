@@ -47,9 +47,14 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue';
+import { computed, inject, onMounted, ref } from 'vue';
 
-const {hiddenSettings} = inject('hiddenSettings');
+const {configHiddenSettings} = inject('config');
+const hiddenSettings = ref({});
+
+onMounted(async () => {
+    hiddenSettings.value = (await configHiddenSettings()).data;
+});
 
 const isAppleDevice = computed(() => {
     return /Mac|iPhone|iPod|iPad/.test(navigator.userAgent);

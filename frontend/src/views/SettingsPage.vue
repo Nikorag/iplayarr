@@ -41,13 +41,11 @@ import LoadingIndicator from '@/components/common/LoadingIndicator.vue';
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 import UpdateAppDialog from '@/components/modals/UpdateAppDialog.vue';
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 
 const loading = ref(false);
 let originalApiKey = undefined;
 
-const { config, refreshConfig, updateConfig } = inject('config');
-console.log(`config is ${config}`);
+const { config, refreshConfig, updateConfig, configQualityProfiles } = inject('config');
 const configChanges = ref(false);
 const showAdvanced = ref(false);
 
@@ -62,7 +60,7 @@ const saveEnabled = computed(() => {
 })
 
 onMounted(async () => {
-    const qpResponse = await ipFetch('json-api/config/qualityProfiles');
+    const qpResponse = await configQualityProfiles();
     await refreshConfig();
     originalApiKey = config.value.API_KEY;
     qualityProfiles.value = qpResponse.data.map(({ id, name, quality }) => ({ 'key': id, 'value': `${name} (${quality})` }));

@@ -33,7 +33,7 @@ COPY frontend/package*.json ./frontend/
 
 RUN npm run install:both
 COPY . .
-RUN npm run build:frontend && npm run build:backend
+RUN npm run build:both
 RUN rm -rf /app/src /app/frontend/src
 
 

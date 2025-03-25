@@ -80,7 +80,8 @@ async function getDetails(xml : string) : Promise<NZBDetails> {
             if (err) {
                 return reject({err} as DetailsRejection);
             } else if (!result?.nzb?.head?.[0]?.title?.[0]){
-                const nzbName : string | undefined = result?.nzb?.file?.$?.subject;
+                const title : NZBMetaEntry = result.nzb.head[0].meta.find(({$} : any) => $.type === 'name');
+                const nzbName : string | undefined = title ? title?._ : undefined;
                 return reject({ isError : true, err: new Error('Invalid iPlayarr NZB File'), nzbName} as DetailsRejection);
 	    }
             const nzbName : NZBMetaEntry = result.nzb.head[0].meta.find(({$} : any) => $.type === 'nzbName');

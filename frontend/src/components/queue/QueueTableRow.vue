@@ -80,11 +80,11 @@ const cancel = async (pid) => {
 }
 
 const deleteRow = async ({pid, status}) => {
-  if (status == 'Complete' || status == 'Forwarded'){
-    await trash(pid);
-  } else {
-    await cancel(pid);
-  }
+    if (status == 'Complete' || status == 'Forwarded'){
+        await trash(pid);
+    } else {
+        await cancel(pid);
+    }
 }
 
 const getAppForId = (id) => {
@@ -102,11 +102,11 @@ const getDownloadIcon = ({status}) => {
 }
 
 const getDeleteIcon = ({status}) => {
-  if (status == 'Complete' || status == 'Forwarded'){
-    return 'trash';
-  } else {
-    return 'xmark';
-  }
+    if (status == 'Complete' || status == 'Forwarded'){
+        return 'trash';
+    } else {
+        return 'xmark';
+    }
 }
 </script>
 

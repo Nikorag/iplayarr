@@ -104,7 +104,6 @@ const select = (history) => {
 
                     .appImg {
                         width: 15px;
-                        filter: grayscale(100%) contrast(100%);
                     }
                 }
             }

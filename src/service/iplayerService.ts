@@ -2,7 +2,6 @@ import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
 import NodeCache from 'node-cache';
 import path from 'path';
-import { v4 } from 'uuid';
 
 import { DownloadDetails } from '../types/DownloadDetails';
 import { IplayarrParameter } from '../types/IplayarrParameters';
@@ -34,15 +33,14 @@ const timestampFile = 'iplayarr_timestamp';
 
 const iplayerService = {
     download : async (pid : string) : Promise<ChildProcess> => {
-        const uuid : string = v4();
         const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
         const completeDir = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
 
         const [exec, args] = await getIPlayerExec();
         const additionalParams : string[] = await getAddDownloadParams();
-        fs.mkdirSync(`${downloadDir}/${uuid}`);
-        fs.writeFileSync(`${downloadDir}/${uuid}/${timestampFile}`, '');
-        const allArgs = [...args, ...additionalParams, await getQualityParam(), '--output', `${downloadDir}/${uuid}`, '--overwrite', '--force', '--log-progress', `--pid=${pid}`];
+        fs.mkdirSync(`${downloadDir}/${pid}`, { recursive: true });
+        fs.writeFileSync(`${downloadDir}/${pid}/${timestampFile}`, '');
+        const allArgs = [...args, ...additionalParams, await getQualityParam(), '--output', `${downloadDir}/${pid}`, '--overwrite', '--force', '--log-progress', `--pid=${pid}`];
 
         loggingService.debug(`Executing get_iplayer with args: ${allArgs.join(' ')}`);
         const downloadProcess = spawn(exec as string, allArgs);
@@ -64,7 +62,7 @@ const iplayerService = {
                         const sizeLeft = parseFloat(size) * percentFactor;
 
                         const deltaDetails : Partial<DownloadDetails> = {
-                            uuid,
+                            uuid : pid,
                             progress : parseFloat(progress),
                             size : parseFloat(size),
                             speed : parseFloat(speed),
@@ -83,7 +81,7 @@ const iplayerService = {
                 const queueItem : QueueEntry | undefined = queueService.getFromQueue(pid);
                 if (queueItem){
                     try {
-                        const uuidPath = path.join(downloadDir, uuid);
+                        const uuidPath = path.join(downloadDir, pid);
                         loggingService.debug(pid, `Looking for MP4 files in ${uuidPath}`);
                         const files = fs.readdirSync(uuidPath);
                         const mp4File = files.find(file => file.endsWith('.mp4'));

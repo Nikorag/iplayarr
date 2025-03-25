@@ -102,7 +102,6 @@ const computedResults = computed(() => {
 
           .appImg {
             width: 15px;
-            filter: grayscale(100%) contrast(100%);
           }
         }
       }

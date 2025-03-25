@@ -86,6 +86,8 @@ function categoriesForType(type : VideoType) : string[] {
         return ['2000','2040'];
     case VideoType.TV:
         return ['5000', '5040'];
+    case VideoType.UNKNOWN:
+        return [];    
     }   
 }
 

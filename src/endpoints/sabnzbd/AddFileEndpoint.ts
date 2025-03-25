@@ -22,6 +22,11 @@ interface NZBDetails {
     appId? : string
 }
 
+interface DetailsRejection {
+    err : any,
+    nzbName : string,
+}
+
 export default async (req : Request, res : Response) => {
     const { files } = req as any as AddFileRequest;
     try {
@@ -38,7 +43,8 @@ export default async (req : Request, res : Response) => {
             status: true,
             nzo_ids: pids
         });
-    } catch (error : any) {
+    } catch (err : any) {
+        const rejection = err as DetailsRejection;
         let allApps = await appService.getAllApps();
         allApps = allApps
             .filter(({type}) => type == AppType.NZBGET || type == AppType.SABNZBD)
@@ -53,7 +59,7 @@ export default async (req : Request, res : Response) => {
             )
             if (validApp){
                 try {
-                    const response = await nzbFacade.addFile(nzbApp, files);
+                    const response = await nzbFacade.addFile(nzbApp, files, rejection.nzbName);
                     res.status(response.status).send(response.data);
                     return;
                 } catch (nzbErr) {
@@ -63,7 +69,7 @@ export default async (req : Request, res : Response) => {
         }
         res.status(500).json({
             status: false,
-            error: error.message
+            error: rejection.err.message
         });
     }
 }
@@ -72,9 +78,10 @@ async function getDetails(xml : string) : Promise<NZBDetails> {
     return new Promise((resolve, reject) => {
         parser.parseString(xml, (err, result) => {
             if (err) {
-                return reject(err);
+                return reject({err} as DetailsRejection);
             } else if (!result?.nzb?.head?.[0]?.title?.[0]){
-                return reject(new Error('Invalid iPlayarr NZB File'));
+                const nzbName : string | undefined = result?.nzb?.file?.$?.subject;
+                return reject({ isError : true, err: new Error('Invalid iPlayarr NZB File'), nzbName} as DetailsRejection);
 	    }
             const nzbName : NZBMetaEntry = result.nzb.head[0].meta.find(({$} : any) => $.type === 'nzbName');
             const type : NZBMetaEntry = result.nzb.head[0].meta.find(({$} : any) => $.type === 'type');

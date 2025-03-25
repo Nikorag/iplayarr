@@ -360,6 +360,12 @@ async function getIPlayerExec() : Promise<(string | RegExpMatchArray)[]> {
 
     const exec : string = args.shift() as string;
 
+    const cacheLocation = process.env.CACHE_LOCATION;
+    if (cacheLocation){
+        args.push('--profile-dir');
+        args.push(`"${cacheLocation}"`);
+    }
+
     return [exec, args];
 }
 

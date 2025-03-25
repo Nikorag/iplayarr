@@ -5,6 +5,7 @@ export interface App {
     type : AppType,
     name : string,
     url : string,
+    link? : string,
     api_key? : string,
     username? : string,
     password? : string,

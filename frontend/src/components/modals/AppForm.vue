@@ -26,6 +26,10 @@
           <TextInput v-model="form.priority" name="Priority" placeholder="25" type-override="number" :tooltip="`NZB Client Priority, (lower number is first)`" :error="validationErrors?.priority" />
         </template>
 
+        <template v-if="showForm('link')">
+          <TextInput v-model="form.link" name="Link" :tooltip="`Link to service for users`" :error="validationErrors?.link" />
+        </template>
+
         <template v-if="showForm('callback')">
           <InfoBar v-if="form.type == 'PROWLARR'" class="warning">
             Prowlarr cannot force download client affinity in downstream Arrs

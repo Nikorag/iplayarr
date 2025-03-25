@@ -7,7 +7,7 @@
       <RouterLink v-if="item.status != 'Forwarded'" :to="{ path: '/info', query: { item: JSON.stringify(item) } }">
         {{ item.nzbName }}
       </RouterLink>
-      <a v-else target="_blank" :href="getAppForId(item.appId).url">
+      <a v-else target="_blank" :href="getAppForId(item.appId)?.link || getAppForId(item.appId)?.url || '#'">
         {{ item.nzbName }}
       </a>
     </td>

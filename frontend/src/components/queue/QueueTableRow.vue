@@ -1,12 +1,15 @@
 <template>
   <tr>
     <td>
-      <font-awesome-icon :class="[history ? 'complete' : '', item.status]" :icon="['fas', history ? 'download' : (item.status == 'Queued' ? 'cloud' : 'cloud-download')]" />
+      <font-awesome-icon :class="[item.status]" :icon="['fas', getDownloadIcon(item)]" />
     </td>
     <td class="text" data-title="Filename">
-      <RouterLink :to="{ path: '/info', query: { item: JSON.stringify(item) } }">
+      <RouterLink v-if="item.status != 'Forwarded'" :to="{ path: '/info', query: { item: JSON.stringify(item) } }">
         {{ item.nzbName }}
       </RouterLink>
+      <a v-else target="_blank" :href="getAppForId(item.appId)?.link || getAppForId(item.appId)?.url || '#'">
+        {{ item.nzbName }}
+      </a>
     </td>
     <td>
       <span :class="['pill', item.type]">
@@ -30,7 +33,7 @@
       </template>
     </td>
     <td class="progress-column" data-title="Progress">
-      <ProgressBar :progress="item.details.progress" :history="history" :idle="item.status == 'Queued'" />
+      <ProgressBar :progress="item.details.progress" :status="item.status" />
     </td>
     <td data-title="ETA">
       {{ item.details.eta }}
@@ -39,11 +42,8 @@
       {{ item.details.speed || '' }} {{ item.details.speed != '' ? 'MB/s' : '' }}
     </td>
     <td class="actionCol" data-title="Action">
-      <span v-if="history">
-        <font-awesome-icon class="clickable" :icon="['fas', 'trash']" @click="trash(item.pid)" />
-      </span>
-      <span v-if="!history">
-        <font-awesome-icon class="clickable" :icon="['fas', 'xmark']" @click="cancel(item.pid)" />
+      <span>
+        <font-awesome-icon class="clickable" :icon="['fas', getDeleteIcon(item)]" @click="deleteRow(item)" />
       </span>
     </td>
   </tr>
@@ -62,11 +62,6 @@ defineProps({
     item: {
         type: Object,
         required: true
-    },
-
-    history: {
-        type: Boolean,
-        require: true
     }
 });
 
@@ -84,13 +79,42 @@ const cancel = async (pid) => {
     }
 }
 
+const deleteRow = async ({pid, status}) => {
+    if (status == 'Complete' || status == 'Forwarded'){
+        await trash(pid);
+    } else {
+        await cancel(pid);
+    }
+}
+
 const getAppForId = (id) => {
     return apps.value.find(({ id: appId }) => id == appId);
+}
+
+const getDownloadIcon = ({status}) => {
+    if (status == 'Complete'){
+        return 'cloud-download';
+    } else if (status == 'Forwarded'){
+        return 'forward';
+    } else {
+        return 'cloud';
+    }
+}
+
+const getDeleteIcon = ({status}) => {
+    if (status == 'Complete' || status == 'Forwarded'){
+        return 'trash';
+    } else {
+        return 'xmark';
+    }
 }
 </script>
 
 <style lang="less" scoped>
-.complete {
+.Complete {
     color: @complete-color;
+}
+.Forwarded {
+    color: @warn-color;
 }
 </style>

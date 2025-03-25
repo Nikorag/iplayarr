@@ -5,6 +5,7 @@ import historyService from '../../service/historyService'
 import { IplayarrParameter } from '../../types/IplayarrParameters'
 import { QueueEntry } from '../../types/QueueEntry'
 import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, SabNZBDHistoryResponse } from '../../types/responses/sabnzbd/HistoryResponse'
+import { QueueEntryStatus } from '../../types/responses/sabnzbd/QueueResponse'
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse'
 import { formatBytes } from '../../utils/Utils'
 import { EndpointDirectory } from '../EndpointDirectory'
@@ -27,7 +28,7 @@ export default async (req : Request, res : Response, next : NextFunction) => {
 
         const historyObject : SabNZBDHistoryResponse = {
             ...historySkeleton,
-            slots : history.map((item) => createHistoryEntry(completeDir, item))
+            slots : history.filter(({status}) => status != QueueEntryStatus.FORWARDED).map((item) => createHistoryEntry(completeDir, item))
         } as SabNZBDHistoryResponse
         res.json({history : historyObject});
     }

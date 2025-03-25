@@ -1,11 +1,7 @@
 <template>
-  <div v-if="!idle" :class="['progress-bar', history ? 'history' : '']">
+  <div :class="['progress-bar', status]">
     <div class="progress" :style="{ width: progress + '%' }" />
-  </div>
-
-  <div v-if="idle" :class="['progress-bar', history ? 'history' : '', 'idle']">
-    <div class="progress" style="width: 100%" />
-  </div>
+  </div>  
 </template>
 
 <script setup>
@@ -14,17 +10,12 @@ import { defineProps } from 'vue';
 defineProps({
     progress: {
         type: Number,
+        required: false,
+        default: 100
+    },
+    status: {
+        type: String,
         required: true
-    },
-    history: {
-        type: Boolean,
-        required: false,
-        default: false
-    },
-    idle: {
-        type: Boolean,
-        required: false,
-        default: false
     }
 });
 </script>
@@ -42,9 +33,14 @@ defineProps({
     background-color: @primary-color;
   }
 
-  &.history {
+  &.Complete {
     .progress {
       background-color: @complete-color;
+    }
+  }
+  &.Forwarded {
+    .progress {
+      background-color: @warn-color;
     }
   }
 }

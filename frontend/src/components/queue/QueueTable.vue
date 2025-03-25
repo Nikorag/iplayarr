@@ -19,8 +19,8 @@
       </tr>
     </thead>
     <tbody>
-      <QueueTableRow v-for="item in queue" :key="item.id" :item="item" :history="false" />
-      <QueueTableRow v-for="item in history" :key="item.id" :item="item" :history="true" />
+      <QueueTableRow v-for="item in queue" :key="item.id" :item="item" />
+      <QueueTableRow v-for="item in history" :key="item.id" :item="item" />
     </tbody>
   </table>
 </template>
@@ -82,7 +82,6 @@ defineProps({
 
         .appImg {
           width: 15px;
-          filter: grayscale(100%) contrast(100%);
         }
       }
     }

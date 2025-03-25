@@ -241,6 +241,9 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
     },
     [AppFeature.PRIORITY]: async (form: App): Promise<App> => {
         return form;
+    },
+    [AppFeature.LINK]: async (form: App): Promise<App> => {
+        return form;
     }
 }
 

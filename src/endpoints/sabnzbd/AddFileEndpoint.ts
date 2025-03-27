@@ -69,7 +69,7 @@ export default async (req : Request, res : Response) => {
         }
         res.status(500).json({
             status: false,
-            error: rejection.err.message
+            error: rejection.err?.message || 'Unable to add NZB, Unknown Error'
         });
     }
 }

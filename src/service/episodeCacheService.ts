@@ -1,11 +1,11 @@
-import axios from 'axios';
-import { JSDOM } from 'jsdom';
+import axios, { AxiosResponse } from 'axios';
 import { v4 } from 'uuid';
 
 import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QueuedStorage } from '../types/QueuedStorage'
-import { EpisodeCacheDefinition, IPlayerDataLayerResponse } from '../types/responses/EpisodeCacheTypes';
+import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
+import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityPofile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerService from './iplayerService';
 const storage : QueuedStorage = new QueuedStorage();
@@ -15,6 +15,8 @@ const storageOptions : any = {};
 if (process.env.STORAGE_LOCATION){
     storageOptions.dir = process.env.STORAGE_LOCATION;
 }
+
+const PID_REGEX = /\/([a-z0-9]{6}[a-z]{2})(?:\/|$)/
 
 const episodeCacheService = {
     initStorage : async () : Promise<void> => {
@@ -78,25 +80,14 @@ const episodeCacheService = {
     cacheEpisodesForUrl : async (inputUrl : string) : Promise<boolean> => {
         await episodeCacheService.initStorage();
         const {sizeFactor} = await getQualityPofile();
-        const url = removeAllQueryParams(inputUrl);
 
+        const url = removeAllQueryParams(inputUrl);
         const alreadyCached = await episodeCacheService.getEpisodeCacheForUrl(url);
 
-        const seriesOverview : IPlayerDataLayerResponse | undefined = await episodeCacheService.getDetailScript(url);
-        if (seriesOverview){
-            const seriesIDs = seriesOverview.header.availableSlices
-                .filter(({id}) => id != 'more-like-this')
-                .map(({id}) => id);
-            const seriesResponses = await Promise.all(
-                seriesIDs.map((id) => episodeCacheService.getDetailScript(`${url}?seriesId=${id}`))
-            );
-            let episodes : any[] = [];
-            for (const series of seriesResponses){
-                episodes = [...episodes, ...(series as any).entities.results.map((s : any) => s.episode.id)];
-            }
-
-            //filter out only new ones
-            episodes = episodes.filter((e) => !alreadyCached?.some(({pid}) => pid == e));
+        const brandPid = await episodeCacheService.findBrandForUrl(inputUrl);
+        if (brandPid){
+            const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${brandPid}/children.json?limit=100`);
+            const episodes = (await Promise.all(seriesList.programmes.filter(({type}) => type == 'series').map(({pid}) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
 
             const chunks = splitArrayIntoChunks(episodes, 20);
             const infos : IPlayerDetails[] = await chunks.reduce(async (accPromise, chunk) => {
@@ -111,28 +102,44 @@ const episodeCacheService = {
                 await storage.setItem(title.toLowerCase(), {results : [...alreadyCached, ...results], url});
                 return true;
             }
+        } else {
+            return false;
         }
         return false;
     },
 
-    getDetailScript : async (url : string) : Promise<IPlayerDataLayerResponse | undefined> => {
+    getSeriesEpisodes : async (pid : string) : Promise<string[]> => {
         try {
-            const {data} = await axios.get(url);
-
-            const dom : JSDOM = new JSDOM(data);
-            const document : Document = dom.window.document;
-
-            const detailScript : Element | null = document.querySelector('#tvip-script-app-store');
-
-            if (detailScript){
-                const json = detailScript.innerHTML.replace('window.__IPLAYER_REDUX_STATE__ = ', '').replace(/;$/, '');
-                const response : IPlayerDataLayerResponse = JSON.parse(json);
-                return response
-            }
+            const response : AxiosResponse<IPlayerChilrenResponse> = await axios.get(`https://www.bbc.co.uk/programmes/${pid}/children.json?limit=100`);
+            return response.data.children.programmes.map(({pid}) => pid);
         } catch {
-            return;
+            return [];
         }
-        return;
+    },
+
+    findBrandForUrl : async (url : string) : Promise<string | undefined> => {
+        const match = url.match(PID_REGEX);
+        if (match){
+            const pid = match[1];
+            return await episodeCacheService.findBrandForPid(pid);
+        }
+    },
+
+    findBrandForPid : async (pid : string, checked : string[] = []) : Promise<string | undefined> => {
+        const {programme} : IPlayerMetadataResponse = await episodeCacheService.getMetadata(pid);
+        if (programme.type == 'brand'){
+            return programme.pid;
+        } else if (programme.parent) {
+            if (!checked.includes(programme.parent.programme.pid) && programme.parent.programme.pid != pid){
+                return await episodeCacheService.findBrandForPid(programme.parent.programme.pid, [...checked, pid]);
+            }
+        }
+        return undefined;
+    },
+
+    getMetadata : async (pid : string) : Promise<IPlayerMetadataResponse> => {
+        const {data} : {data : IPlayerMetadataResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${pid}.json`);
+        return data;
     }
 }
 

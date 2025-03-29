@@ -16,7 +16,7 @@ if (process.env.STORAGE_LOCATION){
     storageOptions.dir = process.env.STORAGE_LOCATION;
 }
 
-const PID_REGEX = /\/([a-z0-9]{6}[a-z]{2})(?:\/|$)/
+const PID_REGEX = /\/([a-z0-9]{8})(?:\/|$)/
 
 const episodeCacheService = {
     initStorage : async () : Promise<void> => {
@@ -97,7 +97,7 @@ const episodeCacheService = {
             }, Promise.resolve([])); // Initialize accumulator as a resolved Promise
             
             if (infos.length > 0){
-                const title = infos[0].title;
+                const title = infos[0].title; // FIX THIS!
                 const results = await Promise.all(infos.map((info : IPlayerDetails) => createResult(title, info, sizeFactor)));
                 await storage.setItem(title.toLowerCase(), {results : [...alreadyCached, ...results], url});
                 return true;
@@ -118,7 +118,7 @@ const episodeCacheService = {
     },
 
     findBrandForUrl : async (url : string) : Promise<string | undefined> => {
-        const match = url.match(PID_REGEX);
+        const match = url.replace('/episodes', '').match(PID_REGEX);
         if (match){
             const pid = match[1];
             return await episodeCacheService.findBrandForPid(pid);

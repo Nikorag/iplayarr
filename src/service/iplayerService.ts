@@ -294,22 +294,6 @@ async function searchIPlayer(term : string, synonym? : Synonym) : Promise<IPlaye
     });
 }
 
-function createDetailsObject(detailMap : {[key:string] : string}) : IPlayerDetails {
-    return {
-        pid: detailMap['pid'],
-        title: detailMap['nameshort'] || detailMap['name'],
-        channel : detailMap['channel'],
-        category : detailMap['category'],
-        description : detailMap['desc'],
-        runtime : detailMap['runtime'] ? parseInt(detailMap['runtime']) : undefined,
-        firstBroadcast : detailMap['firstbcastdate'],
-        link : detailMap['player'],
-        thumbnail : detailMap['thumbnail'],
-        series : detailMap['seriesnum'] ? parseInt(detailMap['seriesnum']) : undefined,
-        episode : detailMap['episodenum'] ? parseInt(detailMap['episodenum']) : undefined,
-    }
-}
-
 function extractSeriesNumber(title : string, series : string) : any[]{
     const match = seriesRegex.exec(title);
     if (match){

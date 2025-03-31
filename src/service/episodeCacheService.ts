@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import lunr from 'lunr';
 import { v4 } from 'uuid';
 
 import { IPlayerDetails } from '../types/IPlayerDetails';
@@ -8,7 +9,11 @@ import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
 import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityPofile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerService from './iplayerService';
+
+
 const storage : QueuedStorage = new QueuedStorage();
+
+let lunrIndex : lunr.Index;
 
 let isStorageInitialized : boolean = false;
 const storageOptions : any = {};
@@ -24,6 +29,16 @@ const episodeCacheService = {
             await storage.init(storageOptions);
             isStorageInitialized = true;
         }
+
+        const allEpisodeKeys = (await storage.keys()).filter((k) => k != 'series-cache-definition');
+
+        //Build the lunr index
+        lunrIndex = lunr(function (this : lunr.Builder) {
+            this.ref('code');
+            this.field('code');
+
+            allEpisodeKeys.forEach((code) => this.add({code}));
+        });
     },
 
     getEpisodeCache : async (term : string) : Promise<IPlayerSearchResult[]> => {
@@ -32,15 +47,28 @@ const episodeCacheService = {
         return result.map((sr : any) => ({...sr, pubDate : new Date(sr.pubDate)}));
     },
 
+    searchEpisodeCache : async (term : string) : Promise<IPlayerSearchResult[]> => {
+        await episodeCacheService.initStorage();
+        const lunrResult = lunrIndex.search(term);
+        const results = await Promise.all(lunrResult.map(({ref}) => storage.getItem(ref)));
+        return results.map(({results}) => results).flat();
+    },
+
     getEpisodeCacheForUrl : async (url : string) : Promise<IPlayerSearchResult[]> => {
         await episodeCacheService.initStorage();
         const allStorage = await storage.values();
         const episodeCache = allStorage.find((item) => item.url && item.url == url);
         return episodeCache?.results || [];
     },
+
     getCachedSeries : async () : Promise<EpisodeCacheDefinition[]> => {
         await episodeCacheService.initStorage();
         return (await storage.getItem('series-cache-definition')) || [];
+    },
+
+    getCachedSeriesForId : async (id : string) : Promise<EpisodeCacheDefinition | undefined> => {
+        const all = await episodeCacheService.getCachedSeries();
+        return all.find(({id : storedId}) => storedId == id);
     },
 
     addCachedSeries : async (url : string, name : string) : Promise<void> => {
@@ -51,6 +79,14 @@ const episodeCacheService = {
     },
 
     updateCachedSeries : async (def : EpisodeCacheDefinition) : Promise<void> => {
+        //Move old record
+        const oldRecord = await episodeCacheService.getCachedSeriesForId(def.id);
+        if (oldRecord){
+            const oldEpisodes = await storage.getItem(oldRecord.name);
+            await storage.setItem(def.name, oldEpisodes);
+            await storage.removeItem(oldRecord.name);
+        }
+        
         await episodeCacheService.removeCachedSeries(def.id);
         const cachedSeries = await episodeCacheService.getCachedSeries();
         cachedSeries.push(def);
@@ -58,6 +94,12 @@ const episodeCacheService = {
     },
 
     removeCachedSeries : async (id : string) : Promise<void> => {
+        //Remove old record
+        const oldRecord = await episodeCacheService.getCachedSeriesForId(id);
+        if (oldRecord){
+            await storage.removeItem(oldRecord.name);
+        }
+
         let cachedSeries = await episodeCacheService.getCachedSeries();
         cachedSeries = cachedSeries.filter(({id : savedId}) => savedId != id);
         await storage.setItem('series-cache-definition', cachedSeries);
@@ -82,7 +124,6 @@ const episodeCacheService = {
         const {sizeFactor} = await getQualityPofile();
 
         const url = removeAllQueryParams(inputUrl);
-        const alreadyCached = await episodeCacheService.getEpisodeCacheForUrl(url);
 
         const brandPid = await episodeCacheService.findBrandForUrl(inputUrl);
         if (brandPid){
@@ -97,9 +138,9 @@ const episodeCacheService = {
             }, Promise.resolve([])); // Initialize accumulator as a resolved Promise
             
             if (infos.length > 0){
-                const title = infos[0].title; // FIX THIS!
+                const title = infos[0].title;
                 const results = await Promise.all(infos.map((info : IPlayerDetails) => createResult(title, info, sizeFactor)));
-                await storage.setItem(title.toLowerCase(), {results : [...alreadyCached, ...results], url});
+                await storage.setItem(title.toLowerCase(), {results : [...results], url});
                 return true;
             }
         } else {
@@ -144,7 +185,7 @@ const episodeCacheService = {
 }
 
 async function createResult(term : string, details : IPlayerDetails, sizeFactor : number) : Promise<IPlayerSearchResult> {
-    const size : number | undefined = details.runtime ? (details.runtime * 60) * sizeFactor : undefined;
+    const size : number | undefined = details.runtime ? ((details.runtime * 60) * sizeFactor) / 100 : undefined;
 
     const nzbName = await createNZBName(VideoType.TV, {
         title: details.title.replaceAll(' ', '.'),

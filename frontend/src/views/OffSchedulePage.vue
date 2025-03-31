@@ -26,8 +26,10 @@ import OffScheduleForm from '@/components/modals/OffScheduleForm.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
+import { useRouter } from 'vue-router';
 
 const cacheDefinitions = ref([]);
+const router = useRouter();
 
 const refreshCacheDefinitions = async () => {
     cacheDefinitions.value = (await ipFetch('json-api/offSchedule')).data;
@@ -75,7 +77,9 @@ const saveCacheDefinition = async (form) => {
 const refreshCacheDefinition = async (def) => {
     if (await dialogService.confirm('Refresh Cache', `Are you sure you want to refresh the cache for ${def.name}?`)) {
         await ipFetch('json-api/offSchedule/refresh', 'POST', def);
-        dialogService.alert("Refresh Cache", "Refreshing Off Schedule Cache");
+        if (await dialogService.confirm("Show Results?", `Show Results for ${def.name}?`)){
+            router.push(`/search?searchTerm=${def.name}`)
+        }
     }
 
 }

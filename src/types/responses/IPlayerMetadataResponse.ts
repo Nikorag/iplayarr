@@ -29,7 +29,8 @@ export interface IPlayerProgramMetadata {
     first_broadcast_date? : string,
     image? : {
         pid : string
-    }
+    },
+    aggregated_episode_count : number
 }
 
 export interface IPlayerChilrenResponse {

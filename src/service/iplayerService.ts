@@ -133,7 +133,7 @@ const iplayerService = {
         }
 
         //Get the out of schedule results form cache
-        const episodeCache : IPlayerSearchResult[] = await episodeCacheService.getEpisodeCache(inputTerm.toLowerCase());
+        const episodeCache : IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
         for (const cachedEpisode of episodeCache){
             const exists = returnResults.some(({pid}) => pid == cachedEpisode.pid);
             const validSeason = season ? cachedEpisode.series == season : true;
@@ -205,11 +205,13 @@ const iplayerService = {
         const {programme} = await episodeCacheService.getMetadata(pid);
         const runtime = programme.versions ? programme.versions[0].duration : 0;
         const category = programme.categories? programme.categories[0].title : '';
+        const series = programme.parent?.programme?.position;
+        const episode = programme.position || series ? programme.parent?.programme?.aggregated_episode_count : undefined;
         return {
             pid,
             title: programme.display_title?.title ?? programme.title,
-            episode: programme.position,
-            series :  programme.parent?.programme?.position,
+            episode,
+            series,
             channel : programme.ownership?.service?.title,
             category,
             description : programme.medium_synopsis,

@@ -21,13 +21,10 @@ import synonymService from './synonymService';
 
 const progressRegex : RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
 const seriesRegex : RegExp = /: (?:Series|Season) (\d+)/
-const detailsRegex : RegExp = /^([a-z+]+): +(.*)$/;
-const processingRegex : RegExp = /INFO: Processing (?:.*)\(([0-9a-z]+)\)'$/;
 
 const listFormat : string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
 
 const searchCache : NodeCache = new NodeCache({stdTTL: 300, checkperiod: 60});
-const detailsCache : NodeCache = new NodeCache({stdTTL: 86400, checkperiod: 3600});
 
 const timestampFile = 'iplayarr_timestamp';
 

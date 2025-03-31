@@ -20,13 +20,13 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useModal } from 'vue-final-modal'
+import { useRouter } from 'vue-router';
 
 import ListEditor from '@/components/common/ListEditor.vue';
 import OffScheduleForm from '@/components/modals/OffScheduleForm.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
-import { useRouter } from 'vue-router';
 
 const cacheDefinitions = ref([]);
 const router = useRouter();
@@ -77,7 +77,7 @@ const saveCacheDefinition = async (form) => {
 const refreshCacheDefinition = async (def) => {
     if (await dialogService.confirm('Refresh Cache', `Are you sure you want to refresh the cache for ${def.name}?`)) {
         await ipFetch('json-api/offSchedule/refresh', 'POST', def);
-        if (await dialogService.confirm("Show Results?", `Show Results for ${def.name}?`)){
+        if (await dialogService.confirm('Show Results?', `Show Results for ${def.name}?`)){
             router.push(`/search?searchTerm=${def.name}`)
         }
     }

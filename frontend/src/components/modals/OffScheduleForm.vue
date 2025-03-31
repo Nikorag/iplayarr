@@ -1,6 +1,6 @@
 <template>
   <IPlayarrModal :title="`${action} Cache Definition`" :show-close="true" close-label="Cancel" :show-confirm="true" confirm-label="Save" @confirm="saveCacheDefinition">
-    <TextInput v-model="form.name" name="Name" tooltip="Name for the Cache Definition" placeholder="Red Dwarf" />
+    <TextInput v-model="form.name" name="Search Term" tooltip="Search Term for the Cache Definition" placeholder="Red Dwarf" />
     <TextInput v-model="form.url" name="URL" tooltip="iPlayer URL" placeholder="https://www.bbc.co.uk/iplayer/episodes/b008ncn6/red-dwarf" />
   </IPlayarrModal>
 </template>

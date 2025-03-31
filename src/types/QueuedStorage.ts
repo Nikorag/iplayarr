@@ -19,6 +19,14 @@ export class QueuedStorage {
         });
     }
 
+    async keys(): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            this.current = this.current.then(() =>
+                storage.keys().then(resolve, reject)
+            );
+        });
+    }
+
     async getItem(key: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.current = this.current.then(() => 
@@ -31,6 +39,14 @@ export class QueuedStorage {
         return new Promise<void>((resolve, reject) => {
             this.current = this.current.then(() => 
                 storage.setItem(key, value).then(() => resolve()).catch(reject)
+            );
+        });
+    }
+
+    async removeItem(key: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.current = this.current.then(() => 
+                storage.removeItem(key).then(() => resolve()).catch(reject)
             );
         });
     }

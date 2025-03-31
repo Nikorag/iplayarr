@@ -21,13 +21,10 @@ import synonymService from './synonymService';
 
 const progressRegex : RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
 const seriesRegex : RegExp = /: (?:Series|Season) (\d+)/
-const detailsRegex : RegExp = /^([a-z+]+): +(.*)$/;
-const processingRegex : RegExp = /INFO: Processing (?:.*)\(([0-9a-z]+)\)'$/;
 
 const listFormat : string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
 
 const searchCache : NodeCache = new NodeCache({stdTTL: 300, checkperiod: 60});
-const detailsCache : NodeCache = new NodeCache({stdTTL: 86400, checkperiod: 3600});
 
 const timestampFile = 'iplayarr_timestamp';
 
@@ -133,7 +130,7 @@ const iplayerService = {
         }
 
         //Get the out of schedule results form cache
-        const episodeCache : IPlayerSearchResult[] = await episodeCacheService.getEpisodeCache(inputTerm.toLowerCase());
+        const episodeCache : IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
         for (const cachedEpisode of episodeCache){
             const exists = returnResults.some(({pid}) => pid == cachedEpisode.pid);
             const validSeason = season ? cachedEpisode.series == season : true;
@@ -198,58 +195,28 @@ const iplayerService = {
     },
 
     details : async (pids : string[]) : Promise<IPlayerDetails[]> => {
-        return new Promise(async (resolve) => {
-            const details : IPlayerDetails[] = [];
-            const toSearch : string[] = [];
-            for (const pid of pids){
-                const cachedDetail : IPlayerDetails | undefined = detailsCache.get(pid);
-                if (cachedDetail){
-                    details.push(cachedDetail);
-                } else {
-                    toSearch.push(pid);
-                }
-            }
+        return await Promise.all(pids.map((pid) => iplayerService.episodeDetails(pid)));
+    },
 
-            let detailMap : {[key : string] : string} = {};
-            let processingPid : string = '';
-            const [exec, args] = await getIPlayerExec();
-            const allArgs = [...args, '-i', `--pid="${pids.join(',')}"`];
-
-            loggingService.debug(`Executing get_iplayer with args: ${allArgs.join(' ')}`);
-            const detailsProcess = spawn(exec as string, allArgs, { shell: true });
-
-            detailsProcess.stdout.on('data', (data) => {
-                loggingService.debug(data.toString());
-                const lines : string[] = data.toString().split('\n');
-                for (const line of lines){
-                    const processingMatch = processingRegex.exec(line);
-                    if (processingMatch){
-                        if (processingPid != '' && Object.keys(detailMap).length > 0){
-                            const detail : IPlayerDetails = createDetailsObject(detailMap);
-                            details.push(detail);
-                            detailsCache.set(processingPid, detail);
-                            detailMap = {};
-                        }
-                        processingPid = processingMatch[1]
-                    }
-                    const match = detailsRegex.exec(line);
-                    if (match){
-                        const key = match[1];
-                        const value = match[2];
-                        detailMap[key] = value;
-                    }
-                }
-            });
-
-            detailsProcess.on('close', () => {
-                if (processingPid != '' && Object.keys(detailMap).length > 0){
-                    const detail : IPlayerDetails = createDetailsObject(detailMap);
-                    details.push(detail);
-                    detailsCache.set(processingPid, detail);
-                }
-                resolve(details);
-            })
-        });
+    episodeDetails: async (pid : string) : Promise<IPlayerDetails> => {
+        const {programme} = await episodeCacheService.getMetadata(pid);
+        const runtime = programme.versions ? programme.versions[0].duration : 0;
+        const category = programme.categories? programme.categories[0].title : '';
+        const series = programme.parent?.programme?.position;
+        const episode = programme.position || series ? programme.parent?.programme?.aggregated_episode_count : undefined;
+        return {
+            pid,
+            title: programme.display_title?.title ?? programme.title,
+            episode,
+            series,
+            channel : programme.ownership?.service?.title,
+            category,
+            description : programme.medium_synopsis,
+            runtime,
+            firstBroadcast : programme.first_broadcast_date,
+            link : `https://www.bbc.co.uk/programmes/${pid}`,
+            thumbnail : programme.image ? `https://ichef.bbci.co.uk/images/ic/1920x1080/${programme.image.pid}.jpg` : undefined
+        }
     },
 
     removeFromSearchCache : (term : string) => {
@@ -325,22 +292,6 @@ async function searchIPlayer(term : string, synonym? : Synonym) : Promise<IPlaye
             }
         });
     });
-}
-
-function createDetailsObject(detailMap : {[key:string] : string}) : IPlayerDetails {
-    return {
-        pid: detailMap['pid'],
-        title: detailMap['nameshort'] || detailMap['name'],
-        channel : detailMap['channel'],
-        category : detailMap['category'],
-        description : detailMap['desc'],
-        runtime : detailMap['runtime'] ? parseInt(detailMap['runtime']) : undefined,
-        firstBroadcast : detailMap['firstbcastdate'],
-        link : detailMap['player'],
-        thumbnail : detailMap['thumbnail'],
-        series : detailMap['seriesnum'] ? parseInt(detailMap['seriesnum']) : undefined,
-        episode : detailMap['episodenum'] ? parseInt(detailMap['episodenum']) : undefined,
-    }
 }
 
 function extractSeriesNumber(title : string, series : string) : any[]{

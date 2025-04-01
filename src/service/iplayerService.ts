@@ -137,12 +137,14 @@ const iplayerService = {
         //Get the out of schedule results form cache
         const episodeCache : IPlayerSearchResult[] = await episodeCacheService.getEpisodeCache(inputTerm.toLowerCase());
         for (const cachedEpisode of episodeCache){
-            const exists = returnResults.some(({pid}) => pid == cachedEpisode.pid);
-            const validSeason = season ? cachedEpisode.series == season : true;
-            const validEpisode = episode ? cachedEpisode.episode == episode : true;
-            if (!exists && validSeason && validEpisode){
-                returnResults.push(cachedEpisode);
-            }
+	    if (cachedEpisode){
+                const exists = returnResults.some(({pid}) => pid == cachedEpisode.pid);
+                const validSeason = season ? cachedEpisode.series == season : true;
+                const validEpisode = episode ? cachedEpisode.episode == episode : true;
+                if (!exists && validSeason && validEpisode){
+                    returnResults.push(cachedEpisode);
+                }
+	    }
         }
 
         return returnResults;

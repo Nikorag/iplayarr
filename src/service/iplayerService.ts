@@ -136,7 +136,7 @@ const iplayerService = {
             const validSeason = season ? cachedEpisode.series == season : true;
             const validEpisode = episode ? cachedEpisode.episode == episode : true;
             if (!exists && validSeason && validEpisode){
-                returnResults.push(cachedEpisode);
+                returnResults.push({...cachedEpisode, pubDate : cachedEpisode.pubDate ? new Date(cachedEpisode.pubDate) : undefined});
             }
         }
 
@@ -152,7 +152,7 @@ const iplayerService = {
         const refreshService = spawn(exec as string, [...args, '--cache-rebuild'], { shell: true });
 
         refreshService.stdout.on('data', (data) => {
-            loggingService.log(data.toString());
+            loggingService.debug(data.toString());
         });
 
         refreshService.stderr.on('data', (data) => {
@@ -243,7 +243,7 @@ async function searchIPlayer(term : string, synonym? : Synonym) : Promise<IPlaye
         const searchProcess = spawn(exec as string, allArgs, { shell: true });
 
         searchProcess.stdout.on('data', (data) => {
-            loggingService.log(data.toString().trim());
+            loggingService.debug(data.toString().trim());
             const lines : string[] = data.toString().split('\n');
             for (const line of lines){
                 if (line.startsWith('RESULT|:|')){

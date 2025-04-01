@@ -95,7 +95,6 @@ const hasFeature = (itemType, type) => {
 
   .appImg {
     width: 25px;
-    filter: grayscale(100%) contrast(100%);
   }
 }
 

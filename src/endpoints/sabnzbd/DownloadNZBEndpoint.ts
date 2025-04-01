@@ -58,7 +58,7 @@ export default async (req : Request, res : Response) => {
             $: {
                 poster: 'iplayer@bbc.com',
                 date: date.getTime(),
-                subject: `${pid}.mp4`
+                subject: `${nzbName}.mp4`
             },
             groups: {
                 group: ['alt.binaries.example']

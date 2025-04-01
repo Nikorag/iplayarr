@@ -20,6 +20,7 @@ export interface NZBFileResponse {
 }
 
 export interface NZBMetaEntry {
+    _? : string,
     $ : { type : string, _ : string}
 }
 

@@ -24,6 +24,7 @@ RUN wget -qO- https://github.com/get-iplayer/get_iplayer/archive/v${GET_IPLAYER_
 
 ENV GET_IPLAYER_EXEC=/iplayer/get_iplayer
 ENV STORAGE_LOCATION=/config
+ENV CACHE_LOCATION=/data
 
 WORKDIR /app
 
@@ -33,7 +34,7 @@ COPY frontend/package*.json ./frontend/
 
 RUN npm run install:both
 COPY . .
-RUN npm run build:frontend && npm run build:backend
+RUN npm run build:both
 RUN rm -rf /app/src /app/frontend/src
 
 

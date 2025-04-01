@@ -28,9 +28,8 @@ import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
 
-const router = useRouter();
-
 const cacheDefinitions = ref([]);
+const router = useRouter();
 
 const refreshCacheDefinitions = async () => {
     cacheDefinitions.value = (await ipFetch('json-api/offSchedule')).data;
@@ -56,7 +55,7 @@ const openForm = (cacheDef) => {
     formModal.open();
 }
 
-const remove = async (id) => {
+const remove = async ({id}) => {
     if (await dialogService.confirm('Delete Cache Definition', 'Are you sure you want to delete this Cache Definition?')) {
         await ipFetch('json-api/offSchedule', 'DELETE', { id });
         refreshCacheDefinitions();
@@ -78,8 +77,8 @@ const saveCacheDefinition = async (form) => {
 const refreshCacheDefinition = async (def) => {
     if (await dialogService.confirm('Refresh Cache', `Are you sure you want to refresh the cache for ${def.name}?`)) {
         await ipFetch('json-api/offSchedule/refresh', 'POST', def);
-        if (await dialogService.confirm('Cache Refreshing', 'Cache Refresh Started, Would you like to view the logs?')) {
-            router.push('/logs');
+        if (await dialogService.confirm('Show Results?', `Show Results for ${def.name}?`)){
+            router.push(`/search?searchTerm=${def.name}`)
         }
     }
 

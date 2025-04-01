@@ -25,3 +25,25 @@ export function capitalize(word) {
 export function deepCopy(input) {
     return input ? JSON.parse(JSON.stringify(input)) : undefined;
 }
+
+export function getCleanSceneTitle(title) {
+    if (!title || title.trim().length === 0) {
+        return '';
+    }
+
+    const beginningThe = /^The\s/i;
+    const specialCharacter = /[`'.]/g;
+    const nonWord = /\W/g;
+
+    let cleanTitle = title.replace(beginningThe, '');
+    cleanTitle = cleanTitle.replaceAll('&', 'and');
+    cleanTitle = cleanTitle.replace(specialCharacter, '');
+    cleanTitle = cleanTitle.replace(nonWord, '+');
+
+    // Remove any repeating +s
+    cleanTitle = cleanTitle.replace(/\+{2,}/g, '+');
+
+    cleanTitle = cleanTitle.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    cleanTitle = cleanTitle.replace(/^\++|\++$/, '');
+    return cleanTitle.trim().replaceAll('+', ' ');
+}

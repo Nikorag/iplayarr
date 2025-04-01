@@ -239,6 +239,10 @@ async function searchIPlayer(term : string, synonym? : Synonym) : Promise<IPlaye
                 exemptionArgs.push(`"${exemption}"`);
             }
         }
+	if (term == "*"){
+            (args as RegExpMatchArray).push("--available-since");
+	    (args as RegExpMatchArray).push("48");
+	}
         const allArgs = [...args, '--listformat', `"${listFormat}"`, ...exemptionArgs, `"${term}"`];
 
         loggingService.debug(`Executing get_iplayer with args: ${allArgs.join(' ')}`);

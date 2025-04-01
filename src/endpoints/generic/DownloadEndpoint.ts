@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import episodeCacheService from '../../service/episodeCacheService';
+import iplayerService from '../../service/iplayerService';
 import queueService from '../../service/queueService';
 import { VideoType } from '../../types/IPlayerSearchResult';
 import { IPlayerMetadataResponse } from '../../types/responses/IPlayerMetadataResponse';
@@ -8,7 +8,7 @@ import { IPlayerMetadataResponse } from '../../types/responses/IPlayerMetadataRe
 export default async (req : Request, res : Response) => {
     const {pid} = req.query as any;
 
-    const metadata : IPlayerMetadataResponse | undefined= await episodeCacheService.getMetadata(pid);
+    const metadata : IPlayerMetadataResponse | undefined= await iplayerService.getMetadata(pid);
     let name : string = '';
     const type : VideoType = await getType(metadata);
     if (metadata?.programme.display_title){

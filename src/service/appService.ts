@@ -1,76 +1,17 @@
-import storage from 'node-persist';
-import { v4 } from 'uuid';
-
 import nzbFacade from '../facade/nzbFacade';
-import { App } from '../types/App';
 import { appCategories, AppFeature, appFeatures, AppType } from '../types/AppType';
 import { IplayarrParameter } from '../types/IplayarrParameters';
+import { App } from '../types/models/App';
 import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
 import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';
+import AbstractStorageService from './AbstractStorageService';
 import arrService, { ArrConfig } from './arrService';
 import configService from './configService';
 import socketService from './socketService';
 
-let isStorageInitialized : boolean = false;
+class AppService extends AbstractStorageService<App> {
 
-const storageOptions : any = {};
-if (process.env.STORAGE_LOCATION){
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
-
-const appService = {
-    initStorage : async () : Promise<void> => {
-        if (!isStorageInitialized) {
-            await storage.init(storageOptions);
-            isStorageInitialized = true;
-        }
-    },
-    
-    getAllApps : async () : Promise<App[]> => {
-        await appService.initStorage();
-        return (await storage.getItem('apps')) || [];
-    },
-
-    getApp : async (id : string) : Promise<App | undefined> => {
-        const allApps : App[] = await appService.getAllApps();
-        return allApps.find(({id : app_id}) => app_id == id);
-    },
-
-    removeApp : async (id : string) : Promise<boolean> => {
-        let allApps : App[] = await appService.getAllApps();
-        allApps = allApps.filter(({id : app_id}) => app_id != id);
-        await storage.setItem('apps', allApps);
-        return true;
-    },
-
-    updateApp : async (form : Partial<App>) : Promise<App | undefined> => {
-        if (form.id){
-            let app : App | undefined = await appService.getApp(form.id);
-            if (app){
-                app = {
-                    ...app,
-                    ...form
-                }
-                await appService.removeApp(form.id);
-                await appService.addApp(app);
-                return app;
-            }
-        }
-        return;
-    },
-
-    addApp : async (form : App) : Promise<App | undefined> => {
-        if (!form.id){
-            const id = v4();
-            form.id = id;
-        }
-        const allApps : App[] = await appService.getAllApps();
-        allApps.push(form);
-        await storage.setItem('apps', allApps);
-        return form;
-    },
-
-    createUpdateIntegrations : async (input : App, allowCreate : boolean = true) : Promise<App> => {
+    async createUpdateIntegrations (input : App, allowCreate : boolean = true) : Promise<App> {
         let form = input;
         const features : AppFeature[] = appFeatures[form.type];
 
@@ -89,26 +30,25 @@ const appService = {
             }
         }
 
-        await appService.updateApp(form);
-        return form;
-    },
+        return await this.updateItem(form.id, form) as App;
+    }
 
-    updateApiKey : async () : Promise<void> => {
-        const allApps : App[] = await appService.getAllApps();
+    async updateApiKey() : Promise<void> {
+        const allApps : App[] = await this.all();
         const apiKeyApps : App[] = allApps.filter(({type}) => appFeatures[type].includes(AppFeature.CALLBACK));
 
         apiKeyApps.forEach((app : App) => {
             socketService.emit('app_update_status', {id : app.id, status : 'In Progress'});
 
-            appService.createUpdateIntegrations(app).then(() => {
+            this.createUpdateIntegrations(app).then(() => {
                 socketService.emit('app_update_status', {id : app.id, status : 'Complete'});
             }).catch((err) => {
                 socketService.emit('app_update_status', {id : app.id, status : 'Error', message : err.message});
             });
         })
-    },
+    }
 
-    testAppConnection : async (form : App) : Promise<string | boolean> => {
+    async testAppConnection(form : App) : Promise<string | boolean> {
         switch (form.type){
         case AppType.PROWLARR:
         case AppType.RADARR:
@@ -123,6 +63,7 @@ const appService = {
             return false; 
         }
     }
+
 }
 
 const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfig, allowCreate : boolean) => Promise<App>> = {
@@ -157,7 +98,7 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
         if (form.download_client?.id && form.indexer?.name) {
 	    const useSSL : boolean = typeof form.iplayarr.useSSL === 'boolean' ? form.iplayarr.useSSL : form.iplayarr.useSSL === 'true';
             const createIndexerForm: CreateIndexerForm = {
-                appId : form.id,
+                appId : form.id as string,
                 name: form.indexer.name,
                 downloadClientId: form.download_client.id,
                 url: `http${useSSL ? 's' : ''}://${form.iplayarr.host}:${form.iplayarr.port}`,
@@ -209,7 +150,7 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
         if (form.download_client?.id && form.indexer?.name) {
             const useSSL : boolean = typeof form.iplayarr.useSSL === 'boolean' ? form.iplayarr.useSSL : form.iplayarr.useSSL === 'true';
 	    const createIndexerForm: CreateIndexerForm = {
-                appId : form.id,
+                appId : form.id as string,
                 name: form.indexer.name,
                 downloadClientId: form.download_client.id,
                 url: `http${useSSL ? 's' : ''}://${form.iplayarr.host}:${form.iplayarr.port}`,
@@ -247,4 +188,4 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
     }
 }
 
-export default appService;
+export default new AppService('apps');

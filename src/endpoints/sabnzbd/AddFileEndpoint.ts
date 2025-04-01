@@ -7,6 +7,7 @@ import loggingService from '../../service/loggingService';
 import queueService from '../../service/queueService';
 import { AppType } from '../../types/AppType';
 import { VideoType } from '../../types/IPlayerSearchResult';
+import { App } from '../../types/models/App';
 import { NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
 
 const parser = new Parser();
@@ -45,7 +46,7 @@ export default async (req : Request, res : Response) => {
         });
     } catch (err : any) {
         const rejection = err as DetailsRejection;
-        let allApps = await appService.getAllApps();
+        let allApps : App[] = await appService.all();
         allApps = allApps
             .filter(({type}) => type == AppType.NZBGET || type == AppType.SABNZBD)
             .sort((a, b) => a.priority as number - (b.priority as number));

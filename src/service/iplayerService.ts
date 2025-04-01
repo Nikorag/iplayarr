@@ -1,3 +1,4 @@
+import axios, { AxiosResponse } from 'axios';
 import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
 import NodeCache from 'node-cache';
@@ -8,8 +9,9 @@ import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { LogLine, LogLineLevel } from '../types/LogLine';
-import { QueueEntry } from '../types/QueueEntry';
-import { Synonym } from '../types/Synonym';
+import { QueueEntry } from '../types/models/QueueEntry';
+import { Synonym } from '../types/models/Synonym';
+import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityPofile } from '../utils/Utils';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';
@@ -21,6 +23,7 @@ import synonymService from './synonymService';
 
 const progressRegex : RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
 const seriesRegex : RegExp = /: (?:Series|Season) (\d+)/
+const PID_REGEX = /\/([a-z0-9]{8})(?:\/|$)/;
 
 const listFormat : string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
 
@@ -130,7 +133,7 @@ const iplayerService = {
         }
 
         //Get the out of schedule results form cache
-        const episodeCache : IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
+        const episodeCache : IPlayerSearchResult[] = await episodeCacheService.searchCachedEpisodes(inputTerm);
         for (const cachedEpisode of episodeCache){
             const exists = returnResults.some(({pid}) => pid == cachedEpisode.pid);
             const validSeason = season ? cachedEpisode.series == season : true;
@@ -199,7 +202,7 @@ const iplayerService = {
     },
 
     episodeDetails: async (pid : string) : Promise<IPlayerDetails> => {
-        const {programme} = await episodeCacheService.getMetadata(pid);
+        const {programme} = await iplayerService.getMetadata(pid);
         const runtime = programme.versions ? programme.versions[0].duration : 0;
         const category = programme.categories? programme.categories[0].title : '';
         const series = programme.parent?.programme?.position;
@@ -221,6 +224,40 @@ const iplayerService = {
 
     removeFromSearchCache : (term : string) => {
         searchCache.del(term);
+    },
+
+    getSeriesEpisodes : async (pid : string) : Promise<string[]> => {
+        try {
+            const response : AxiosResponse<IPlayerChilrenResponse> = await axios.get(`https://www.bbc.co.uk/programmes/${pid}/children.json?limit=100`);
+            return response.data.children.programmes.map(({pid}) => pid);
+        } catch {
+            return [];
+        }
+    },
+
+    findBrandForUrl : async (url : string) : Promise<string | undefined> => {
+        const match = url.replace('/episodes', '').match(PID_REGEX);
+        if (match){
+            const pid = match[1];
+            return await iplayerService.findBrandForPid(pid);
+        }
+    },
+
+    findBrandForPid : async (pid : string, checked : string[] = []) : Promise<string | undefined> => {
+        const {programme} : IPlayerMetadataResponse = await iplayerService.getMetadata(pid);
+        if (programme.type == 'brand'){
+            return programme.pid;
+        } else if (programme.parent) {
+            if (!checked.includes(programme.parent.programme.pid) && programme.parent.programme.pid != pid){
+                return await iplayerService.findBrandForPid(programme.parent.programme.pid, [...checked, pid]);
+            }
+        }
+        return undefined;
+    },
+
+    getMetadata : async (pid : string) : Promise<IPlayerMetadataResponse> => {
+        const {data} : {data : IPlayerMetadataResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${pid}.json`);
+        return data;
     }
 }
 

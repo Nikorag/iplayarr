@@ -1,5 +1,6 @@
-export interface Synonym {
-    id : string
+import { Entity } from './Entity'
+
+export interface Synonym extends Entity {
     from : string
     target : string
     filenameOverride? : string

@@ -3,7 +3,7 @@ import { Request, Response, Router } from 'express';
 import historyService from '../../service/historyService';
 import queueService from '../../service/queueService';
 import socketService from '../../service/socketService';
-import { QueueEntry } from '../../types/QueueEntry';
+import { QueueEntry } from '../../types/models/QueueEntry';
 
 const router = Router();
 
@@ -17,14 +17,14 @@ router.get('/queue', (_ : Request, res : Response) => {
 });
 
 router.get('/history', async (_ : Request, res : Response) => {
-    const history : QueueEntry[] = await historyService.getHistory() || [];
+    const history : QueueEntry[] = await historyService.all() || [];
     res.json(history);
 });
 
 router.delete('/history', async (req : Request, res : Response) => {
     const {pid} = req.query as any as DeleteRequest;
-    await historyService.removeHistory(pid);
-    const history = await historyService.getHistory() || [];
+    await historyService.removeItem(pid);
+    const history = await historyService.all() || [];
     socketService.emit('history', history);
     res.json(history);
 });

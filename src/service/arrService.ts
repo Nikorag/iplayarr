@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 
-import { App } from '../types/App';
 import { AppType } from '../types/AppType';
+import { App } from '../types/models/App';
 import { ArrCreateDownloadClientRequest, CreateDownloadClientRequestField,createDownloadClientRequestSkeleton } from '../types/requests/arr/CreateDownloadClientRequest';
 import { CreateIndexerRequest, createIndexerRequestSkeleton, createIndexRequestFieldsSkeleton } from '../types/requests/arr/CreateIndexerRequest';
 import { CreateProwlarrIndexerRequest, createProwlarrIndexerRequestSkeleton } from '../types/requests/arr/CreateProwlarrIndexerRequest';

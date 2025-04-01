@@ -1,25 +1,25 @@
 import { Request, Response,Router } from 'express';
 
 import appService from '../../service/appService';
-import { App } from '../../types/App';
 import { appFeatures } from '../../types/AppType';
+import { App } from '../../types/models/App';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { AppFormValidator } from '../../validators/AppFormValidator';
 
 const router = Router();
 
 router.get('/', async (_, res : Response) => {
-    const allApps : App[] = await appService.getAllApps();
+    const allApps : App[] = await appService.all();
     res.json(allApps);
 });
 
 const updateApp = async (req : Request, res : Response) => {
-    const appServiceMethod = req.method === 'POST' ? 'addApp' : 'updateApp';
+    const appServiceMethod = req.method === 'POST' ? 'setItem' : 'updateItem';
     const appFormValidator : AppFormValidator = new AppFormValidator();
     const form : App = req.body as any as App;
     const validationResult = await appFormValidator.validate(form);
     if (Object.keys(validationResult).length == 0){
-        const updatedForm : App | undefined = await appService[appServiceMethod](form);
+        const updatedForm : App | undefined = await appService[appServiceMethod](form.id, form);
         if (updatedForm){
             try {
                 await appService.createUpdateIntegrations(updatedForm);
@@ -33,7 +33,7 @@ const updateApp = async (req : Request, res : Response) => {
 
                 //Delete the half complete app if it's new
                 if (req.method === 'POST'){
-                    await appService.removeApp(updatedForm.id);
+                    await appService.removeItem(updatedForm.id as string);
                 }
                 
                 const apiResponse : ApiResponse = {
@@ -67,7 +67,7 @@ router.put('/', updateApp);
 
 router.delete('/', async (req : Request, res : Response) => {
     const {id} = req.body;
-    await appService.removeApp(id);
+    await appService.removeItem(id);
     res.json(true);
 });
 

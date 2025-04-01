@@ -1,7 +1,7 @@
-import { AppType } from './AppType';
+import { AppType } from '../AppType';
+import { Entity } from './Entity';
 
-export interface App {
-    id : string
+export interface App extends Entity {
     type : AppType,
     name : string,
     url : string,

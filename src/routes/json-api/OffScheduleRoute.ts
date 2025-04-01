@@ -1,15 +1,15 @@
 import { Request, Response, Router } from 'express';
 
 import episodeCacheService from '../../service/episodeCacheService';
+import { EpisodeCacheDefinition } from '../../types/models/EpisodeCacheDefinition';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
-import { EpisodeCacheDefinition } from '../../types/responses/EpisodeCacheTypes';
 import { OffScheduleFormValidator } from '../../validators/OffScheduleFormValidator';
 import { Validator } from '../../validators/Validator';
 
 const router = Router();
 
 router.get('/', async (_, res : Response) => {
-    const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.getCachedSeries();
+    const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.all();
     res.json(cachedSeries);
 });
 
@@ -26,8 +26,8 @@ router.post('/', async (req : Request, res : Response) => {
     }
 
     const {name, url} = req.body;
-    await episodeCacheService.addCachedSeries(url, name);
-    const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.getCachedSeries();
+    await episodeCacheService.setItem(undefined, {url, name});
+    const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.all();
     res.json(cachedSeries);
 });
 
@@ -44,15 +44,15 @@ router.put('/', async (req : Request, res : Response) => {
     }
     
     const {name, url, id} = req.body;
-    await episodeCacheService.updateCachedSeries({id, url, name, cacheRefreshed : undefined});
-    const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.getCachedSeries();
+    await episodeCacheService.updateItem(id, {id, url, name, cacheRefreshed : undefined});
+    const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.all();
     res.json(cachedSeries);
 })
 
 router.delete('/', async (req : Request, res : Response) => {
     const {id} = req.body;
-    await episodeCacheService.removeCachedSeries(id);
-    const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.getCachedSeries();
+    await episodeCacheService.removeItem(id);
+    const cachedSeries : EpisodeCacheDefinition[] = await episodeCacheService.all();
     res.json(cachedSeries);
 });
 

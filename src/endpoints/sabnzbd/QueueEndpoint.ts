@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 
 import historyService from '../../service/historyService';
 import queueService from '../../service/queueService';
-import { QueueEntry } from '../../types/QueueEntry';
+import { QueueEntry } from '../../types/models/QueueEntry';
 import { queueEntrySkeleton, QueueEntryStatus, queueSkeleton, QueueStatus, SabNZBDQueueResponse, SabNZBQueueEntry } from '../../types/responses/sabnzbd/QueueResponse';
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse';
 import { EndpointDirectory } from '../EndpointDirectory';
@@ -20,7 +20,7 @@ export default async (req : Request, res : Response, next : NextFunction) => {
     } else {
         const queue : QueueEntry[] = queueService.getQueue();
         const downloadQueue : QueueEntry[] = queue.filter(({status}) => status == QueueEntryStatus.DOWNLOADING);
-        const iplayerComplete = await historyService.getHistory();
+        const iplayerComplete = await historyService.all();
         const queueResponse : SabNZBDQueueResponse = {
             ...queueSkeleton,
             status : downloadQueue.length > 0 ? QueueStatus.DOWNLOADING : QueueStatus.IDLE,

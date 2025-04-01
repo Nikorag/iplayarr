@@ -5,10 +5,10 @@ import historyService from '../service/historyService';
 import loggingService from '../service/loggingService';
 import nzbGetService from '../service/nzbgetService';
 import sabzbdService from '../service/sabnzbdService';
-import { App } from '../types/App';
 import { AppType } from '../types/AppType';
 import { VideoType } from '../types/IPlayerSearchResult';
-import { QueueEntry } from '../types/QueueEntry';
+import { App } from '../types/models/App';
+import { QueueEntry } from '../types/models/QueueEntry';
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 
 const nzbFacade = {
@@ -45,7 +45,7 @@ const nzbFacade = {
                 start : new Date()
             }
         }
-        historyService.addRelay(relayEntry);
+        historyService.setItem(relayEntry.pid, relayEntry);
     }
 }
 

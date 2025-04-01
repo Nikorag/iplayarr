@@ -3,7 +3,7 @@ import { Request, Response, Router } from 'express';
 import nzbFacade from '../facade/nzbFacade';
 import iplayerService from '../service/iplayerService';
 import queueService from '../service/queueService';
-import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
+import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import AppsRoute from './json-api/AppsRoute';
 import OffScheduleRoute from './json-api/OffScheduleRoute';

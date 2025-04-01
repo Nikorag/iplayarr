@@ -1,7 +1,7 @@
 import { Request, Response,Router } from 'express';
 
 import appService from '../../service/appService';
-import { appFeatures } from '../../types/AppType';
+import { appFeatures } from '../../types/constants/AppType';
 import { App } from '../../types/models/App';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { AppFormValidator } from '../../validators/AppFormValidator';

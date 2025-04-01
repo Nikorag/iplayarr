@@ -5,8 +5,8 @@ import nzbFacade from '../../facade/nzbFacade';
 import appService from '../../service/appService';
 import loggingService from '../../service/loggingService';
 import queueService from '../../service/queueService';
-import { AppType } from '../../types/AppType';
-import { VideoType } from '../../types/IPlayerSearchResult';
+import { AppType } from '../../types/constants/AppType';
+import { VideoType } from '../../types/data/IPlayerSearchResult';
 import { App } from '../../types/models/App';
 import { NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
 

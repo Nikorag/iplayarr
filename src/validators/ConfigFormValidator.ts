@@ -1,7 +1,7 @@
 import Handlebars from 'handlebars';
 
 import nzbFacade from '../facade/nzbFacade';
-import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
+import { FilenameTemplateContext } from '../types/templateContext/FilenameTemplateContext';
 import { Validator } from './Validator';
 
 const cronRegex : RegExp = /^(\*|([0-5]?[0-9])) (\*|([01]?[0-9]|2[0-3])) (\*|([01]?[1-9]|[12][0-9]|3[01])) (\*|([1-9]|1[0-2])) (\*|([0-6]))(\s(\d{4}))?$/

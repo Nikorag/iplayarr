@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 
+import { QueuedStorage } from '../types/helpers/QueuedStorage';
 import { Entity } from '../types/models/Entity';
-import { QueuedStorage } from '../types/QueuedStorage';
 import AbstractEntityService from './AbstractEntityService';
 
 const storageOptions : any = {};

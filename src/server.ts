@@ -13,7 +13,7 @@ import episodeCacheService from './service/episodeCacheService';
 import iplayerService from './service/iplayerService';
 import loggingService from './service/loggingService';
 import socketService from './service/socketService';
-import { IplayarrParameter } from './types/IplayarrParameters';
+import { IplayarrParameter } from './types/enums/IplayarrParameters';
 
 const isDebug = process.env.DEBUG == 'true';
 

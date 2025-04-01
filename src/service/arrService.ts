@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-import { AppType } from '../types/AppType';
+import { AppType } from '../types/constants/AppType';
 import { App } from '../types/models/App';
 import { ArrCreateDownloadClientRequest, CreateDownloadClientRequestField,createDownloadClientRequestSkeleton } from '../types/requests/arr/CreateDownloadClientRequest';
 import { CreateIndexerRequest, createIndexerRequestSkeleton, createIndexRequestFieldsSkeleton } from '../types/requests/arr/CreateIndexerRequest';

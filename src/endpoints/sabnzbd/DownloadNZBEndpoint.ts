@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Builder } from 'xml2js';
 
-import { VideoType } from '../../types/IPlayerSearchResult';
+import { VideoType } from '../../types/data/IPlayerSearchResult';
 import { NZBFileResponse, NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
 
 interface DownloadNZBRequest {

@@ -1,4 +1,4 @@
-import { AppType } from '../AppType';
+import { AppType } from '../constants/AppType';
 import { Entity } from './Entity';
 
 export interface App extends Entity {

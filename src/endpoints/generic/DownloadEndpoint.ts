@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import iplayerService from '../../service/iplayerService';
 import queueService from '../../service/queueService';
-import { VideoType } from '../../types/IPlayerSearchResult';
+import { VideoType } from '../../types/data/IPlayerSearchResult';
 import { IPlayerMetadataResponse } from '../../types/responses/IPlayerMetadataResponse';
 
 export default async (req : Request, res : Response) => {

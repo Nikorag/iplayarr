@@ -1,6 +1,6 @@
 import nzbFacade from '../facade/nzbFacade';
-import { appCategories, AppFeature, appFeatures, AppType } from '../types/AppType';
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { appCategories, AppFeature, appFeatures, AppType } from '../types/constants/AppType';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { App } from '../types/models/App';
 import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
 import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';

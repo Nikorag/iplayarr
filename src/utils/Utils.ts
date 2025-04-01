@@ -3,10 +3,10 @@ import { Request } from 'express';
 import Handlebars from 'handlebars';
 
 import configService from '../service/configService';
-import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
-import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
+import { QualityProfile, qualityProfiles } from '../types/constants/QualityProfiles';
+import { IPlayerSearchResult, VideoType } from '../types/data/IPlayerSearchResult';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import { FilenameTemplateContext } from '../types/templateContext/FilenameTemplateContext';
 
 export function formatBytes(bytes: number, unit: boolean = true, decimals: number = 2): string {
     if (bytes === 0) return '0 Bytes';

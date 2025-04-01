@@ -1,8 +1,8 @@
 import axios from 'axios';
 import lunr from 'lunr';
 
-import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
+import { IPlayerDetails } from '../types/data/IPlayerDetails';
+import { IPlayerSearchResult, VideoType } from '../types/data/IPlayerSearchResult';
 import { EpisodeCacheDefinition } from '../types/models/EpisodeCacheDefinition';
 import { IPlayerChilrenResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityPofile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';

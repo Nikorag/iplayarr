@@ -1,8 +1,8 @@
 import { ChildProcess, spawn } from 'child_process';
 
-import { DownloadDetails } from '../types/DownloadDetails';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { VideoType } from '../types/IPlayerSearchResult';
+import { DownloadDetails } from '../types/data/DownloadDetails';
+import { VideoType } from '../types/data/IPlayerSearchResult';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { QueueEntry } from '../types/models/QueueEntry'
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import configService from './configService';

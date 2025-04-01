@@ -3,9 +3,9 @@ import { Builder } from 'xml2js'
 
 import iplayerService from '../../service/iplayerService';
 import searchHistoryService from '../../service/searchHistoryService';
-import { IPlayerSearchResult, VideoType } from '../../types/IPlayerSearchResult';
+import { IPlayerSearchResult, VideoType } from '../../types/data/IPlayerSearchResult';
+import { SearchHistoryEntry } from '../../types/data/SearchHistoryEntry';
 import { NewzNabAttr,NewzNabSearchResponse } from '../../types/responses/newznab/NewzNabSearchResponse';
-import { SearchHistoryEntry } from '../../types/SearchHistoryEntry';
 import { createNZBDownloadLink, getBaseUrl } from '../../utils/Utils';
 
 interface SearchRequest {

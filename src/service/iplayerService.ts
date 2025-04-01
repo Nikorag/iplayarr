@@ -4,11 +4,11 @@ import fs from 'fs';
 import NodeCache from 'node-cache';
 import path from 'path';
 
-import { DownloadDetails } from '../types/DownloadDetails';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
-import { LogLine, LogLineLevel } from '../types/LogLine';
+import { DownloadDetails } from '../types/data/DownloadDetails';
+import { IPlayerDetails } from '../types/data/IPlayerDetails';
+import { IPlayerSearchResult, VideoType } from '../types/data/IPlayerSearchResult';
+import { LogLine, LogLineLevel } from '../types/data/LogLine';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { QueueEntry } from '../types/models/QueueEntry';
 import { Synonym } from '../types/models/Synonym';
 import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';

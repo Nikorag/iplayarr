@@ -2,7 +2,7 @@ import { NextFunction,Request, Response } from 'express'
 
 import configService from '../../service/configService'
 import historyService from '../../service/historyService'
-import { IplayarrParameter } from '../../types/IplayarrParameters'
+import { IplayarrParameter } from '../../types/enums/IplayarrParameters'
 import { QueueEntry } from '../../types/models/QueueEntry'
 import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, SabNZBDHistoryResponse } from '../../types/responses/sabnzbd/HistoryResponse'
 import { QueueEntryStatus } from '../../types/responses/sabnzbd/QueueResponse'

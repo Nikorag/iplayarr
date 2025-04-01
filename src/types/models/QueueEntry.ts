@@ -1,7 +1,7 @@
 import { ChildProcess } from 'child_process';
 
-import { DownloadDetails } from '../DownloadDetails';
-import { VideoType } from '../IPlayerSearchResult';
+import { DownloadDetails } from '../data/DownloadDetails';
+import { VideoType } from '../data/IPlayerSearchResult';
 import { QueueEntryStatus } from '../responses/sabnzbd/QueueResponse';
 import { Entity } from './Entity';
 

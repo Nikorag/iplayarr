@@ -152,4 +152,11 @@ http://Your_Docker_Host:4404
 From here, you can manage settings, view logs, and monitor downloads.
 
 ## Redis
-iPlayarr uses Redis for storage. this is built into the container and doesn't require any additional setup.
+iPlayarr uses Redis for storage. this is built into the container and **doesn't require any additional setup**, but if you would like to use a standalone redis instance set the following settings:
+
+- REDIS_HOST
+- REDIS_PORT
+- REDIS_PASSWORD (optional)
+- REDIS_SSL (optionally 'true')
+
+If these are all set, it will not start the bundled version of Redis.

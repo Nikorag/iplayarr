@@ -56,7 +56,7 @@ class EpisodeCacheService extends AbstractStorageService<EpisodeCacheDefinition>
 
         const brandPid = await iplayerService.findBrandForUrl(inputUrl);
         if (brandPid){
-            const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${brandPid}/children.json?limit=100`);
+            const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
             const episodes = (await Promise.all(seriesList.programmes.filter(({type}) => type == 'series').map(({pid}) => iplayerService.getSeriesEpisodes(pid)))).flat();
 
             const chunks = splitArrayIntoChunks(episodes, 20);

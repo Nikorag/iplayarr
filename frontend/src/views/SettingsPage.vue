@@ -7,6 +7,7 @@
     <TextInput v-model="config.COMPLETE_DIR" name="Complete Directory" tooltip="Directory for completed Downloads." :error="validationErrors.config?.COMPLETE_DIR" />
     <TextInput v-model="config.ACTIVE_LIMIT" name="Download Limit" tooltip="The number of simultaneous downloads." type-override="number" :error="validationErrors.config?.ACTIVE_LIMIT" />
     <SelectInput v-model="config.VIDEO_QUALITY" name="Video Quality" tooltip="Maximum video quality (Where available)" :error="validationErrors.config?.ACTIVE_LIMIT" :options="qualityProfiles" />
+    <SelectInput v-model="config.NATIVE_SEARCH" name="Native Search" tooltip="Native search (experimental) allows searching beyond 30 days" :error="validationErrors.config?.NATIVE_SEARCH" :options="trueOrFalse" />
 
     <template v-if="showAdvanced">
       <TextInput v-model="config.REFRESH_SCHEDULE" :advanced="true" name="Refresh Schedule" tooltip="Cron Expression for schedule refresh." :error="validationErrors.config?.REFRESH_SCHEDULE" />
@@ -33,7 +34,7 @@
 
 <script setup>
 import { v4 } from 'uuid';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, inject,onMounted, ref, watch } from 'vue';
 import { useModal } from 'vue-final-modal'
 import { onBeforeRouteLeave } from 'vue-router';
 
@@ -52,12 +53,17 @@ let originalApiKey = undefined;
 const config = ref({});
 const configChanges = ref(false);
 const showAdvanced = ref(false);
+const refreshGlobalSettings = inject('refreshGlobalSettings');
 
 const validationErrors = ref({
     config: {}
 });
 
 const qualityProfiles = ref([]);
+const trueOrFalse = ref([
+    { key : 'true', value : 'Enabled'},
+    { key : 'false', value : 'Disabled'},
+])
 
 const saveEnabled = computed(() => {
     return configChanges.value;
@@ -91,6 +97,7 @@ const saveConfig = async () => {
         } else {
             dialogService.alert('Success', 'Save Successful');
             configChanges.value = false;
+            refreshGlobalSettings();
         }
     }
 

@@ -22,7 +22,7 @@ import NavBar from './components/common/NavBar.vue';
 import { enforceMaxLength } from './lib/utils';
 
 const authState = inject('authState');
-const [queue, history, logs, socket, hiddenSettings] = [ref([]), ref([]), ref([]), ref(null), ref({})];
+const [queue, history, logs, socket, hiddenSettings, globalSettings] = [ref([]), ref([]), ref([]), ref(null), ref({}), ref({})];
 
 const navBar = ref(null);
 
@@ -44,6 +44,8 @@ provide('logs', logs);
 provide('updateQueue', updateQueue);
 provide('toggleLeftHandNav', toggleLeftHandNav);
 provide('hiddenSettings', hiddenSettings);
+provide('globalSettings', globalSettings);
+
 
 const pageSetup = async () => {
     if (socket.value == null) {
@@ -70,8 +72,14 @@ const pageSetup = async () => {
         })
 
         hiddenSettings.value = (await ipFetch('json-api/config/hiddenSettings')).data;
+        
     }
 }
+
+const refreshGlobalSettings = async () => {
+    globalSettings.value = (await ipFetch('json-api/config')).data;
+}
+provide('refreshGlobalSettings', refreshGlobalSettings);
 
 watch(authState, async (newAuthState) => {
     if (newAuthState.user) {

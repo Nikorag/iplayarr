@@ -8,7 +8,7 @@ export abstract class Validator {
     }
 
     isNumber(val: string | number): boolean {
-        return !isNaN(Number(val));
+        return val != '' && !isNaN(Number(val));
     }
 
     matchesRegex(val: string, regexp: RegExp): boolean {

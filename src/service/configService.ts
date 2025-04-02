@@ -48,7 +48,8 @@ const configService = {
         'FALLBACK_FILENAME_SUFFIX' : 'WEB.H264-BBC',
         'MOVIE_FILENAME_TEMPLATE' : '{{#if synonym}}{{synonym}}{{else}}{{title}}{{/if}}.BBC.WEB-DL.AAC.2.0.{{quality}}.H.264',
         'TV_FILENAME_TEMPLATE' : '{{#if synonym}}{{synonym}}{{else}}{{title}}{{/if}}.S{{season}}E{{episode}}.WEB.{{quality}}.H.264.BBC',
-        'VIDEO_QUALITY' : 'hd'
+        'VIDEO_QUALITY' : 'hd',
+        'RSS_FEED_HOURS' : '48'
     } as ConfigMap,
 
     getParameter : async (parameter: IplayarrParameter): Promise<string | undefined> => {

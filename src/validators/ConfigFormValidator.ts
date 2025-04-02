@@ -20,6 +20,13 @@ export class ConfigFormValidator extends Validator {
         } else if (input.ACTIVE_LIMIT < 0) {
             validatorError['ACTIVE_LIMIT'] = 'Download limit must be a positive number';
         }
+
+        if (!this.isNumber(input.RSS_FEED_HOURS)){
+            validatorError['RSS_FEED_HOURS'] = 'RSS Feed Hours must be a number';
+        } else if (input.RSS_FEED_HOURS < 0) {
+            validatorError['RSS_FEED_HOURS'] = 'RSS Feed Hours must be a positive number';
+        }
+
         if (!input.AUTH_USERNAME){
             validatorError['AUTH_USERNAME'] = 'Please provide a Username';
         }

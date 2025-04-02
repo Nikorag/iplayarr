@@ -240,8 +240,9 @@ async function searchIPlayer(term : string, synonym? : Synonym) : Promise<IPlaye
             }
         }
         if (term == '*'){
+            const rssHours : string = (await configService.getParameter(IplayarrParameter.RSS_FEED_HOURS)) as string;
             (args as RegExpMatchArray).push('--available-since');
-	    (args as RegExpMatchArray).push('48');
+	        (args as RegExpMatchArray).push(rssHours);
         }
         const allArgs = [...args, '--listformat', `"${listFormat}"`, ...exemptionArgs, `"${term}"`];
 

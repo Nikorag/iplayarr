@@ -6,5 +6,9 @@ export const ServiceLibrary = [
     {
         name : 'apps',
         path : '/apps'
+    },
+    {
+        name : 'history',
+        path : '/queue/history'
     }
 ]

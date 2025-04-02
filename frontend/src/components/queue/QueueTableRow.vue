@@ -66,10 +66,11 @@ defineProps({
 });
 
 const {apps} = inject('apps');
+const {editHistory} = inject('history');
 
 const trash = async (pid) => {
     if (await dialogService.confirm('Delete', 'Are you sure you want to delete this history item?')) {
-        ipFetch(`json-api/queue/history?pid=${pid}`, 'DELETE');
+        editHistory.delete(pid);
     }
 }
 

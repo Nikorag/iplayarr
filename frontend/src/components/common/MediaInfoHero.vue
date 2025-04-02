@@ -44,7 +44,7 @@ import LoadingIndicator from './LoadingIndicator.vue';
 
 const details = ref({});
 const queue = inject('queue');
-const history = inject('history');
+const {history} = inject('history');
 
 const props = defineProps({
     pid: {

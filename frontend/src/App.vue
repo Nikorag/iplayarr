@@ -22,7 +22,7 @@ import { enforceMaxLength } from './lib/utils';
 import JsonApiLoader from './lib/JsonApiLoader';
 
 const authState = inject('authState');
-const [queue, history, logs, socket, hiddenSettings, globalSettings] = [ref([]), ref([]), ref([]), ref(null), ref({}), ref({})];
+const [queue, logs, hiddenSettings, globalSettings] = [ref([]), ref([]), ref({}), ref({})];
 
 const navBar = ref(null);
 
@@ -30,7 +30,6 @@ const leftHandNav = ref(null);
 
 const updateQueue = async () => {
     queue.value = (await ipFetch('json-api/queue/queue')).data;
-    history.value = (await ipFetch('json-api/queue/history')).data;
 }
 
 const toggleLeftHandNav = () => {
@@ -38,8 +37,6 @@ const toggleLeftHandNav = () => {
 }
 
 provide('queue', queue);
-provide('history', history);
-provide('socket', socket);
 provide('logs', logs);
 provide('updateQueue', updateQueue);
 provide('toggleLeftHandNav', toggleLeftHandNav);
@@ -54,6 +51,10 @@ const pageSetup = async (socket) => {
         socket.value.on('log', (data) => {
             logs.value.push(data);
             enforceMaxLength(logs.value, 5000);
+        });
+
+        socket.value.on('queue', (data) => {
+            queue.value = data;
         });
 
         hiddenSettings.value = (await ipFetch('json-api/config/hiddenSettings')).data;

@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps, onMounted, ref, watch } from 'vue';
+import { computed, defineEmits, defineProps, onMounted, ref, watch, inject } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
 import { capitalize } from '@/lib/utils';
@@ -79,6 +79,7 @@ import IPlayarrModal from './IPlayarrModal.vue';
 
 const props = defineProps({ action: String, inputObj: Object });
 const emit = defineEmits(['saved']);
+const {editApps} = inject('apps');
 
 const defaultForm = {
     download_client: {},
@@ -128,9 +129,9 @@ watch(() => form.value.type, () => {
 }, { immediate: true });
 
 const saveApp = async () => {
-    const method = form.value.id ? 'PUT' : 'POST';
+    const method = form.value.id ? 'update' : 'create';
     loading.value = true;
-    const response = await ipFetch('json-api/apps', method, form.value);
+    const response = await editApps[method](form.value);
     loading.value = false;
     if (response.ok) {
         emit('saved');

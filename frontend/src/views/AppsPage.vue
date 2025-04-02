@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, inject } from 'vue';
 import { useModal } from 'vue-final-modal'
 
 import InfoBar from '@/components/common/InfoBar.vue';
@@ -48,11 +48,10 @@ import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
 
-const apps = ref([]);
+const {apps, editApps} = inject('apps');
 const features = ref([]);
 
 const refreshApps = async () => {
-    apps.value = (await ipFetch('json-api/apps')).data;
     features.value = (await ipFetch('json-api/apps/types')).data;
     console.log(features.value);
 }
@@ -76,7 +75,7 @@ const openForm = (app) => {
 
 const deleteApp = async ({ id, name }) => {
     if (await dialogService.confirm('Delete App', `Are you sure you want to delete ${name}`, 'Indexers and Download Clients in the target Arr, will NOT be deleted')) {
-        await ipFetch('json-api/apps', 'DELETE', { id });
+        await editApps.delete(id);
         await refreshApps();
     }
 }

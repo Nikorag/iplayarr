@@ -5,71 +5,74 @@ import { appFeatures } from '../../types/constants/AppType';
 import { App } from '../../types/models/App';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { AppFormValidator } from '../../validators/AppFormValidator';
+import CrudRoute from './CrudRoute';
 
-const router = Router();
+class AppsRoute extends CrudRoute<App> {
 
-router.get('/', async (_, res : Response) => {
-    const allApps : App[] = await appService.all();
-    res.json(allApps);
-});
+    async put(value : App) : Promise<App | undefined> {
+        return await this.updateApp(value, 'put');
+    }
 
-const updateApp = async (req : Request, res : Response) => {
-    const appServiceMethod = req.method === 'POST' ? 'setItem' : 'updateItem';
-    const appFormValidator : AppFormValidator = new AppFormValidator();
-    const form : App = req.body as any as App;
-    const validationResult = await appFormValidator.validate(form);
-    if (Object.keys(validationResult).length == 0){
-        const updatedForm : App | undefined = await appService[appServiceMethod](form.id, form);
-        if (updatedForm){
-            try {
-                await appService.createUpdateIntegrations(updatedForm);
-            } catch (err : any) {
-                if (err.type == 'download_client'){
-                    validationResult['download_client_name'] = err?.message;
-                } else {
-                    validationResult['indexer_name'] = err?.message;
-                    validationResult['indexer_priority'] = err?.message;
-                }
+    async post(value : App) : Promise<App | undefined> {
+        return await this.updateApp(value, 'post');
+    }
 
-                //Delete the half complete app if it's new
-                if (req.method === 'POST'){
-                    await appService.removeItem(updatedForm.id as string);
-                }
-                
-                const apiResponse : ApiResponse = {
+    async updateApp (form : App, appServiceMethod : 'post' | 'put') : Promise<App | undefined> {
+        const appFormValidator : AppFormValidator = new AppFormValidator();
+        const validationResult = await appFormValidator.validate(form);
+        if (Object.keys(validationResult).length == 0){
+            const updatedForm : App | undefined = await super[appServiceMethod](form);
+            if (updatedForm){
+                try {
+                    await appService.createUpdateIntegrations(updatedForm);
+                } catch (err : any) {
+                    if (err.type == 'download_client'){
+                        validationResult['download_client_name'] = err?.message;
+                    } else {
+                        validationResult['indexer_name'] = err?.message;
+                        validationResult['indexer_priority'] = err?.message;
+                    }
+    
+                    //Delete the half complete app if it's new
+                    if (appServiceMethod === 'post'){
+                        await appService.removeItem(updatedForm.id as string);
+                    }
+
+                    const api_response : ApiResponse = {
+                        error : ApiError.INVALID_INPUT,
+                        invalid_fields : validationResult
+                    }
+                    throw {
+                        api_response,
+                        message : 'Invalid'
+                    }
+                } 
+                return updatedForm;
+            } else {
+                validationResult['name'] = 'Error Saving App';
+                const api_response : ApiResponse = {
                     error : ApiError.INVALID_INPUT,
                     invalid_fields : validationResult
                 }
-                res.status(400).json(apiResponse);
-                return;
-            } 
-            res.json(updatedForm);
+                throw {
+                    api_response,
+                    message : 'Invalid'
+                }
+            }
         } else {
-            validationResult['name'] = 'Error Saving App';
-            const apiResponse : ApiResponse = {
+            const api_response : ApiResponse = {
                 error : ApiError.INVALID_INPUT,
                 invalid_fields : validationResult
             }
-            res.status(400).json(apiResponse);
+            throw {
+                api_response,
+                message : 'Invalid'
+            }
         }
-    } else {
-        const apiResponse : ApiResponse = {
-            error : ApiError.INVALID_INPUT,
-            invalid_fields : validationResult
-        }
-        res.status(400).json(apiResponse);
-        return;
     }
-};
+}
 
-router.post('/', updateApp);
-router.put('/', updateApp);
-
-router.delete('/', async (req : Request, res : Response) => {
-    const {id} = req.body;
-    await appService.removeItem(id);
-    res.json(true);
-});
+const router : Router = new AppsRoute(appService).router;
 
 router.get('/types', async (_, res :Response) => {
     res.json(appFeatures);

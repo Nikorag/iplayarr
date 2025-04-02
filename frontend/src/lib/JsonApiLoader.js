@@ -43,13 +43,17 @@ export default (userCallback) => {
             return dataRef.value;
         });
 
-        const deleteItem = (id) => {
-            return ipFetch(`json-api${path}`, 'DELETE', {id});
+        const deleteItem = async (id) => {
+            const response = await ipFetch(`json-api${path}`, 'DELETE', {id});
+            refreshData();
+            return response;
         }
 
         const upsertMethod = (httpMethod) => {
-            return (item) => {
-                return ipFetch(`json-api${path}`, httpMethod, item);
+            return async (item) => {
+                const response = await  ipFetch(`json-api${path}`, httpMethod, item);
+                refreshData();
+                return response;
             }
         }
 
@@ -65,6 +69,7 @@ export default (userCallback) => {
         provide(name, obj);
 
         refreshMethods.push(refreshData);
+
         socket.value.on(name, (data) => {
             dataRef.value = data;
         });

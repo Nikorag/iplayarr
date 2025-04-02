@@ -39,7 +39,7 @@ import { ipFetch } from '@/lib/ipFetch';
 
 import IPlayarrModal from './IPlayarrModal.vue';
 
-const apps = ref([]);
+const {apps} = inject('apps');
 const features = ref([]);
 const socket = inject('socket');
 
@@ -48,7 +48,6 @@ const appStatus = ref({});
 const emit = defineEmits(['close'])
 
 onMounted(async () => {
-    apps.value = (await ipFetch('json-api/apps')).data;
     features.value = (await ipFetch('json-api/apps/types')).data;
 
     apps.value = apps.value.filter(({ type }) => features.value[type].includes('callback'));

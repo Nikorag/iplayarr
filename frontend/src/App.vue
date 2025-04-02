@@ -10,7 +10,6 @@
 </template>
 
 <script setup>
-import { io } from 'socket.io-client';
 import { inject, provide, ref } from 'vue';
 import { ModalsContainer } from 'vue-final-modal';
 import { RouterView } from 'vue-router';
@@ -47,33 +46,17 @@ provide('toggleLeftHandNav', toggleLeftHandNav);
 provide('hiddenSettings', hiddenSettings);
 provide('globalSettings', globalSettings);
 
+const pageSetup = async (socket) => {
+    await updateQueue();
+    document.body.scrollTop = document.documentElement.scrollTop = 0;
 
-const pageSetup = async () => {
-    if (socket.value == null) {
-        document.body.scrollTop = document.documentElement.scrollTop = 0;
-        await updateQueue();
-        if (process.env.NODE_ENV == 'production') {
-            socket.value = io();
-        } else {
-            const socketUrl = `http://${window.location.hostname}:4404`
-            socket.value = io(socketUrl);
-        }
-
-        socket.value.on('queue', (data) => {
-            queue.value = data;
-        });
-
-        socket.value.on('history', (data) => {
-            history.value = data;
-        });
-
+    if (socket.value != null) {
         socket.value.on('log', (data) => {
             logs.value.push(data);
             enforceMaxLength(logs.value, 5000);
-        })
+        });
 
         hiddenSettings.value = (await ipFetch('json-api/config/hiddenSettings')).data;
-        
     }
 }
 

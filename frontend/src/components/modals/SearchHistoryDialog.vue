@@ -41,20 +41,19 @@
 </template>
 
 <script setup>
-import { defineEmits, onMounted, ref } from 'vue';
+import { defineEmits, onMounted, ref, inject } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
 
 import IPlayarrModal from './IPlayarrModal.vue';
 
 const searchHistory = ref([]);
-const apps = ref([]);
+const {apps} = inject('apps');
 
 const emit = defineEmits(['select']);
 
 onMounted(async () => {
     searchHistory.value = (await ipFetch('json-api/synonym/searchHistory')).data
-    apps.value = (await ipFetch('json-api/apps')).data;
 });
 
 const getAppForId = (id) => {

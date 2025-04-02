@@ -66,7 +66,7 @@ async function errorWrapper(res: Response, callback: () => Promise<void>) {
     try {
         await callback();
     } catch (err: any) {
-        const errorResponse: ApiResponse = {
+        const errorResponse: ApiResponse = err.api_response ?? {
             error: ApiError.INVALID_INPUT,
             message: err?.message
         }

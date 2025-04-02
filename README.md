@@ -150,3 +150,6 @@ http://Your_Docker_Host:4404
 ```
 
 From here, you can manage settings, view logs, and monitor downloads.
+
+## Redis
+iPlayarr uses Redis for storage. this is built into the container and doesn't require any additional setup.

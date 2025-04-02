@@ -8,7 +8,7 @@
     "build:frontend": "cd frontend && npm run build",
     "build:both": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
     "serve:frontend": "cd frontend && npm run serve",
-    "start": "node dist/src/server.js",
+    "start": "node dist/server.js",
     "dev": "DEBUG=true concurrently \"nodemon src/server.ts\" \"npm run serve:frontend\"",
     "test": "jest",
     "lint": "eslint . --ext .ts",

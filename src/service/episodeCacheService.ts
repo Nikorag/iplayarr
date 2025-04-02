@@ -30,7 +30,9 @@ const episodeCacheService = {
             isStorageInitialized = true;
         }
 
-        const allEpisodeKeys = (await storage.keys()).filter((k) => k != 'series-cache-definition');
+        const allEpisodeKeys = (await storage.keys())
+            .filter((k) => k.startsWith('offSchedule_'))
+            .map((k) => k.split('offSchedule_')[1]);
 
         //Build the lunr index
         lunrIndex = lunr(function (this : lunr.Builder) {
@@ -140,7 +142,7 @@ const episodeCacheService = {
             if (infos.length > 0){
                 const title = infos[0].title;
                 const results = await Promise.all(infos.map((info : IPlayerDetails) => createResult(title, info, sizeFactor)));
-                await storage.setItem(title.toLowerCase(), {results : [...results], url});
+                await storage.setItem(`offSchedule_${title.toLowerCase()}`, {results : [...results], url});
                 return true;
             }
         } else {

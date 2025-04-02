@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+echo "Starting redis"
+/redis/redis-server &
+
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 USERNAME="iplayarr"

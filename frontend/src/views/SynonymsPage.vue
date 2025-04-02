@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { inject } from 'vue';
 import { useModal } from 'vue-final-modal'
 
 import ListEditor from '@/components/common/ListEditor.vue';
@@ -35,16 +35,9 @@ import AppSelectDialog from '@/components/modals/AppSelectDialog.vue';
 import ArrLookupDialog from '@/components/modals/ArrLookupDialog.vue';
 import SynonymForm from '@/components/modals/SynonymForm.vue';
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy, getCleanSceneTitle } from '@/lib/utils';
 
-const synonyms = ref([]);
-
-const refreshSynonyms = async () => {
-    synonyms.value = (await ipFetch('json-api/synonym')).data;
-}
-
-onMounted(refreshSynonyms);
+const {synonyms, refreshSynonyms, editSynonyms} = inject('synonyms');
 
 const openForm = (synonym, inputApp) => {
     const formModal = useModal({
@@ -63,14 +56,14 @@ const openForm = (synonym, inputApp) => {
 }
 
 const saveSynonym = async (synonym) => {
-    const method = synonym.id ? 'PUT' : 'POST';
-    await ipFetch('json-api/synonym', method, synonym);
+    const method = synonym.id ? editSynonyms.update : editSynonyms.create;
+    await method(synonym);
     refreshSynonyms();
 }
 
 const removeSynonym = async ({ id }) => {
     if (await dialogService.confirm('Delete Synonym', 'Are you sure you want to delete this Synonym?')) {
-        await ipFetch('json-api/synonym', 'DELETE', { id });
+        await editSynonyms.delete(id);
         refreshSynonyms();
     }
 }

@@ -210,7 +210,7 @@ const iplayerService = {
 
     episodeDetails: async (pid: string): Promise<IPlayerDetails> => {
         const { programme } = await episodeCacheService.getMetadata(pid);
-        const runtime = programme.versions ? programme.versions[0].duration : 0;
+        const runtime = programme.versions ? (programme.versions[0].duration / 60) : 0;
         const category = programme.categories ? programme.categories[0].title : '';
         const series = programme.parent?.programme?.position;
         const episode = programme.position ?? (series ? programme.parent?.programme?.aggregated_episode_count : undefined);
@@ -399,7 +399,7 @@ function removeLastFourDigitNumber(str: string) {
 }
 
 async function createResult(term: string, details: IPlayerDetails, sizeFactor: number): Promise<IPlayerSearchResult> {
-    const size: number | undefined = details.runtime ? ((details.runtime * 60) * sizeFactor) / 100 : undefined;
+    const size: number | undefined = details.runtime ? (details.runtime * 60) * sizeFactor : undefined;
 
     const type: VideoType = details.episode && details.series ? VideoType.TV : VideoType.MOVIE;
 

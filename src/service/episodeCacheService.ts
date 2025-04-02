@@ -53,7 +53,7 @@ const episodeCacheService = {
         await episodeCacheService.initStorage();
         const lunrResult = lunrIndex.search(term);
         const results = await Promise.all(lunrResult.map(({ref}) => storage.getItem(ref)));
-        return results.map(({results}) => results).flat();
+        return results.filter(res => res).map(({results}) => results).flat();
     },
 
     getEpisodeCacheForUrl : async (url : string) : Promise<IPlayerSearchResult[]> => {

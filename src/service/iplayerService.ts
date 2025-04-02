@@ -112,6 +112,8 @@ const iplayerService = {
     },
 
     search: async (inputTerm: string, season?: number, episode?: number): Promise<IPlayerSearchResult[]> => {
+        const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
+
         //Sanitize the term, BBC don't put years on their movies
         const term = !season ? removeLastFourDigitNumber(inputTerm) : inputTerm;
 
@@ -121,7 +123,6 @@ const iplayerService = {
         //Check the cache
         let results: IPlayerSearchResult[] | undefined = searchCache.get(searchTerm);
         if (!results) {
-            const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
             const method : 'nativeSearch' | 'getIplayerSearch' = (searchTerm != '*' && nativeSearchEnabled == 'true' ? 'nativeSearch' : 'getIplayerSearch') 
             results = await iplayerService[method](searchTerm, synonym);
             searchCache.set(searchTerm, results);
@@ -135,14 +136,16 @@ const iplayerService = {
         }
 
         //Get the out of schedule results form cache
-        const episodeCache: IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
-        for (const cachedEpisode of episodeCache) {
-            if (cachedEpisode) {
-                const exists = returnResults.some(({ pid }) => pid == cachedEpisode.pid);
-                const validSeason = season ? cachedEpisode.series == season : true;
-                const validEpisode = episode ? cachedEpisode.episode == episode : true;
-                if (!exists && validSeason && validEpisode) {
-                    returnResults.push({ ...cachedEpisode, pubDate: cachedEpisode.pubDate ? new Date(cachedEpisode.pubDate) : undefined });
+        if (nativeSearchEnabled == 'false'){
+            const episodeCache: IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
+            for (const cachedEpisode of episodeCache) {
+                if (cachedEpisode) {
+                    const exists = returnResults.some(({ pid }) => pid == cachedEpisode.pid);
+                    const validSeason = season ? cachedEpisode.series == season : true;
+                    const validEpisode = episode ? cachedEpisode.episode == episode : true;
+                    if (!exists && validSeason && validEpisode) {
+                        returnResults.push({ ...cachedEpisode, pubDate: cachedEpisode.pubDate ? new Date(cachedEpisode.pubDate) : undefined });
+                    }
                 }
             }
         }

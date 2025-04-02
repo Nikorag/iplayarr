@@ -16,7 +16,9 @@ class EpisodeCacheService extends AbstractStorageService<EpisodeCacheDefinition>
         await super.initStorage();
 
         //Build the lunr index
-        const allEpisodeKeys = (await this.storage.keys()).filter((k) => k != this.type);
+        const allEpisodeKeys = (await this.storage.keys())
+            .filter((k) => k.startsWith('offSchedule_'))
+            .map((k) => k.split('offSchedule_')[1]);
         lunrIndex = lunr(function (this : lunr.Builder) {
             this.ref('code');
             this.field('code');
@@ -67,7 +69,7 @@ class EpisodeCacheService extends AbstractStorageService<EpisodeCacheDefinition>
             if (infos.length > 0){
                 const title = infos[0].title;
                 const results = await Promise.all(infos.map((info : IPlayerDetails) => this.createResult(title, info, sizeFactor)));
-                await this.storage.setItem(title.toLowerCase(), {results : [...results], url});
+                await this.storage.setItem(`offSchedule_${title.toLowerCase()}`, {results : [...results], url});
                 return true;
             }
         } else {

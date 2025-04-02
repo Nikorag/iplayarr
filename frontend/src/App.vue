@@ -46,6 +46,10 @@ provide('toggleLeftHandNav', toggleLeftHandNav);
 provide('hiddenSettings', hiddenSettings);
 provide('globalSettings', globalSettings);
 
+const refreshGlobalSettings = async () => {
+    globalSettings.value = (await ipFetch('json-api/config')).data;
+}
+provide('refreshGlobalSettings', refreshGlobalSettings);
 
 const pageSetup = async () => {
     if (socket.value == null) {
@@ -72,14 +76,9 @@ const pageSetup = async () => {
         })
 
         hiddenSettings.value = (await ipFetch('json-api/config/hiddenSettings')).data;
-        
+        refreshGlobalSettings();
     }
 }
-
-const refreshGlobalSettings = async () => {
-    globalSettings.value = (await ipFetch('json-api/config')).data;
-}
-provide('refreshGlobalSettings', refreshGlobalSettings);
 
 watch(authState, async (newAuthState) => {
     if (newAuthState.user) {

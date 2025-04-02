@@ -1,5 +1,6 @@
 FROM node:current-alpine
 
+
 RUN apk --update add \
     ffmpeg \
     openssl \
@@ -7,8 +8,11 @@ RUN apk --update add \
     perl-lwp-protocol-https \
     perl-xml-simple \
     perl-xml-libxml \
-    su-exec
+    su-exec \
+    make \
+    build-base
 
+## Install get_iplayer
 RUN apk add atomicparsley --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted && ln -s `which atomicparsley` /usr/local/bin/AtomicParsley
 
 RUN mkdir -p /data/output /data/config
@@ -26,6 +30,13 @@ ENV GET_IPLAYER_EXEC=/iplayer/get_iplayer
 ENV STORAGE_LOCATION=/config
 ENV CACHE_LOCATION=/data
 
+## Install Redis
+WORKDIR /redis
+RUN wget https://download.redis.io/redis-stable.tar.gz
+RUN tar -xzvf redis-stable.tar.gz && cd redis-stable && make
+RUN mv /redis/redis-stable/src/redis-server /redis/redis-server && rm -rf /redis/redis-stable && chmod +x /redis/redis-server
+
+## Install iplayarr
 WORKDIR /app
 
 RUN mkdir /config && mkdir /app/frontend
@@ -39,5 +50,4 @@ RUN rm -rf /app/src /app/frontend/src
 
 
 ENTRYPOINT [ "./docker_entry.sh" ]
-
 CMD ["npm", "run", "start"]

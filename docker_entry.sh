@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+if [[ -z "$REDIS_HOST" ]]; then
+    echo "Starting redis"
+    /redis/redis-server &
+fi
+
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 USERNAME="iplayarr"

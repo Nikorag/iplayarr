@@ -6,8 +6,10 @@
       <LeftHandNavLink label="Settings" icon="gears" path="/settings" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Apps" icon="laptop-code" path="/apps" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Synonyms" icon="arrows-rotate" path="/synonyms" @option-clicked="closeLHN" />
-      <LeftHandNavLink v-if="globalSettings.NATIVE_SEARCH == 'false'" label="Off Schedule" icon="calendar" path="/offSchedule" @option-clicked="closeLHN" />
-      <LeftHandNavLink label="Refresh Index" icon="address-book" :no-link="true" @option-clicked="refreshCache" />
+      <tempate v-if="globalSettings.NATIVE_SEARCH == 'false'">
+        <LeftHandNavLink label="Off Schedule" icon="calendar" path="/offSchedule" @option-clicked="closeLHN" />
+        <LeftHandNavLink label="Refresh Index" icon="address-book" :no-link="true" @option-clicked="refreshCache" />
+      </tempate>
       <LeftHandNavLink label="About" icon="circle-info" path="/about" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Logout" icon="sign-out" :no-link="true" @option-clicked="logout" />
     </ul>

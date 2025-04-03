@@ -24,6 +24,7 @@ import synonymService from './synonymService';
 
 const progressRegex: RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
 const seriesRegex: RegExp = /: (?:Series|Season) (\d+)/
+const nativeSeriesRegex : RegExp = /(?:Series|Season) (\d+)/
 
 const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
 
@@ -212,7 +213,12 @@ const iplayerService = {
         const { programme } = await episodeCacheService.getMetadata(pid);
         const runtime = programme.versions ? (programme.versions[0].duration / 60) : 0;
         const category = programme.categories ? programme.categories[0].title : '';
-        const series = programme.parent?.programme?.position;
+
+        //Get the series number, we'll override with a series name "Series X" to avoid christmas specials
+        const seriesName : string | undefined = programme.parent?.programme?.type == 'series' ? programme.parent?.programme?.title : undefined;
+        const seriesMatch = seriesName?.match(nativeSeriesRegex);
+
+        const series = seriesMatch ? parseInt(seriesMatch[1]) : programme.parent?.programme?.position;
         const episode = programme.position ?? (series ? programme.parent?.programme?.aggregated_episode_count : undefined);
         return {
             pid,

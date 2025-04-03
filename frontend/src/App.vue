@@ -22,23 +22,17 @@ import { enforceMaxLength } from './lib/utils';
 import JsonApiLoader from './lib/JsonApiLoader';
 
 const authState = inject('authState');
-const [queue, logs, hiddenSettings, globalSettings] = [ref([]), ref([]), ref({}), ref({})];
+const [logs, hiddenSettings, globalSettings] = [ref([]), ref({}), ref({})];
 
 const navBar = ref(null);
 
 const leftHandNav = ref(null);
 
-const updateQueue = async () => {
-    queue.value = (await ipFetch('json-api/queue/queue')).data;
-}
-
 const toggleLeftHandNav = () => {
     leftHandNav.value.toggleLHN();
 }
 
-provide('queue', queue);
 provide('logs', logs);
-provide('updateQueue', updateQueue);
 provide('toggleLeftHandNav', toggleLeftHandNav);
 provide('hiddenSettings', hiddenSettings);
 provide('globalSettings', globalSettings);
@@ -49,17 +43,12 @@ const refreshGlobalSettings = async () => {
 provide('refreshGlobalSettings', refreshGlobalSettings);
 
 const pageSetup = async (socket) => {
-    await updateQueue();
     document.body.scrollTop = document.documentElement.scrollTop = 0;
 
     if (socket.value != null) {
         socket.value.on('log', (data) => {
             logs.value.push(data);
             enforceMaxLength(logs.value, 5000);
-        });
-
-        socket.value.on('queue', (data) => {
-            queue.value = data;
         });
 
         hiddenSettings.value = (await ipFetch('json-api/config/hiddenSettings')).data;

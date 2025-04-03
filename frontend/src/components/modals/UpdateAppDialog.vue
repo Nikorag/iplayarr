@@ -35,12 +35,9 @@
 <script setup>
 import { defineEmits, inject, onBeforeUnmount, onMounted, ref } from 'vue';
 
-import { ipFetch } from '@/lib/ipFetch';
-
 import IPlayarrModal from './IPlayarrModal.vue';
 
-const {apps} = inject('apps');
-const features = ref([]);
+const {apps, types : features, updateApiKey} = inject('apps');
 const socket = inject('socket');
 
 const appStatus = ref({});
@@ -48,8 +45,6 @@ const appStatus = ref({});
 const emit = defineEmits(['close'])
 
 onMounted(async () => {
-    features.value = (await ipFetch('json-api/apps/types')).data;
-
     apps.value = apps.value.filter(({ type }) => features.value[type].includes('callback'));
 
     if (apps.value.length == 0) {
@@ -66,7 +61,7 @@ onMounted(async () => {
         appStatus.value[id] = { status, message };
     });
 
-    ipFetch('json-api/apps/updateApiKey', 'POST', {});
+    updateApiKey({});
 });
 
 onBeforeUnmount(() => {

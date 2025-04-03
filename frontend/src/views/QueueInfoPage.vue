@@ -7,20 +7,20 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import MediaInfoHero from '@/components/common/MediaInfoHero.vue';
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 import LogPanel from '@/components/log/LogPanel.vue';
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 
 const route = useRoute();
 const router = useRouter();
 
 const item = ref({});
 const followlog = ref(true);
+const {editQueue} = inject('queue');
 
 watch(() => route.query.item, async (newJson) => {
     item.value = JSON.parse(newJson);
@@ -32,7 +32,7 @@ const toggleFollow = () => {
 
 const deleteQueueItem = async () => {
     if (await dialogService.confirm('Cancel', 'Are you sure you want to cancel this download?')) {
-        ipFetch(`json-api/queue/queue?pid=${item.value.pid}`, 'DELETE');
+        editQueue.delete(item.value.pid);
         router.push('/queue');
     }
 }

@@ -17,20 +17,16 @@
 </template>
 
 <script setup>
-import { defineEmits, onMounted, ref, inject } from 'vue';
-
-import { ipFetch } from '@/lib/ipFetch';
+import { defineEmits, onMounted, inject } from 'vue';
 
 import ListEditor from '../common/ListEditor.vue';
 import IPlayarrModal from './IPlayarrModal.vue';
 
 const emit = defineEmits(['selectApp', 'close']);
 
-const {apps} = inject('apps')
-const features = ref([]);
+const {apps, types : features} = inject('apps')
 
 onMounted(async () => {
-    features.value = (await ipFetch('json-api/apps/types')).data;
     apps.value = apps.value.filter(({ type }) => features.value[type].includes('callback'));
 
     if (apps.value.length == 0) {

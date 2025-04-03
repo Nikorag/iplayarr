@@ -13,10 +13,9 @@
 </template>
 
 <script setup>
-import { defineExpose, defineProps, ref } from 'vue';
+import { defineExpose, defineProps, ref, inject } from 'vue';
 
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 import { capitalize } from '@/lib/utils';
 
 const props = defineProps({
@@ -24,10 +23,11 @@ const props = defineProps({
 });
 
 const testStatus = ref('INITIAL');
+const {test : testApp} = inject('apps'); 
 
 const test = async () => {
     testStatus.value = 'PENDING';
-    const { data, ok } = await ipFetch('json-api/apps/test', 'POST', props.app);
+    const { data, ok } = await testApp(props.app);
     if (!ok) {
         dialogService.alert('Connection Error', `Error Connecting to ${capitalize(props.app.type)} : ${data.message}`);
         testStatus.value = 'INITIAL';

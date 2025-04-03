@@ -53,7 +53,6 @@
 import { defineProps, inject } from 'vue';
 
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 import { formatStorageSize } from '@/lib/utils';
 
 import ProgressBar from '../common/ProgressBar.vue';
@@ -67,6 +66,7 @@ defineProps({
 
 const {apps} = inject('apps');
 const {editHistory} = inject('history');
+const {editQueue} = inject('queue');
 
 const trash = async (pid) => {
     if (await dialogService.confirm('Delete', 'Are you sure you want to delete this history item?')) {
@@ -76,7 +76,7 @@ const trash = async (pid) => {
 
 const cancel = async (pid) => {
     if (await dialogService.confirm('Cancel', 'Are you sure you want to cancel this download?')) {
-        ipFetch(`json-api/queue/queue?pid=${pid}`, 'DELETE');
+        editQueue.delete(pid);
     }
 }
 

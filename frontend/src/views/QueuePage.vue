@@ -20,7 +20,7 @@ const filterOptions = ref([
 ]);
 const filter = ref('ALL');
 
-const queue = inject('queue');
+const {queue} = inject('queue');
 const {history} = inject('history');
 
 </script>

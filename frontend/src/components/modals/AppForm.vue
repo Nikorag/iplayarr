@@ -72,9 +72,8 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps, onMounted, ref, watch, inject } from 'vue';
+import { computed, defineEmits, defineProps, ref, watch, inject } from 'vue';
 
-import { ipFetch } from '@/lib/ipFetch';
 import { capitalize } from '@/lib/utils';
 
 import AppTestButton from '../apps/AppTestButton.vue';
@@ -101,17 +100,14 @@ const defaultForm = {
     tags : []
 }
 
-const [features, form] = [ref({}), ref(props.inputObj || defaultForm)];
+const form = ref(props.inputObj || defaultForm);
 const testButton = ref(null);
 const validationErrors = ref({});
 const loading = ref(false);
 const tagInput = ref(null);
+const {types : features} = inject('apps');
 
 const types = computed(() => { return Object.keys(features.value).map((k) => ({ key: k, value: capitalize(k) })); });
-
-onMounted(async () => {
-    features.value = (await ipFetch('json-api/apps/types')).data;
-});
 
 const showForm = (type) => {
     if (form.value.type) {

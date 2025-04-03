@@ -38,25 +38,16 @@
 </template>
 
 <script setup>
-import { onMounted, ref, inject } from 'vue';
+import { inject } from 'vue';
 import { useModal } from 'vue-final-modal'
 
 import InfoBar from '@/components/common/InfoBar.vue';
 import ListEditor from '@/components/common/ListEditor.vue';
 import AppForm from '@/components/modals/AppForm.vue';
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 import { deepCopy } from '@/lib/utils';
 
-const {apps, editApps} = inject('apps');
-const features = ref([]);
-
-const refreshApps = async () => {
-    features.value = (await ipFetch('json-api/apps/types')).data;
-    console.log(features.value);
-}
-
-onMounted(refreshApps);
+const {apps, editApps, refreshApps, types : features} = inject('apps');
 
 const openForm = (app) => {
     const formModal = useModal({

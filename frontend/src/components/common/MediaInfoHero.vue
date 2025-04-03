@@ -43,7 +43,7 @@ import { ipFetch } from '@/lib/ipFetch';
 import LoadingIndicator from './LoadingIndicator.vue';
 
 const details = ref({});
-const queue = inject('queue');
+const {queue} = inject('queue');
 const {history} = inject('history');
 
 const props = defineProps({

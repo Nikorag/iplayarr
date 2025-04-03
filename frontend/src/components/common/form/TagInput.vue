@@ -1,102 +1,102 @@
 <template>
-    <div :class="['form-group', advanced ? 'advanced' : '']">
-      <label v-if="name">{{ name }}</label>
-      <div class="inputBox">
-        <div :class="['inputWithButton', error ? 'error' : '']">
-          <input v-model="tagInput" :type="typeOverride" :placeholder="placeholder" @keyup.enter="addTag" @keyup.backspace="removeTag">
-          <button v-if="iconButton" :title="buttonTooltip" @click="emit('action')">
-            <font-awesome-icon :icon="['fas', iconButton]" />
-          </button>
-          <button v-if="brandButton" :title="buttonTooltip" @click="emit('action')">
-            <img class="brand" :src="`/img/${brandButton.toLowerCase()}.svg`">
-          </button>
-        </div>
-        <div class="input_tags">
-            <span class="pill success" v-for="tag of localValue" v-bind:key="tag">
-                {{ tag }}
-            </span>
-        </div>
-        <div v-if="error" class="error">
-          {{ error }}
-        </div>
-        <div class="tooltip">
-          {{ tooltip }}
-        </div>
+  <div :class="['form-group', advanced ? 'advanced' : '']">
+    <label v-if="name">{{ name }}</label>
+    <div class="inputBox">
+      <div :class="['inputWithButton', error ? 'error' : '']">
+        <input v-model="tagInput" :type="typeOverride" :placeholder="placeholder" @keyup.enter="addTag" @keyup.backspace="removeTag">
+        <button v-if="iconButton" :title="buttonTooltip" @click="emit('action')">
+          <font-awesome-icon :icon="['fas', iconButton]" />
+        </button>
+        <button v-if="brandButton" :title="buttonTooltip" @click="emit('action')">
+          <img class="brand" :src="`/img/${brandButton.toLowerCase()}.svg`">
+        </button>
+      </div>
+      <div class="input_tags">
+        <span v-for="tag of localValue" :key="tag" class="pill success">
+          {{ tag }}
+        </span>
+      </div>
+      <div v-if="error" class="error">
+        {{ error }}
+      </div>
+      <div class="tooltip">
+        {{ tooltip }}
       </div>
     </div>
-  </template>
+  </div>
+</template>
   
-  <script setup>
-  import { defineEmits, defineProps, ref, watch, defineExpose } from 'vue';
+<script setup>
+import { defineEmits, defineExpose,defineProps, ref, watch } from 'vue';
   
-  const props = defineProps({
-      name: {
-          type: String,
-          required: true,
-      },
-      tooltip: {
-          type: String,
-          required: true,
-      },
-      modelValue: {
-          type: Array,
-          required: true,
-      },
-      typeOverride: {
-          type: String,
-          required: false,
-          default: 'text'
-      },
-      error: {
-          type: String,
-          required: false,
-          default: undefined
-      },
-      placeholder: {
-          type: String,
-          required: false
-      },
-      advanced: {
-          type: Boolean,
-          required: false,
-          default: false
-      },
-      iconButton: String,
-      brandButton: String,
-      buttonTooltip: String
-  })
+const props = defineProps({
+    name: {
+        type: String,
+        required: true,
+    },
+    tooltip: {
+        type: String,
+        required: true,
+    },
+    modelValue: {
+        type: Array,
+        required: true,
+    },
+    typeOverride: {
+        type: String,
+        required: false,
+        default: 'text'
+    },
+    error: {
+        type: String,
+        required: false,
+        default: undefined
+    },
+    placeholder: {
+        type: String,
+        required: false
+    },
+    advanced: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
+    iconButton: String,
+    brandButton: String,
+    buttonTooltip: String
+})
   
-  const emit = defineEmits(['update:modelValue', 'action']);
+const emit = defineEmits(['update:modelValue', 'action']);
   
-  const localValue = ref(props.modelValue ?? []);
-  const tagInput = ref("");
+const localValue = ref(props.modelValue ?? []);
+const tagInput = ref('');
 
-  const addTag = () =>{
+const addTag = () =>{
     localValue.value.push(tagInput.value);
-    tagInput.value = "";
-    emit('update:modelValue', localValue);
-  }
+    tagInput.value = '';
+    emit('update:modelValue', localValue.value);
+}
 
-  defineExpose({addTag});
+defineExpose({addTag});
 
-  const removeTag = () => {
-    if (tagInput.value == ""){
+const removeTag = () => {
+    if (tagInput.value == ''){
         localValue.value.pop();
     }
-    emit('update:modelValue', localValue);
-  }
+    emit('update:modelValue', localValue.value);
+}
   
-  watch(localValue, (newValue) => {
-      emit('update:modelValue', newValue);
-  });
+watch(localValue, (newValue) => {
+    emit('update:modelValue', newValue);
+});
   
-  watch(
-      () => props.modelValue,
-      (newValue) => {
-          localValue.value = newValue;
-      }
-  );
-  </script>
+watch(
+    () => props.modelValue,
+    (newValue) => {
+        localValue.value = newValue;
+    }
+);
+</script>
   
   <style lang="less" scoped>
   .form-group {

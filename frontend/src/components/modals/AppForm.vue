@@ -79,11 +79,11 @@ import { capitalize } from '@/lib/utils';
 
 import AppTestButton from '../apps/AppTestButton.vue';
 import SelectInput from '../common/form/SelectInput.vue';
+import TagInput from '../common/form/TagInput.vue';
 import TextInput from '../common/form/TextInput.vue';
 import InfoBar from '../common/InfoBar.vue';
 import LoadingIndicator from '../common/LoadingIndicator.vue';
 import IPlayarrModal from './IPlayarrModal.vue';
-import TagInput from '../common/form/TagInput.vue';
 
 const props = defineProps({ action: String, inputObj: Object });
 const emit = defineEmits(['saved']);
@@ -139,7 +139,7 @@ watch(() => form.value.type, () => {
 
 const saveApp = async () => {
     if (tagInput.value){
-      tagInput.value.addTag();
+        tagInput.value.addTag();
     }
     const method = form.value.id ? 'PUT' : 'POST';
     loading.value = true;

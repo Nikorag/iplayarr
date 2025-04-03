@@ -3,6 +3,7 @@ import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
 import NodeCache from 'node-cache';
 import path from 'path';
+import { deromanize } from 'romans';
 
 import { DownloadDetails } from '../types/DownloadDetails';
 import { IplayarrParameter } from '../types/IplayarrParameters';
@@ -24,7 +25,7 @@ import synonymService from './synonymService';
 
 const progressRegex: RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
 const seriesRegex: RegExp = /: (?:Series|Season) (\d+)/
-const nativeSeriesRegex : RegExp = /(?:Series|Season) (\d+)/
+const nativeSeriesRegex : RegExp = /^(?:(?:Series|Season) )?(\d+|[MDCLXVI]+)$/
 
 const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
 
@@ -218,7 +219,7 @@ const iplayerService = {
         const seriesName : string | undefined = programme.parent?.programme?.type == 'series' ? programme.parent?.programme?.title : undefined;
         const seriesMatch = seriesName?.match(nativeSeriesRegex);
 
-        const series = seriesMatch ? parseInt(seriesMatch[1]) : programme.parent?.programme?.position;
+        const series = seriesMatch ? getPotentialRoman(seriesMatch[1]) : programme.parent?.programme?.position;
         const episode = programme.position ?? (series ? programme.parent?.programme?.aggregated_episode_count : undefined);
         return {
             pid,
@@ -431,6 +432,16 @@ async function createResult(term: string, details: IPlayerDetails, sizeFactor: n
         size,
         nzbName
     }
+}
+
+function getPotentialRoman(str : string) : number {
+    return (() => {
+        try {
+            return deromanize(str);
+        } catch {
+            return parseInt(str);
+        }
+    })()
 }
 
 export default iplayerService;

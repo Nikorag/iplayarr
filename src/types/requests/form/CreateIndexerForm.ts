@@ -6,5 +6,6 @@ export interface CreateIndexerForm {
     urlBase? : string
     apiKey : string,
     categories : number[],
-    priority? : number
+    priority? : number,
+    tags : string[]
 }

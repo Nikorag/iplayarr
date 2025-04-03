@@ -148,7 +148,7 @@ export interface ArrCreateDownloadClientRequest {
     implementation: string,
     configContract: string,
     infoLink: string,
-    tags: string[],
+    tags: number[],
     enable: boolean,
     protocol: string,
     priority: number,

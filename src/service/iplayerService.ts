@@ -151,7 +151,7 @@ const iplayerService = {
             }
         }
 
-        return returnResults;
+        return returnResults.filter(({pubDate}) => !pubDate || pubDate < new Date());
     },
 
     refreshCache: async () => {
@@ -265,7 +265,7 @@ const iplayerService = {
 
             for (const brandPid of brandPids){
                 const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
-                const episodes = (await Promise.all(seriesList.programmes.filter(({ type }) => type == 'series').map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+                const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
 
                 const chunks = splitArrayIntoChunks(episodes, 5);
                 const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {

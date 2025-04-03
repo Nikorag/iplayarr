@@ -3,24 +3,25 @@ import { Request, Response, Router } from 'express';
 import AbstractStorageService from '../../service/AbstractStorageService';
 import { Entity } from '../../types/models/Entity';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
+import { Validator } from '../../validators/Validator';
 
 class CrudRoute<T extends Entity> {
     router: Router
     service: AbstractStorageService<T>
 
-    constructor(service: AbstractStorageService<T>) {
+    constructor(service: AbstractStorageService<T>, validator? : Validator) {
         this.router = Router();
         this.service = service;
 
-        this.router.get('/', async (_, res: Response) => {
-            errorWrapper(res, async () => {
+        this.router.get('/', async (req : Request, res: Response) => {
+            errorWrapper(req, res, undefined, async () => {
                 const response = await this.get();
                 res.json(response);
             });
         });
 
         this.router.put('/', async (req: Request, res: Response) => {
-            errorWrapper(res, async () => {
+            errorWrapper(req, res, validator, async () => {
                 const value: T = req.body as any as T;
                 const response = await this.put(value);
                 res.json(response);
@@ -28,7 +29,7 @@ class CrudRoute<T extends Entity> {
         });
 
         this.router.post('/', async (req: Request, res: Response) => {
-            errorWrapper(res, async () => {
+            errorWrapper(req, res, validator, async () => {
                 const value: T = req.body as any as T;
                 const response = await this.post(value);
                 res.json(response);
@@ -36,7 +37,7 @@ class CrudRoute<T extends Entity> {
         });
 
         this.router.delete('/', async (req: Request, res: Response) => {
-            errorWrapper(res, async () => {
+            errorWrapper(req, res, undefined, async () => {
                 const { id } = req.body;
                 const response = await this.delete(id);
                 res.json(response);
@@ -62,7 +63,19 @@ class CrudRoute<T extends Entity> {
     }
 }
 
-async function errorWrapper(res: Response, callback: () => Promise<void>) {
+async function errorWrapper(req : Request, res: Response, validator : Validator | undefined, callback: () => Promise<void>) {
+    if (validator){
+        const validationResult : {[key:string] : string} = await validator.validate(req.body);
+        if (Object.keys(validationResult).length > 0){
+            const apiResponse : ApiResponse = {
+                error : ApiError.INVALID_INPUT,
+                invalid_fields : validationResult
+            }
+            res.status(400).json(apiResponse);
+            return;
+        }
+    }
+    
     try {
         await callback();
     } catch (err: any) {

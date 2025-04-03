@@ -32,5 +32,12 @@ export const ServiceLibrary : Service[] = [
     {
         name : 'queue',
         path : '/queue/queue'
+    },
+    {
+        name : 'offSchedule',
+        path : '/offSchedule',
+        microservices : {
+            '/refresh' : ['POST'],
+        }
     }
 ]

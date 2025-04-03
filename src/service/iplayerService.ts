@@ -3,6 +3,7 @@ import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
 import NodeCache from 'node-cache';
 import path from 'path';
+import { deromanize } from 'romans';
 
 import { DownloadDetails } from '../types/DownloadDetails';
 import { IplayarrParameter } from '../types/IplayarrParameters';
@@ -24,6 +25,7 @@ import synonymService from './synonymService';
 
 const progressRegex: RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
 const seriesRegex: RegExp = /: (?:Series|Season) (\d+)/
+const nativeSeriesRegex : RegExp = /^(?:(?:Series|Season) )?(\d+|[MDCLXVI]+)$/
 
 const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
 
@@ -150,7 +152,7 @@ const iplayerService = {
             }
         }
 
-        return returnResults;
+        return returnResults.filter(({pubDate}) => !pubDate || pubDate < new Date());
     },
 
     refreshCache: async () => {
@@ -212,7 +214,12 @@ const iplayerService = {
         const { programme } = await episodeCacheService.getMetadata(pid);
         const runtime = programme.versions ? (programme.versions[0].duration / 60) : 0;
         const category = programme.categories ? programme.categories[0].title : '';
-        const series = programme.parent?.programme?.position;
+
+        //Get the series number, we'll override with a series name "Series X" to avoid christmas specials
+        const seriesName : string | undefined = programme.parent?.programme?.type == 'series' ? programme.parent?.programme?.title : undefined;
+        const seriesMatch = seriesName?.match(nativeSeriesRegex);
+
+        const series = seriesMatch ? getPotentialRoman(seriesMatch[1]) : programme.parent?.programme?.position;
         const episode = programme.position ?? (series ? programme.parent?.programme?.aggregated_episode_count : undefined);
         return {
             pid,
@@ -259,7 +266,7 @@ const iplayerService = {
 
             for (const brandPid of brandPids){
                 const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
-                const episodes = (await Promise.all(seriesList.programmes.filter(({ type }) => type == 'series').map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+                const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
 
                 const chunks = splitArrayIntoChunks(episodes, 5);
                 const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
@@ -425,6 +432,16 @@ async function createResult(term: string, details: IPlayerDetails, sizeFactor: n
         size,
         nzbName
     }
+}
+
+function getPotentialRoman(str : string) : number {
+    return (() => {
+        try {
+            return deromanize(str);
+        } catch {
+            return parseInt(str);
+        }
+    })()
 }
 
 export default iplayerService;

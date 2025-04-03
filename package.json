@@ -33,6 +33,7 @@
     "node-cache": "^5.1.2",
     "node-cron": "^3.0.3",
     "node-persist": "^4.0.4",
+    "romans": "^3.0.0",
     "socket.io": "^4.8.1",
     "uuid": "^11.0.5",
     "vue-router": "^4.5.0",

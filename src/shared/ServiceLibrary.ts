@@ -5,7 +5,8 @@ export interface Service {
     path : string,
     microservices? : {
         [key: string] : ('POST' | 'PUT' | 'GET' | 'DELETE')[]
-    }
+    },
+    initial? : any
 }
 
 export const ServiceLibrary : Service[] = [
@@ -39,5 +40,10 @@ export const ServiceLibrary : Service[] = [
         microservices : {
             '/refresh' : ['POST'],
         }
-    }
+    },
+    {
+        name : 'hiddenSettings',
+        path : '/config/hiddenSettings',
+        initial : {}
+    },
 ]

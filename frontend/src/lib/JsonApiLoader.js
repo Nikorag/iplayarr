@@ -1,6 +1,6 @@
 import { ServiceLibrary } from '@shared/ServiceLibrary';
 import { io } from 'socket.io-client';
-import { ref, computed, provide, watch, inject } from 'vue';
+import { ref, computed, provide, watch, inject, onMounted } from 'vue';
 import { ipFetch } from './ipFetch';
 import { capitalize } from './utils';
 
@@ -20,9 +20,9 @@ export default (userCallback) => {
     provide('socket', socket);
 
     // Initialize REST api
-    for (const { name, path, microservices } of ServiceLibrary) {
-        const dataRef = ref([]);
-        let hasFetched = [];
+    for (const { name, path, microservices, initial } of ServiceLibrary) {
+        const dataRef = ref(initial ?? []);
+        const hasFetched = ref([]);
 
         const [computedData, refreshData] = createComputedAndRefresh(hasFetched, path, dataRef);
 
@@ -77,12 +77,15 @@ export default (userCallback) => {
     }
 
     const authState = inject('authState');
-    watch(authState, (newAuthState) => {
-        if (newAuthState.user) {
-            refreshMethods.forEach((method) => method());
-            userCallback(socket);
-        }
-    }, { immediate: true });
+
+    onMounted(() => {
+        watch(authState, (newAuthState) => {
+            if (newAuthState.user) {
+                refreshMethods.forEach((method) => method());
+                userCallback(socket);
+            }
+        }, { immediate: true });
+    });
 }
 
 function getMicroserviceMethodName(method, name, unique) {
@@ -114,7 +117,7 @@ function getMethodAction(method) {
 
 function createComputedAndRefresh(hasFetched, path, dataRef){
     const refreshData = async (errorCallback) => {
-        hasFetched.push(path);
+        hasFetched.value.push(path);
         const response = await ipFetch(`json-api${path}`);
         if (response.ok) {
             dataRef.value = response.data;
@@ -126,7 +129,7 @@ function createComputedAndRefresh(hasFetched, path, dataRef){
     };
 
     const computedData = computed(() => {
-        if (!hasFetched.includes(path)) {
+        if (!hasFetched.value.includes(path)) {
             refreshData();
         }
         return dataRef.value;

@@ -22,7 +22,7 @@ import { enforceMaxLength } from './lib/utils';
 import JsonApiLoader from './lib/JsonApiLoader';
 
 const authState = inject('authState');
-const [logs, hiddenSettings, globalSettings] = [ref([]), ref({}), ref({})];
+const [logs, globalSettings] = [ref([]), ref({})];
 
 const navBar = ref(null);
 
@@ -34,7 +34,6 @@ const toggleLeftHandNav = () => {
 
 provide('logs', logs);
 provide('toggleLeftHandNav', toggleLeftHandNav);
-provide('hiddenSettings', hiddenSettings);
 provide('globalSettings', globalSettings);
 
 const refreshGlobalSettings = async () => {
@@ -51,7 +50,6 @@ const pageSetup = async (socket) => {
             enforceMaxLength(logs.value, 5000);
         });
 
-        hiddenSettings.value = (await ipFetch('json-api/config/hiddenSettings')).data;
         refreshGlobalSettings();
     }
 }

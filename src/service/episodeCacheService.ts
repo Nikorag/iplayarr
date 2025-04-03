@@ -30,7 +30,7 @@ class EpisodeCacheService extends AbstractStorageService<EpisodeCacheDefinition>
     async searchCachedEpisodes(term : string) : Promise<IPlayerSearchResult[]> {
         await this.initStorage();
         const lunrResult = lunrIndex.search(term);
-        const results = await Promise.all(lunrResult.map(({ref}) => storage.getItem(`offSchedule_${ref}`)));
+        const results = await Promise.all(lunrResult.map(({ref}) => this.storage.getItem(`offSchedule_${ref}`)));
         return results.filter(res => res).map(({results}) => results).flat();
     }
 

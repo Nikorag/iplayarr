@@ -18,38 +18,24 @@ class AppsRoute extends CrudRoute<App> {
     }
 
     async updateApp (form : App, appServiceMethod : 'post' | 'put') : Promise<App | undefined> {
-        const appFormValidator : AppFormValidator = new AppFormValidator();
-        const validationResult = await appFormValidator.validate(form);
-        if (Object.keys(validationResult).length == 0){
-            const updatedForm : App | undefined = await super[appServiceMethod](form);
-            if (updatedForm){
-                try {
-                    await appService.createUpdateIntegrations(updatedForm);
-                } catch (err : any) {
-                    if (err.type == 'download_client'){
-                        validationResult['download_client_name'] = err?.message;
-                    } else {
-                        validationResult['indexer_name'] = err?.message;
-                        validationResult['indexer_priority'] = err?.message;
-                    }
+        const updatedForm : App | undefined = await super[appServiceMethod](form);
+        const validationResult : {[key:string] : string} = {};
+        if (updatedForm){
+            try {
+                await appService.createUpdateIntegrations(updatedForm);
+            } catch (err : any) {
+                if (err.type == 'download_client'){
+                    validationResult['download_client_name'] = err?.message;
+                } else {
+                    validationResult['indexer_name'] = err?.message;
+                    validationResult['indexer_priority'] = err?.message;
+                }
     
-                    //Delete the half complete app if it's new
-                    if (appServiceMethod === 'post'){
-                        await appService.removeItem(updatedForm.id as string);
-                    }
+                //Delete the half complete app if it's new
+                if (appServiceMethod === 'post'){
+                    await appService.removeItem(updatedForm.id as string);
+                }
 
-                    const api_response : ApiResponse = {
-                        error : ApiError.INVALID_INPUT,
-                        invalid_fields : validationResult
-                    }
-                    throw {
-                        api_response,
-                        message : 'Invalid'
-                    }
-                } 
-                return updatedForm;
-            } else {
-                validationResult['name'] = 'Error Saving App';
                 const api_response : ApiResponse = {
                     error : ApiError.INVALID_INPUT,
                     invalid_fields : validationResult
@@ -58,8 +44,10 @@ class AppsRoute extends CrudRoute<App> {
                     api_response,
                     message : 'Invalid'
                 }
-            }
+            } 
+            return updatedForm;
         } else {
+            validationResult['name'] = 'Error Saving App';
             const api_response : ApiResponse = {
                 error : ApiError.INVALID_INPUT,
                 invalid_fields : validationResult
@@ -72,7 +60,7 @@ class AppsRoute extends CrudRoute<App> {
     }
 }
 
-const router : Router = new AppsRoute(appService).router;
+const router : Router = new AppsRoute(appService, new AppFormValidator()).router;
 
 router.get('/types', async (_, res :Response) => {
     res.json(appFeatures);

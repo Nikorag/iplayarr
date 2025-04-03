@@ -18,14 +18,36 @@ export interface ArrConfig {
     INDEXER_ID? : number
 }
 
+export interface ArrTag {
+    id : number,
+    label : string
+}
+
 const arrService = {
     createUpdateDownloadClient : async(form : CreateDownloadClientForm, config : ArrConfig, prowlarr : boolean = false, allowCreate : boolean = true) : Promise<number> => {
         const {API_KEY, HOST, DOWNLOAD_CLIENT_ID} = config;
         let updateMethod : keyof AxiosInstance = 'post';
 
+        const tags : number[] = [];
+        if (form.tags.length > 0){
+            const remoteTags = await arrService.getTags({API_KEY, HOST});
+            for (const tag of form.tags){
+                const remoteTag = remoteTags.find(({label}) => label.toLowerCase() == tag.toLowerCase());
+                if (remoteTag){
+                    tags.push(remoteTag.id)
+                } else {
+                    const newTag = await arrService.createTag({API_KEY, HOST}, tag);
+                    if (newTag){
+                        tags.push(newTag.id)
+                    }
+                }
+            }
+        }
+
         const createDownloadClientRequest : ArrCreateDownloadClientRequest = {
             ...createDownloadClientRequestSkeleton,
             name : `${form.name} (iPlayarr)`,
+            tags,
             fields : [
                 ...createDownloadClientRequestSkeleton.fields as CreateDownloadClientRequestField[],
                 {
@@ -159,11 +181,28 @@ const arrService = {
         const {API_KEY, HOST, INDEXER_ID} = config;
         let updateMethod : keyof AxiosInstance = 'post';
 
+        const tags : number[] = [];
+        if (form.tags.length > 0){
+            const remoteTags = await arrService.getTags({API_KEY, HOST});
+            for (const tag of form.tags){
+                const remoteTag = remoteTags.find(({label}) => label.toLowerCase() == tag.toLowerCase());
+                if (remoteTag){
+                    tags.push(remoteTag.id)
+                } else {
+                    const newTag = await arrService.createTag({API_KEY, HOST}, tag);
+                    if (newTag){
+                        tags.push(newTag.id)
+                    }
+                }
+            }
+        }
+
         const createIndexerRequest : CreateIndexerRequest = {
             ...createIndexerRequestSkeleton,
             priority : form.priority || 25,
             name : `${form.name} (iPlayarr)`,
             downloadClientId : form.downloadClientId,
+            tags,
             fields : [
                 ...createIndexRequestFieldsSkeleton,
                 {
@@ -375,6 +414,38 @@ const arrService = {
                 return error.message;
             }
             return false;
+        }
+    },
+
+    getTags : async({API_KEY, HOST} : ArrConfig) : Promise<ArrTag[]> => {
+        const url : string = `${HOST}/api/v3/tag?apikey=${API_KEY}`;
+
+        try {
+            const response = await axios.get(url, {
+                headers: {
+                    'X-Api-Key' : API_KEY
+                }
+            });
+            if (response.status == 200) return response.data;
+            return [];
+        } catch {
+            return [];
+        }
+    },
+
+    createTag : async({API_KEY, HOST} : ArrConfig, label : string) : Promise<ArrTag | undefined> => {
+        const url : string = `${HOST}/api/v3/tag?apikey=${API_KEY}`;
+
+        try {
+            const response = await axios.post(url, {label}, {
+                headers: {
+                    'X-Api-Key' : API_KEY
+                }
+            });
+            if (response.status >= 200) return response.data;
+            return;
+        } catch {
+            return;
         }
     },
 

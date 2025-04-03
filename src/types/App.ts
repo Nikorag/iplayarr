@@ -10,6 +10,7 @@ export interface App {
     username? : string,
     password? : string,
     priority? : number,
+    tags?: string[],
     iplayarr : {
         host : string,
         port : number,

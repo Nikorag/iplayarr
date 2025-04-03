@@ -59,6 +59,13 @@
           <TextInput v-model="form.indexer.name" name="Name" placeholder="iPlayarr" :tooltip="`Name for Indexer in ${capitalize(form.type)}`" :error="validationErrors?.indexer_name" />
           <TextInput v-model="form.indexer.priority" name="Priority" placeholder="25" type-override="number" :tooltip="`Priority in ${capitalize(form.type)}`" :error="validationErrors?.indexer_priority" />
         </template>
+
+        <template v-if="showForm('tags')">
+          <legend class="sub">
+            Download Client
+          </legend>
+          <TagInput ref="tagInput" v-model="form.tags" name="Tags" :tooltip="`Tags for Download Client & Indexer for ${capitalize(form.type)}`" :error="validationErrors?.tags" />
+        </template>
       </template>
     </template>
   </IPlayarrModal>
@@ -72,6 +79,7 @@ import { capitalize } from '@/lib/utils';
 
 import AppTestButton from '../apps/AppTestButton.vue';
 import SelectInput from '../common/form/SelectInput.vue';
+import TagInput from '../common/form/TagInput.vue';
 import TextInput from '../common/form/TextInput.vue';
 import InfoBar from '../common/InfoBar.vue';
 import LoadingIndicator from '../common/LoadingIndicator.vue';
@@ -88,13 +96,15 @@ const defaultForm = {
         port: window.location.port
     },
     indexer: {},
-    priority: 5
+    priority: 5,
+    tags : []
 }
 
 const [features, form] = [ref({}), ref(props.inputObj || defaultForm)];
 const testButton = ref(null);
 const validationErrors = ref({});
 const loading = ref(false);
+const tagInput = ref(null);
 
 const types = computed(() => { return Object.keys(features.value).map((k) => ({ key: k, value: capitalize(k) })); });
 
@@ -128,6 +138,9 @@ watch(() => form.value.type, () => {
 }, { immediate: true });
 
 const saveApp = async () => {
+    if (tagInput.value){
+        tagInput.value.addTag();
+    }
     const method = form.value.id ? 'PUT' : 'POST';
     loading.value = true;
     const response = await ipFetch('json-api/apps', method, form.value);

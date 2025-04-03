@@ -138,6 +138,7 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
                 port: form.iplayarr.port as number,
                 useSSL: form.iplayarr.useSSL,
                 apiKey: API_KEY,
+                tags : form.tags ?? []
             };
 
 
@@ -165,7 +166,8 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
                 url: `http${useSSL ? 's' : ''}://${form.iplayarr.host}:${form.iplayarr.port}`,
                 apiKey: API_KEY,
                 categories: appCategories[form.type],
-                priority: form.indexer.priority
+                priority: form.indexer.priority,
+                tags : form.tags ?? []
             };
 
             try {
@@ -190,6 +192,7 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
                 port: form.iplayarr.port as number,
                 useSSL: form.iplayarr.useSSL,
                 apiKey: API_KEY,
+                tags : form.tags ?? []
             };
 
 
@@ -217,7 +220,8 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
                 url: `http${useSSL ? 's' : ''}://${form.iplayarr.host}:${form.iplayarr.port}`,
                 apiKey: API_KEY,
                 categories: appCategories[form.type],
-                priority: form.indexer.priority
+                priority: form.indexer.priority,
+                tags : form.tags ?? []
             };
 
             try {
@@ -245,6 +249,9 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
         return form;
     },
     [AppFeature.LINK]: async (form: App): Promise<App> => {
+        return form;
+    },
+    [AppFeature.TAGS]: async (form: App): Promise<App> => {
         return form;
     }
 }

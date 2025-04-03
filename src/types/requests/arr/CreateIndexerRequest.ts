@@ -14,7 +14,7 @@ export interface CreateIndexerRequest {
     implementation: string,
     configContract: string,
     infoLink: string,
-    tags: string[],
+    tags: number[],
     id: number
 }
 

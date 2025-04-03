@@ -16,7 +16,8 @@ export enum AppFeature {
     PROWLARR_INDEXER = 'prowlarr_indexer',
     USERNAME_PASSWORD = 'username_password',
     PRIORITY = 'priority',
-    LINK = 'link'
+    LINK = 'link',
+    TAGS = 'tags'
 }
 
 export const appCategories : Record<AppType, number[]> = {
@@ -28,8 +29,8 @@ export const appCategories : Record<AppType, number[]> = {
 }
 
 export const appFeatures : Record<AppType, AppFeature[]> = {
-    [AppType.SONARR]: [AppFeature.API_KEY, AppFeature.CALLBACK, AppFeature.DOWNLOAD_CLIENT, AppFeature.INDEXER],
-    [AppType.RADARR]: [AppFeature.API_KEY, AppFeature.CALLBACK, AppFeature.DOWNLOAD_CLIENT, AppFeature.INDEXER],
+    [AppType.SONARR]: [AppFeature.API_KEY, AppFeature.CALLBACK, AppFeature.DOWNLOAD_CLIENT, AppFeature.INDEXER, AppFeature.TAGS],
+    [AppType.RADARR]: [AppFeature.API_KEY, AppFeature.CALLBACK, AppFeature.DOWNLOAD_CLIENT, AppFeature.INDEXER, AppFeature.TAGS],
     [AppType.PROWLARR]: [AppFeature.API_KEY, AppFeature.CALLBACK, AppFeature.PROWLARR_DOWNLOAD_CLIENT, AppFeature.PROWLARR_INDEXER],
     [AppType.SABNZBD]: [AppFeature.API_KEY, AppFeature.PRIORITY, AppFeature.LINK],
     [AppType.NZBGET]: [AppFeature.USERNAME_PASSWORD, AppFeature.PRIORITY, AppFeature.LINK]

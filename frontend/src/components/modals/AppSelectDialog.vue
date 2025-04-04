@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { defineEmits, onMounted, inject } from 'vue';
+import { defineEmits, inject,onMounted } from 'vue';
 
 import ListEditor from '../common/ListEditor.vue';
 import IPlayarrModal from './IPlayarrModal.vue';

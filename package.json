@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "install:both": "npm install && cd frontend && npm install",
-    "build:backend": "tsc",
+    "build:backend": "npx tsoa spec-and-routes && tsc",
     "build:frontend": "cd frontend && npm run build",
     "build:both": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
     "serve:frontend": "cd frontend && npm run serve",
@@ -12,13 +12,14 @@
     "dev": "DEBUG=true concurrently \"nodemon src/server.ts\" \"npm run serve:frontend\"",
     "test": "jest",
     "lint": "eslint . --ext .ts",
-    "jamie": "ts-node src/jamieTest.ts"
+    "tsoa": "npx tsoa spec-and-routes"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "@types/lunr": "^2.3.7",
+    "@types/swagger-ui-express": "^4.1.8",
     "axios": "^1.8.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -35,6 +36,8 @@
     "node-persist": "^4.0.4",
     "romans": "^3.0.0",
     "socket.io": "^4.8.1",
+    "swagger-ui-express": "^5.0.1",
+    "tsoa": "^6.6.0",
     "uuid": "^11.0.5",
     "vue-router": "^4.5.0",
     "xml2js": "^0.6.2"
@@ -51,6 +54,7 @@
     "@types/node": "^22.13.5",
     "@types/node-cron": "^3.0.11",
     "@types/node-persist": "^3.1.8",
+    "@types/swagger-schema-official": "^2.0.25",
     "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",

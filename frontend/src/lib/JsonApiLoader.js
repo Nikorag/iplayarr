@@ -1,17 +1,20 @@
-import { ServiceLibrary } from '@shared/ServiceLibrary';
+import {getServiceLibrary} from '@shared/ServiceLibrary';
+import { toCamelCase } from '@shared/SharedUtils';
 import { io } from 'socket.io-client';
-import { ref, computed, provide, watch, inject, onMounted } from 'vue';
+import { computed, inject, onMounted,provide, ref, watch } from 'vue';
+
 import { ipFetch } from './ipFetch';
 import { capitalize } from './utils';
 
 const refreshMethods = [];
 
 export default (userCallback) => {
-
+    const ServiceLibrary = JSON.parse(JSON.stringify(getServiceLibrary())); // Vue is messing with this object, let's deep clone it
     // Initialize the sockets
     const socket = ref(null);
     document.body.scrollTop = document.documentElement.scrollTop = 0;
     if (process.env.NODE_ENV == 'production') {
+        alert('prod');
         socket.value = io();
     } else {
         const socketUrl = `http://${window.location.hostname}:4404`
@@ -27,7 +30,7 @@ export default (userCallback) => {
         const [computedData, refreshData] = createComputedAndRefresh(hasFetched, path, dataRef);
 
         const deleteItem = async (id) => {
-            const response = await ipFetch(`json-api${path}`, 'DELETE', { id });
+            const response = await ipFetch(`json-api${path}/${id}`, 'DELETE', {});
             refreshData();
             return response;
         }
@@ -49,7 +52,6 @@ export default (userCallback) => {
             },
             [`refresh${capitalize(name, false)}`]: refreshData,
         }
-        
         if (microservices) {
             for (const microserviceName of Object.keys(microservices)) {
                 const methods = microservices[microserviceName];
@@ -96,22 +98,16 @@ function getMicroserviceMethodName(method, name, unique) {
     }
 }
 
-function toCamelCase(word) {
-    return word
-        .replace(/[/-]+(.)?/g, (match, char) => char ? char.toUpperCase() : '')
-        .replace(/^./, (char) => char.toLowerCase());
-}
-
 function getMethodAction(method) {
     switch (method) {
-        case 'POST':
-            return "create";
-        case 'PUT':
-            return "update";
-        case 'DELETE':
-            return "delete";
-        default:
-            return "";    
+    case 'POST':
+        return 'create';
+    case 'PUT':
+        return 'update';
+    case 'DELETE':
+        return 'delete';
+    default:
+        return '';    
     }
 }
 

@@ -16,9 +16,9 @@ import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewS
 import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityPofile, splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
-import episodeCacheService from './episodeCacheService';
 import historyService from './historyService';
 import loggingService from './loggingService';
+import offScheduleService from './offScheduleService';
 import queueService from './queueService';
 import socketService from './socketService';
 import synonymService from './synonymService';
@@ -140,7 +140,7 @@ const iplayerService = {
 
         //Get the out of schedule results form cache
         if (nativeSearchEnabled == 'false'){
-            const episodeCache : IPlayerSearchResult[] = await episodeCacheService.searchCachedEpisodes(inputTerm);
+            const episodeCache : IPlayerSearchResult[] = await offScheduleService.searchCachedEpisodes(inputTerm);
             for (const cachedEpisode of episodeCache){
                 if (cachedEpisode){
                     const exists = returnResults.some(({pid}) => pid == cachedEpisode.pid);

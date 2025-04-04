@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import { ref, watch, inject } from 'vue';
+import { inject,ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import MediaInfoHero from '@/components/common/MediaInfoHero.vue';

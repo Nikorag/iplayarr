@@ -133,3 +133,5 @@ dist
 
 test-results
 .DS_Store
+src/tsoa/**/*
+src/shared/tsoa/**/*

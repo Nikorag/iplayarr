@@ -1,0 +1,33 @@
+{
+  "entryFile": "src/server.ts",
+  "noImplicitAdditionalProperties": "throw",
+  "controllerPathGlobs": [
+    "src/routes/**/*.ts"
+  ],
+  "routes": {
+    "routesDir": "src/tsoa",
+    "authenticationModule": "src/routes/authMiddleware.ts"
+  },
+  "spec": {
+    "outputDirectory": "src/shared/tsoa",
+    "specVersion": 3,
+    "spec": {
+      "info": {
+        "title": "iPlayarr",
+        "version": "1.0.0",
+        "description": "API Used for querying internal types from iPlayarr.",
+        "license": {
+          "name": ""
+        },
+        "contact": null
+      }
+    },
+    "securityDefinitions": {
+      "api_key": {
+        "type": "apiKey",
+        "name": "x-api-key",
+        "in": "header"
+      }
+    }
+  }
+}

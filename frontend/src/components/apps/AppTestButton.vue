@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { defineExpose, defineProps, ref, inject } from 'vue';
+import { defineExpose, defineProps, inject,ref } from 'vue';
 
 import dialogService from '@/lib/dialogService';
 import { capitalize } from '@/lib/utils';

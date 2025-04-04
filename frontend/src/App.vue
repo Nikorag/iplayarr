@@ -18,8 +18,8 @@ import { ipFetch } from '@/lib/ipFetch';
 
 import LeftHandNav from './components/common/LeftHandNav.vue';
 import NavBar from './components/common/NavBar.vue';
-import { enforceMaxLength } from './lib/utils';
 import JsonApiLoader from './lib/JsonApiLoader';
+import { enforceMaxLength } from './lib/utils';
 
 const authState = inject('authState');
 const [logs, globalSettings] = [ref([]), ref({})];

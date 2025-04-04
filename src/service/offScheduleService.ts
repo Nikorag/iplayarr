@@ -11,7 +11,7 @@ import iplayerService from './iplayerService';
 
 let lunrIndex : lunr.Index;
 
-class EpisodeCacheService extends AbstractStorageService<EpisodeCacheDefinition> {
+class OffScheduleService extends AbstractStorageService<EpisodeCacheDefinition> {
     async initStorage() : Promise<void> {
         await super.initStorage();
 
@@ -106,4 +106,4 @@ class EpisodeCacheService extends AbstractStorageService<EpisodeCacheDefinition>
     }
 }
 
-export default new EpisodeCacheService('series-cache-definition')
+export default new OffScheduleService('series-cache-definition')

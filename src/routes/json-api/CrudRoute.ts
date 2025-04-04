@@ -1,15 +1,15 @@
 import { Request, Response, Router } from 'express';
 
-import AbstractStorageService from '../../service/AbstractStorageService';
+import AbstractEntityService from '../../service/AbstractEntityService';
 import { Entity } from '../../types/models/Entity';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { Validator } from '../../validators/Validator';
 
 class CrudRoute<T extends Entity> {
     router: Router
-    service: AbstractStorageService<T>
+    service: AbstractEntityService<string, T>
 
-    constructor(service: AbstractStorageService<T>, validator? : Validator) {
+    constructor(service: AbstractEntityService<string, T>, validator? : Validator) {
         this.router = Router();
         this.service = service;
 

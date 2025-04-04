@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps, ref, watch, inject } from 'vue';
+import { computed, defineEmits, defineProps, inject,ref, watch } from 'vue';
 
 import { capitalize } from '@/lib/utils';
 

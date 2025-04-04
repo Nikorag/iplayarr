@@ -8,7 +8,6 @@
       In order for NZB Forwarding to work successfully, your NZB Client needs the category "iplayer"
     </InfoBar>
     <div class="block-reset" />
-    <AppsList :apps="apps" @create="openForm" />
     <ListEditor v-slot="{ item }" :items="apps" :actions="[['trash', deleteApp]]" @create="openForm">
       <a @click="openForm(item)">
         <div class="major">

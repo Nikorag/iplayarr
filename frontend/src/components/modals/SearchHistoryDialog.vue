@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { defineEmits, onMounted, inject } from 'vue';
+import { defineEmits, inject,onMounted } from 'vue';
 
 import IPlayarrModal from './IPlayarrModal.vue';
 
@@ -51,7 +51,7 @@ const {searchHistory, refreshSearchHistory} = inject('synonyms');
 const emit = defineEmits(['select']);
 
 onMounted(async () => {
-  refreshSearchHistory();
+    refreshSearchHistory();
 });
 
 const getAppForId = (id) => {

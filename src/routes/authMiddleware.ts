@@ -33,13 +33,24 @@ export const addAuthMiddleware = (app : Express) => {
         cookie: sessionCookieSettings
     }));
 
-    app.use('/json-api/*', (req: Request, res: Response, next: NextFunction) => {    
-        if (!req.session?.user) {
+    app.use('/json-api/*', async (req: Request, res: Response, next: NextFunction) => {    
+        const api_key = await configService.getParameter(IplayarrParameter.API_KEY);
+        if (req.headers['x-api-key'] != api_key && !req.session?.user) {
             res.status(401).json({ error: ApiError.NOT_AUTHORISED } as ApiResponse);
             return;
         }
         next();
     });    
+}
+
+export async function expressAuthentication(req: Request, securityName: string) : Promise<any> {
+    if (securityName === 'api_key') {
+        const api_key = await configService.getParameter(IplayarrParameter.API_KEY);
+        if (req.headers['x-api-key'] != api_key && !req.session?.user) {
+            return Promise.reject({ error: ApiError.NOT_AUTHORISED } as ApiResponse)
+        }
+        return Promise.resolve();
+    }
 }
 
 router.post('/login', async (req: Request, res: Response) => {

@@ -4,15 +4,18 @@ import http, { Server } from 'http';
 import cron from 'node-cron';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
+import swaggerUi from 'swagger-ui-express';
 
 import ApiRoute from './routes/ApiRoute';
-import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
+import AuthRoute, { addAuthMiddleware } from './routes/authMiddleware';
 import JsonApiRoute from './routes/JsonApiRoute';
 import configService from './service/configService';
-import episodeCacheService from './service/episodeCacheService';
 import iplayerService from './service/iplayerService';
 import loggingService from './service/loggingService';
+import offScheduleService from './service/offScheduleService';
 import socketService from './service/socketService';
+import swaggerDocument from './shared/tsoa/swagger.json';
+import { RegisterRoutes } from './tsoa/routes';
 import { IplayarrParameter } from './types/enums/IplayarrParameters';
 
 const isDebug = process.env.DEBUG == 'true';
@@ -49,7 +52,16 @@ app.use((req : Request, _ : Response, next : NextFunction) => {
 
 // Routes
 app.use('/api', ApiRoute);
+RegisterRoutes(app);
 app.use('/json-api', JsonApiRoute);
+
+app.get('/api-docs/swagger.json', (req, res) => {
+    res.json(swaggerDocument);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'frontend', 'dist', 'index.html'));
 });
@@ -70,7 +82,7 @@ configService.getParameter(IplayarrParameter.REFRESH_SCHEDULE).then((cronSchedul
         const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
         if (nativeSearchEnabled == 'false'){
             iplayerService.refreshCache();
-            episodeCacheService.recacheAllSeries();
+            offScheduleService.recacheAllSeries();
         }
     });
 });

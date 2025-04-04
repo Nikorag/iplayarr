@@ -1,13 +1,15 @@
-import { Request, Response,Router } from 'express';
+import { Body,Controller, Delete, Get, Path, Post, Put, Route, Security, Tags } from 'tsoa';
 
 import appService from '../../service/appService';
-import { appFeatures } from '../../types/constants/AppType';
+import { AppFeature, appFeatures, AppType } from '../../types/constants/AppType';
 import { App } from '../../types/models/App';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { AppFormValidator } from '../../validators/AppFormValidator';
-import CrudRoute from './CrudRoute';
+import CrudBase from './CrudBase';
 
-class AppsRoute extends CrudRoute<App> {
+
+
+class AppCrud extends CrudBase<App> {
 
     async put(value : App) : Promise<App | undefined> {
         return await this.updateApp(value, 'put');
@@ -60,25 +62,65 @@ class AppsRoute extends CrudRoute<App> {
     }
 }
 
-const router : Router = new AppsRoute(appService, new AppFormValidator()).router;
+@Route('json-api/apps')
+@Tags('Apps')
+@Security('api_key') 
+export class AppsController extends Controller {
+    private crud: CrudBase<App>;
 
-router.get('/types', async (_, res :Response) => {
-    res.json(appFeatures);
-});
-
-router.post('/test', async (req : Request, res : Response) => {
-    const result = await appService.testAppConnection(req.body);
-    if (result == true){
-        res.json({status : true});
-    } else {
-        res.status(500).json({error: ApiError.INTERNAL_ERROR, message : result} as ApiResponse)
+    constructor() {
+        super();
+        const validator = new AppFormValidator();
+        this.crud = new AppCrud(appService, validator);
     }
-    return;
-});
 
-router.post('/updateApiKey', async (_, res : Response) => {
-    appService.updateApiKey();
-    res.json(true);
-});
+    @Get('/')
+    public async getItems(): Promise<App[]> {
+        return this.crud.errorWrapper(this, {}, async () => {
+            return this.crud.get();
+        }, false);
+    }
 
-export default router;
+    @Put('/')
+    public async updateItem(@Body() value: App): Promise<App | undefined> {
+        return this.crud.errorWrapper(this, value, async () => {
+            return this.crud.put(value);
+        });
+    }
+
+    @Post('/')
+    public async createItem(@Body() value: App): Promise<App | undefined> {
+        return this.crud.errorWrapper(this, value, async () => {
+            return this.crud.post(value);
+        });
+    }
+
+    @Delete('/{id}')
+    public async deleteItem(@Path('id') id: string): Promise<boolean> {
+        return this.crud.errorWrapper(this, {}, async () => {
+            return this.crud.delete(id);
+        }, false);
+    }
+
+    @Get('/types')
+    public getTypes() :  Record<AppType, AppFeature[]> {
+        return appFeatures;
+    }
+
+    @Post('/test')
+    public async testAppConnection(@Body() form : App) : Promise<boolean> {
+        const result = await appService.testAppConnection(form);
+        if (result == true){
+            return true;
+        } else {
+            this.setStatus(500);
+            return Promise.reject({error: ApiError.INTERNAL_ERROR, message : result} as ApiResponse);
+        }
+    }
+
+    @Post('/updateApiKey')
+    public updateApiKey() : boolean {
+        appService.updateApiKey();
+        return true;
+    }
+}

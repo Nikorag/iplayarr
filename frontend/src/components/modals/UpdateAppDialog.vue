@@ -37,7 +37,7 @@ import { defineEmits, inject, onBeforeUnmount, onMounted, ref } from 'vue';
 
 import IPlayarrModal from './IPlayarrModal.vue';
 
-const {apps, types : features, updateApiKey, refreshTypes} = inject('apps');
+const {apps, types : features, updateApiKey, refreshTypes, refreshApps} = inject('apps');
 const filteredApps = ref([])
 const socket = inject('socket');
 
@@ -46,7 +46,10 @@ const appStatus = ref({});
 const emit = defineEmits(['close'])
 
 onMounted(async () => {
-    await refreshTypes();
+  await Promise.all([
+        refreshTypes(),
+        refreshApps()
+    ]);
     filteredApps.value = apps.value.filter(({ type }) => features.value && features.value[type] && features.value[type].includes('callback'));
 
     if (filteredApps.value.length == 0) {

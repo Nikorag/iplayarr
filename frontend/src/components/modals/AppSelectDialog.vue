@@ -1,6 +1,6 @@
 <template>
   <IPlayarrModal title="Select App">
-    <ListEditor v-slot="{ item }" :show-add="false" :items="apps">
+    <ListEditor v-slot="{ item }" :show-add="false" :items="filteredApps">
       <a @click.prevent="emit('selectApp', item)">
         <div class="major">
           <img class="appImg" :src="`/img/${item.type.toLowerCase()}.svg`">
@@ -17,19 +17,24 @@
 </template>
 
 <script setup>
-import { defineEmits, inject,onMounted } from 'vue';
+import { defineEmits, inject,onMounted, ref } from 'vue';
 
 import ListEditor from '../common/ListEditor.vue';
 import IPlayarrModal from './IPlayarrModal.vue';
 
 const emit = defineEmits(['selectApp', 'close']);
 
-const {apps, types : features} = inject('apps')
+const {apps, types : features, refreshTypes, refreshApps} = inject('apps')
+const filteredApps = ref([])
 
 onMounted(async () => {
-    apps.value = apps.value.filter(({ type }) => features.value[type].includes('callback'));
+    await Promise.all([
+        refreshTypes(),
+        refreshApps()
+    ]);
+    filteredApps.value = apps.value.filter(({ type }) => features.value[type].includes('callback'));
 
-    if (apps.value.length == 0) {
+    if (filteredApps.value.length == 0) {
         emit('close');
         return;
     }

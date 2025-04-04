@@ -3,6 +3,7 @@ import { v4 } from 'uuid';
 import { QueuedStorage } from '../types/helpers/QueuedStorage';
 import { Entity } from '../types/models/Entity';
 import AbstractEntityService from './AbstractEntityService';
+import socketService from './socketService';
 
 const storageOptions : any = {};
 if (process.env.STORAGE_LOCATION){
@@ -39,6 +40,7 @@ export default abstract class AbstractStorageService<T extends Entity> extends A
         all = all.filter(({id}) => id != value.id);
         all.push(value);
         await this.storage.setItem(this.type, all);
+        socketService.emit(this.type, all);
         return value;
     }
 
@@ -55,6 +57,9 @@ export default abstract class AbstractStorageService<T extends Entity> extends A
                 return existing;
             }
         }
+        this.all().then((all) => {
+            socketService.emit(this.type, all);
+        });
         return;
     }
 
@@ -62,6 +67,7 @@ export default abstract class AbstractStorageService<T extends Entity> extends A
         let all = await this.all();
         all = all.filter(({id : itemId}) => id != itemId);
         await this.storage.setItem(this.type, all);
+        socketService.emit(this.type, all);
     }
 
     async all(): Promise<T[]> {

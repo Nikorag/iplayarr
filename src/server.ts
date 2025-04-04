@@ -77,9 +77,9 @@ server.listen(port, () => {
 });
 
 //Cron
-configService.getParameter(IplayarrParameter.REFRESH_SCHEDULE).then((cronSchedule) => {
+configService.getItem(IplayarrParameter.REFRESH_SCHEDULE).then((cronSchedule) => {
     cron.schedule(cronSchedule as string, async () => {
-        const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
+        const nativeSearchEnabled = await configService.getItem(IplayarrParameter.NATIVE_SEARCH);
         if (nativeSearchEnabled == 'false'){
             iplayerService.refreshCache();
             offScheduleService.recacheAllSeries();

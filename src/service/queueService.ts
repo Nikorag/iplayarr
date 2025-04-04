@@ -26,7 +26,7 @@ const queueService = {
     },
 
     moveQueue : async () : Promise<void> => {
-        const activeLimit : number = parseInt(await configService.getParameter(IplayarrParameter.ACTIVE_LIMIT) as string);
+        const activeLimit : number = parseInt(await configService.getItem(IplayarrParameter.ACTIVE_LIMIT) as string);
         
         let activeQueue : QueueEntry[] = queue.filter(({ status }) => status == QueueEntryStatus.DOWNLOADING);
         let idleQueue : QueueEntry[] = queue.filter(({ status }) => status == QueueEntryStatus.QUEUED);

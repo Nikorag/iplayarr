@@ -11,7 +11,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="app of apps" :key="app.id">
+        <tr v-for="app of filteredApps" :key="app.id">
           <td>
             <div class="appDisplay">
               <img class="appImg" :src="`/img/${app.type.toLowerCase()}.svg`">
@@ -37,7 +37,8 @@ import { defineEmits, inject, onBeforeUnmount, onMounted, ref } from 'vue';
 
 import IPlayarrModal from './IPlayarrModal.vue';
 
-const {apps, types : features, updateApiKey} = inject('apps');
+const {apps, types : features, updateApiKey, refreshTypes} = inject('apps');
+const filteredApps = ref([])
 const socket = inject('socket');
 
 const appStatus = ref({});
@@ -45,14 +46,15 @@ const appStatus = ref({});
 const emit = defineEmits(['close'])
 
 onMounted(async () => {
-    apps.value = apps.value.filter(({ type }) => features.value[type].includes('callback'));
+    await refreshTypes();
+    filteredApps.value = apps.value.filter(({ type }) => features.value && features.value[type] && features.value[type].includes('callback'));
 
-    if (apps.value.length == 0) {
+    if (filteredApps.value.length == 0) {
         emit('close');
         return;
     }
 
-    appStatus.value = apps.value.reduce((acc, { id }) => {
+    appStatus.value = filteredApps.value.reduce((acc, { id }) => {
         acc[id] = { status: 'Pending', message: '' };
         return acc;
     }, {});

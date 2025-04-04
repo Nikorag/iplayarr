@@ -5,11 +5,8 @@ import iplayerService from '../service/iplayerService';
 import queueService from '../service/queueService';
 import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
-import SettingsRoute from './json-api/SettingsRoute';
 
 const router : Router = Router();
-
-router.use('/config', SettingsRoute);
 
 router.post('/nzb/test', async (req : Request, res : Response) => {
     const {NZB_URL, NZB_API_KEY, NZB_TYPE, NZB_USERNAME, NZB_PASSWORD} = req.body;

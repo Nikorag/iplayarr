@@ -24,7 +24,7 @@ export default async (req : Request, res : Response, next : NextFunction) => {
         return
     } else {
         const history : QueueEntry[] = await historyService.all();
-        const completeDir : string = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
+        const completeDir : string = await configService.getItem(IplayarrParameter.COMPLETE_DIR) as string;
 
         const historyObject : SabNZBDHistoryResponse = {
             ...historySkeleton,

@@ -47,7 +47,7 @@ export class HistoryController extends Controller {
 }
 
 @Route('json-api/queue/queue')
-@Tags('History')
+@Tags('Queue')
 @Security('api_key') 
 export class QueueController extends Controller {
     @Get('/')

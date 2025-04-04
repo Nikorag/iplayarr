@@ -61,9 +61,10 @@ export default (userCallback) => {
                         obj[methodName] = upsertMethod(method, `${path}${microserviceName}`);
                     } else {
                         const msDataRef = ref([]);
-                        const [msComputedData, msRefreshData] = createComputedAndRefresh(hasFetched, `${path}${microserviceName}`, msDataRef);
+                        const [msComputedData, msRefreshData] = msCreateComputedAndRefresh(hasFetched, `${path}${microserviceName}`, msDataRef);
                         obj[toCamelCase(microserviceName)] = msComputedData;
                         obj[toCamelCase(`refresh-${microserviceName}`)] = msRefreshData;
+                        console.log(`adding ${microserviceName} to ${name}`);
                     }
                 }
             }
@@ -109,6 +110,31 @@ function getMethodAction(method) {
     default:
         return '';    
     }
+}
+
+function msCreateComputedAndRefresh(hasFetched, path, dataRef){
+    const refreshData = async (errorCallback) => {
+        hasFetched.value.push(path);
+        console.log(`fetching json-api${path}`)
+        const response = await ipFetch(`json-api${path}`);
+        if (response.ok) {
+            console.log(`json-api${path} - Response ${JSON.stringify(response.data, null, 2)}`);
+            dataRef.value = response.data;
+        } else {
+            if (errorCallback) {
+                errorCallback(response);
+            }
+        }
+    };
+
+    const computedData = computed(() => {
+        if (!hasFetched.value.includes(path)) {
+            refreshData();
+        }
+        return dataRef.value;
+    });
+
+    return [computedData, refreshData];
 }
 
 function createComputedAndRefresh(hasFetched, path, dataRef){

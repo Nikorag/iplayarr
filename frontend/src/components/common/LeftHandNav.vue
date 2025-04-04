@@ -6,7 +6,7 @@
       <LeftHandNavLink label="Settings" icon="gears" path="/settings" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Apps" icon="laptop-code" path="/apps" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Synonyms" icon="arrows-rotate" path="/synonyms" @option-clicked="closeLHN" />
-      <template v-if="globalSettings.NATIVE_SEARCH == 'false'">
+      <template v-if="config.NATIVE_SEARCH == 'false'">
         <LeftHandNavLink label="Off Schedule" icon="calendar" path="/offSchedule" @option-clicked="closeLHN" />
         <LeftHandNavLink label="Refresh Index" icon="address-book" :no-link="true" @option-clicked="refreshCache" />
       </template>
@@ -14,7 +14,7 @@
       <LeftHandNavLink label="Logout" icon="sign-out" :no-link="true" @option-clicked="logout" />
     </ul>
     <div class="floor">
-      <span v-if="globalSettings.NATIVE_SEARCH == 'false'">
+      <span v-if="config.NATIVE_SEARCH == 'false'">
         <font-awesome-icon :icon="['fas', 'box']" />
         get_iplayer Search
       </span>
@@ -39,7 +39,7 @@ import LeftHandNavLink from './NavLink.vue';
 const router = useRouter();
 const lhn = ref(null);
 const emit = defineEmits(['clear-search']);
-const globalSettings = inject('globalSettings');
+const {config} = inject('config');
 
 const toggleLHN = () => {
     lhn.value.classList.toggle('show');

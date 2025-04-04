@@ -36,8 +36,8 @@ const timestampFile = 'iplayarr_timestamp';
 
 const iplayerService = {
     download: async (pid: string): Promise<ChildProcess> => {
-        const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
-        const completeDir = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
+        const downloadDir = await configService.getItem(IplayarrParameter.DOWNLOAD_DIR) as string;
+        const completeDir = await configService.getItem(IplayarrParameter.COMPLETE_DIR) as string;
 
         const [exec, args] = await getIPlayerExec();
         const additionalParams: string[] = await getAddDownloadParams();
@@ -115,7 +115,7 @@ const iplayerService = {
     },
 
     search: async (inputTerm: string, season?: number, episode?: number): Promise<IPlayerSearchResult[]> => {
-        const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
+        const nativeSearchEnabled = await configService.getItem(IplayarrParameter.NATIVE_SEARCH);
 
         //Sanitize the term, BBC don't put years on their movies
         const term = !season ? removeLastFourDigitNumber(inputTerm) : inputTerm;
@@ -157,7 +157,7 @@ const iplayerService = {
     },
 
     refreshCache: async () => {
-        const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
+        const downloadDir = await configService.getItem(IplayarrParameter.DOWNLOAD_DIR) as string;
         const [exec, args] = await getIPlayerExec();
 
         //Refresh the cache
@@ -334,7 +334,7 @@ const iplayerService = {
                 }
             }
             if (term == '*') {
-                const rssHours: string = (await configService.getParameter(IplayarrParameter.RSS_FEED_HOURS)) as string;
+                const rssHours: string = (await configService.getItem(IplayarrParameter.RSS_FEED_HOURS)) as string;
                 (args as RegExpMatchArray).push('--available-since');
                 (args as RegExpMatchArray).push(rssHours);
             }
@@ -406,7 +406,7 @@ function extractSeriesNumber(title: string, series: string): any[] {
 }
 
 async function getIPlayerExec(): Promise<(string | RegExpMatchArray)[]> {
-    const fullExec: string = await configService.getParameter(IplayarrParameter.GET_IPLAYER_EXEC) as string;
+    const fullExec: string = await configService.getItem(IplayarrParameter.GET_IPLAYER_EXEC) as string;
     const args: RegExpMatchArray = fullExec.match(/(?:[^\s"]+|"[^"]*")+/g) as RegExpMatchArray;
 
     const exec: string = args.shift() as string;
@@ -421,13 +421,13 @@ async function getIPlayerExec(): Promise<(string | RegExpMatchArray)[]> {
 }
 
 async function getQualityParam(): Promise<string> {
-    const videoQuality = await configService.getParameter(IplayarrParameter.VIDEO_QUALITY) as string;
+    const videoQuality = await configService.getItem(IplayarrParameter.VIDEO_QUALITY) as string;
 
     return `--tv-quality=${videoQuality}`;
 }
 
 async function getAddDownloadParams(): Promise<string[]> {
-    const additionalParams = await configService.getParameter(IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS);
+    const additionalParams = await configService.getItem(IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS);
 
     if (additionalParams) {
         return additionalParams.split(' ');

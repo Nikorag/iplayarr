@@ -34,7 +34,7 @@ export const addAuthMiddleware = (app : Express) => {
     }));
 
     app.use('/json-api/*', async (req: Request, res: Response, next: NextFunction) => {    
-        const api_key = await configService.getParameter(IplayarrParameter.API_KEY);
+        const api_key = await configService.getItem(IplayarrParameter.API_KEY);
         if (req.headers['x-api-key'] != api_key && !req.session?.user) {
             res.status(401).json({ error: ApiError.NOT_AUTHORISED } as ApiResponse);
             return;
@@ -45,7 +45,7 @@ export const addAuthMiddleware = (app : Express) => {
 
 export async function expressAuthentication(req: Request, securityName: string) : Promise<any> {
     if (securityName === 'api_key') {
-        const api_key = await configService.getParameter(IplayarrParameter.API_KEY);
+        const api_key = await configService.getItem(IplayarrParameter.API_KEY);
         if (req.headers['x-api-key'] != api_key && !req.session?.user) {
             return Promise.reject({ error: ApiError.NOT_AUTHORISED } as ApiResponse)
         }
@@ -55,8 +55,8 @@ export async function expressAuthentication(req: Request, securityName: string) 
 
 router.post('/login', async (req: Request, res: Response) => {
     const [AUTH_USERNAME, AUTH_PASSWORD] = await Promise.all([
-        configService.getParameter(IplayarrParameter.AUTH_USERNAME),
-        configService.getParameter(IplayarrParameter.AUTH_PASSWORD),
+        configService.getItem(IplayarrParameter.AUTH_USERNAME),
+        configService.getItem(IplayarrParameter.AUTH_PASSWORD),
     ])
     const { username, password } = req.body;
 
@@ -103,8 +103,8 @@ router.post('/resetPassword', async (req : Request, res : Response) => {
     if (token != '' && key == token){
         token = '';
         clearTimeout(resetTimer);
-        await configService.setParameter(IplayarrParameter.AUTH_USERNAME, configService.defaultConfigMap.AUTH_USERNAME);
-        await configService.setParameter(IplayarrParameter.AUTH_PASSWORD, configService.defaultConfigMap.AUTH_PASSWORD)
+        await configService.setItem(IplayarrParameter.AUTH_USERNAME, configService.defaultConfigMap.AUTH_USERNAME);
+        await configService.setItem(IplayarrParameter.AUTH_PASSWORD, configService.defaultConfigMap.AUTH_PASSWORD)
     }
 
     res.json({status : true});

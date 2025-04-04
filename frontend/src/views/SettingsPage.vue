@@ -45,21 +45,19 @@ import LoadingIndicator from '@/components/common/LoadingIndicator.vue';
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 import UpdateAppDialog from '@/components/modals/UpdateAppDialog.vue';
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 
 const loading = ref(false);
 let originalApiKey = undefined;
 
+const {config : ogConfig, editConfig, qualityProfiles, refreshConfig} = inject('config');
 const config = ref({});
 const configChanges = ref(false);
 const showAdvanced = ref(false);
-const refreshGlobalSettings = inject('refreshGlobalSettings');
 
 const validationErrors = ref({
     config: {}
 });
 
-const qualityProfiles = ref([]);
 const trueOrFalse = ref([
     { key : 'true', value : 'Enabled'},
     { key : 'false', value : 'Disabled'},
@@ -70,15 +68,9 @@ const saveEnabled = computed(() => {
 })
 
 onMounted(async () => {
-    const [configResponse, qpResponse] = await Promise.all([
-        ipFetch('json-api/config'),
-        ipFetch('json-api/config/qualityProfiles')
-    ]);
-
-    config.value = configResponse.data;
-    originalApiKey = configResponse.data.API_KEY;
-    qualityProfiles.value = qpResponse.data.map(({ id, name, quality }) => ({ 'key': id, 'value': `${name} (${quality})` }));
-
+    await refreshConfig();
+    config.value = JSON.parse(JSON.stringify(ogConfig.value));
+    originalApiKey = config.value.API_KEY;
     watch(config, () => { configChanges.value = true }, { deep: true });
 });
 
@@ -87,7 +79,7 @@ const saveConfig = async () => {
     if (configChanges.value) {
         validationErrors.value.config = {};
 
-        const configResponse = await ipFetch('json-api/config', 'PUT', config.value);
+        const configResponse = await editConfig.update(config.value);
 
         if (!configResponse.ok) {
             const errorData = configResponse.data;
@@ -97,12 +89,13 @@ const saveConfig = async () => {
         } else {
             dialogService.alert('Success', 'Save Successful');
             configChanges.value = false;
-            refreshGlobalSettings();
+            await refreshConfig();
         }
     }
 
     loading.value = false;
     if (config.value.API_KEY != originalApiKey) {
+        alert(`${config.value.API_KEY} != ${originalApiKey}`)
         if (await dialogService.confirm('API Key Changed', 'Api Key Changed, do you want to update any relevant apps?')) {
             const formModal = useModal({
                 component: UpdateAppDialog,

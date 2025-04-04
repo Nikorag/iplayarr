@@ -35,7 +35,7 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const toggleLeftHandNav = inject('toggleLeftHandNav');
-const {hiddenSettings} = inject('hiddenSettings');
+const {hiddenSettings} = inject('config');
 const authState = inject('authState');
 const searchTerm = ref('');
 

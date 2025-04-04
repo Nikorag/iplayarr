@@ -5,8 +5,8 @@ import { IplayarrParameter } from '../../types/enums/IplayarrParameters';
 import { configSkeleton, SabNZBDConfigResponse } from '../../types/responses/sabnzbd/ConfigResponse';
 
 export default async (req : Request, res : Response) => {
-    const download_dir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
-    const complete_dir = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
+    const download_dir = await configService.getItem(IplayarrParameter.DOWNLOAD_DIR) as string;
+    const complete_dir = await configService.getItem(IplayarrParameter.COMPLETE_DIR) as string;
 
     const configObject : SabNZBDConfigResponse = {
         ...configSkeleton,

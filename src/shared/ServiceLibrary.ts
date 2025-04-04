@@ -15,17 +15,7 @@ export interface Service {
 
 
 export const getServiceLibrary = () => {
-    const ServiceLibrary: Service[] = [
-        {
-            name: 'hiddenSettings',
-            path: '/config/hiddenSettings',
-            initial: {}
-        },
-        {
-            name: 'queue',
-            path: '/queue/queue'
-        },
-    ];
+    const ServiceLibrary: Service[] = [];
     
     // Iterate over paths in the Swagger definition
     for (const [path, methods] of Object.entries(swaggerDef.paths)) {

@@ -69,7 +69,7 @@ class AppService extends AbstractStorageService<App> {
 
 const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfig, allowCreate : boolean) => Promise<App>> = {
     [AppFeature.DOWNLOAD_CLIENT]: async (form: App, arrConfig: ArrConfig, allowCreate : boolean = true): Promise<App> => {
-        const API_KEY: string = await configService.getParameter(IplayarrParameter.API_KEY) as string;
+        const API_KEY: string = await configService.getItem(IplayarrParameter.API_KEY) as string;
 
         if (form.download_client?.name) {
             const createDownloadClientForm: CreateDownloadClientForm = {
@@ -95,7 +95,7 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
         return form;
     },
     [AppFeature.INDEXER]: async (form: App, arrConfig: ArrConfig, allowCreate : boolean = true): Promise<App> => {
-        const API_KEY: string = await configService.getParameter(IplayarrParameter.API_KEY) as string;
+        const API_KEY: string = await configService.getItem(IplayarrParameter.API_KEY) as string;
 
         if (form.download_client?.id && form.indexer?.name) {
 	    const useSSL : boolean = typeof form.iplayarr.useSSL === 'boolean' ? form.iplayarr.useSSL : form.iplayarr.useSSL === 'true';
@@ -123,7 +123,7 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
         return form;
     },
     [AppFeature.PROWLARR_DOWNLOAD_CLIENT]: async (form: App, arrConfig: ArrConfig, allowCreate : boolean = true): Promise<App> => {
-        const API_KEY: string = await configService.getParameter(IplayarrParameter.API_KEY) as string;
+        const API_KEY: string = await configService.getItem(IplayarrParameter.API_KEY) as string;
 
         if (form.download_client?.name) {
             const createDownloadClientForm: CreateDownloadClientForm = {
@@ -149,7 +149,7 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
         return form;
     },
     [AppFeature.PROWLARR_INDEXER]: async (form: App, arrConfig: ArrConfig, allowCreate : boolean = true): Promise<App> => {
-        const API_KEY: string = await configService.getParameter(IplayarrParameter.API_KEY) as string;
+        const API_KEY: string = await configService.getItem(IplayarrParameter.API_KEY) as string;
 
         if (form.download_client?.id && form.indexer?.name) {
             const useSSL : boolean = typeof form.iplayarr.useSSL === 'boolean' ? form.iplayarr.useSSL : form.iplayarr.useSSL === 'true';

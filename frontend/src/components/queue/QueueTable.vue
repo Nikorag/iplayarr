@@ -70,7 +70,6 @@ watch(allChecked, (newValue) => {
   historyRows.value.forEach((row) => {
     row.checked = newValue;
   });
-  console.log('Selected History ' + selectedHistory.value);
 }, { immediate: true });
 </script>
 

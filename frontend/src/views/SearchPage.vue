@@ -1,10 +1,12 @@
 <template>
-  <SettingsPageToolbar :icons="['filter']" :filter-options="availableFilters" :selected-filter="filter" :filter-enabled="filter != 'All'" @select-filter="selectFilter" />
+  <SettingsPageToolbar :icons="['filter', 'download']" @download="multipleImmediateDownload" :filter-options="availableFilters" :selected-filter="filter" :filter-enabled="filter != 'All'" @select-filter="selectFilter" />
   <div v-if="!loading" class="inner-content scroll-x">
     <table class="resultsTable">
       <thead>
         <tr>
-          <th>#</th>
+          <th>
+            <CheckInput v-model="allChecked" />
+          </th>
           <th>Type</th>
           <th>Title</th>
           <th>Calculated Filename</th>
@@ -18,7 +20,9 @@
       </thead>
       <tbody>
         <tr v-for="result of filteredResults" :key="result.pid">
-          <td>{{ result.number }}</td>
+          <td>
+            <CheckInput v-model="result.checked" />
+          </td>
           <td>
             <span :class="['pill', result.type]">
               {{ result.type }}
@@ -53,8 +57,10 @@ import { useRoute, useRouter } from 'vue-router';
 
 import LoadingIndicator from '@/components/common/LoadingIndicator.vue';
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
+import CheckInput from '@/components/common/form/CheckInput.vue';
 import { ipFetch } from '@/lib/ipFetch';
 import { formatStorageSize } from '@/lib/utils';
+import dialogService from '@/lib/dialogService';
 
 const route = useRoute();
 const router = useRouter();
@@ -64,6 +70,7 @@ const searchTerm = ref('');
 const loading = ref(true);
 const availableFilters = ref(['All', 'TV', 'Movie']);
 const filter = ref('All');
+const allChecked = ref(false);
 
 const filteredResults = computed(() => {
     return filter.value == 'All' ? searchResults.value : searchResults.value.filter(({ type }) => type == filter.value.toUpperCase());
@@ -91,9 +98,27 @@ const immediateDownload = async ({ pid, nzbName, type }) => {
     }
 }
 
+const multipleImmediateDownload = async() => {
+  const selectedResults = filteredResults.value.filter((result) => result.checked);
+  if (selectedResults.length > 0) {
+    if (await dialogService.confirm("Download", `Do you want to download ${selectedResults.length} items?`)){
+        loading.value = true;
+        for (const item of selectedResults){
+          await immediateDownload(item);
+        }
+      }
+    }
+}
+
 const selectFilter = (option) => {
     filter.value = option;
 }
+
+watch(allChecked, (newValue) => {
+    filteredResults.value.forEach((result) => {
+        result.checked = newValue;
+    });
+}, { immediate: true });
 </script>
 
 <style lang="less" scoped>

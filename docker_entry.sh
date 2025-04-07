@@ -3,7 +3,7 @@ set -e
 
 if [[ -z "$REDIS_HOST" ]]; then
     echo "Starting redis"
-    /redis/redis-server &
+    /redis/redis-server --dir /config &
 fi
 
 PUID=${PUID:-1000}

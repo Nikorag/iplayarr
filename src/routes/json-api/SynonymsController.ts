@@ -56,7 +56,7 @@ export class SynonymsController extends Controller {
     }
 
     @Get('/lookup/{appId}')
-    public async lookupSynonym(@Query('term') term : string, @Path('appId') appId : string) : Promise<ArrLookupResponse[]> {
+    public async lookupSynonym(@Path('appId') appId : string, @Query('term') term? : string) : Promise<ArrLookupResponse[]> {
         const app : App | undefined = await appService.getItem(appId);
         if (app){
             try {

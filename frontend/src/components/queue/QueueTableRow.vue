@@ -1,6 +1,9 @@
 <template>
   <tr>
     <td>
+      <CheckInput v-model="checked" />
+    </td>
+    <td>
       <font-awesome-icon :class="[item.status]" :icon="['fas', getDownloadIcon(item)]" />
     </td>
     <td class="text" data-title="Filename">
@@ -50,15 +53,16 @@
 </template>
 
 <script setup>
-import { defineProps, inject } from 'vue';
+import { defineExpose,defineProps, inject, ref } from 'vue';
 
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { formatStorageSize } from '@/lib/utils';
 
+import CheckInput from '../common/form/CheckInput.vue';
 import ProgressBar from '../common/ProgressBar.vue';
 
-defineProps({
+const props = defineProps({
     item: {
         type: Object,
         required: true
@@ -66,6 +70,8 @@ defineProps({
 });
 
 const apps = inject('apps');
+const checked = ref(false);
+defineExpose({ checked, item : props.item });
 
 const trash = async (pid) => {
     if (await dialogService.confirm('Delete', 'Are you sure you want to delete this history item?')) {

@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 
+import configService from '../../service/configService';
 import historyService from '../../service/historyService';
 import queueService from '../../service/queueService';
+import { IplayarrParameter } from '../../types/IplayarrParameters';
 import { QueueEntry } from '../../types/QueueEntry';
 import { queueEntrySkeleton, QueueEntryStatus, queueSkeleton, QueueStatus, SabNZBDQueueResponse, SabNZBQueueEntry } from '../../types/responses/sabnzbd/QueueResponse';
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse';
@@ -49,9 +51,10 @@ function convertEntries(slot : QueueEntry, index : number) : SabNZBQueueEntry {
 
 const actionDirectory : EndpointDirectory = {
     delete : async (req : Request, res : Response) => {
+        const archive = (await configService.getParameter(IplayarrParameter.ARCHIVE_ENABLED)) == 'true';
         const {value} = req.query as QueueQuery;
         if (value){
-            queueService.cancelItem(value);
+            queueService.cancelItem(value, archive);
             res.json({status:true} as TrueFalseResponse);
         } else {
             res.json({status:false} as TrueFalseResponse);

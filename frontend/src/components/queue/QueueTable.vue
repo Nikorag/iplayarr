@@ -2,6 +2,9 @@
   <table class="queueTable" summary="Hed">
     <thead>
       <tr>
+        <th>
+          <CheckInput v-model="allChecked" />
+        </th>
         <th />
         <th>Filename</th>
         <th>Type</th>
@@ -19,15 +22,16 @@
       </tr>
     </thead>
     <tbody>
-      <QueueTableRow v-for="item in queue" :key="item.id" :item="item" />
-      <QueueTableRow v-for="item in history" :key="item.id" :item="item" />
+      <QueueTableRow v-for="item in queue" :key="item.id" ref="queueRows" :item="item" />
+      <QueueTableRow v-for="item in history" :key="item.id" ref="historyRows" :item="item" />
     </tbody>
   </table>
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { computed, defineExpose,defineProps, ref, watch } from 'vue';
 
+import CheckInput from '../common/form/CheckInput.vue';
 import QueueTableRow from './QueueTableRow.vue';
 
 defineProps({
@@ -41,6 +45,33 @@ defineProps({
         required: true
     }
 });
+
+const allChecked = ref(false);
+
+const queueRows = ref([]);
+const historyRows = ref([]);
+
+const selectedHistory = computed(() => {
+    return historyRows.value.filter((row) => row.checked).map((row) => row.item);
+});
+
+const selectedQueue = computed(() => {
+    return queueRows.value.filter((row) => row.checked).map((row) => row.item);
+});
+
+defineExpose({
+    selectedHistory,
+    selectedQueue
+});
+
+watch(allChecked, (newValue) => {
+    queueRows.value.forEach((row) => {
+        row.checked = newValue;
+    });
+    historyRows.value.forEach((row) => {
+        row.checked = newValue;
+    });
+}, { immediate: true });
 </script>
 
 <style lang="less">

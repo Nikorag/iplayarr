@@ -53,14 +53,14 @@
 </template>
 
 <script setup>
-import { defineProps, inject, ref, defineExpose } from 'vue';
+import { defineExpose,defineProps, inject, ref } from 'vue';
 
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { formatStorageSize } from '@/lib/utils';
 
-import ProgressBar from '../common/ProgressBar.vue';
 import CheckInput from '../common/form/CheckInput.vue';
+import ProgressBar from '../common/ProgressBar.vue';
 
 const props = defineProps({
     item: {

@@ -1,5 +1,5 @@
 <template>
-  <SettingsPageToolbar :icons="['filter', 'download']" @download="multipleImmediateDownload" :filter-options="availableFilters" :selected-filter="filter" :filter-enabled="filter != 'All'" @select-filter="selectFilter" />
+  <SettingsPageToolbar :icons="['filter', 'download']" :filter-options="availableFilters" :selected-filter="filter" :filter-enabled="filter != 'All'" @download="multipleImmediateDownload" @select-filter="selectFilter" />
   <div v-if="!loading" class="inner-content scroll-x">
     <table class="resultsTable">
       <thead>
@@ -55,12 +55,12 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+import CheckInput from '@/components/common/form/CheckInput.vue';
 import LoadingIndicator from '@/components/common/LoadingIndicator.vue';
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
-import CheckInput from '@/components/common/form/CheckInput.vue';
+import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { formatStorageSize } from '@/lib/utils';
-import dialogService from '@/lib/dialogService';
 
 const route = useRoute();
 const router = useRouter();
@@ -99,14 +99,14 @@ const immediateDownload = async ({ pid, nzbName, type }) => {
 }
 
 const multipleImmediateDownload = async() => {
-  const selectedResults = filteredResults.value.filter((result) => result.checked);
-  if (selectedResults.length > 0) {
-    if (await dialogService.confirm("Download", `Do you want to download ${selectedResults.length} items?`)){
-        loading.value = true;
-        for (const item of selectedResults){
-          await immediateDownload(item);
+    const selectedResults = filteredResults.value.filter((result) => result.checked);
+    if (selectedResults.length > 0) {
+        if (await dialogService.confirm('Download', `Do you want to download ${selectedResults.length} items?`)){
+            loading.value = true;
+            for (const item of selectedResults){
+                await immediateDownload(item);
+            }
         }
-      }
     }
 }
 

@@ -1,21 +1,22 @@
 <template>
-    <div class="CheckInput-container">
-        <label class="CheckInput-label">
-            <input class="CheckInput-checkbox" type="checkbox" v-model="localValue" />
-            <div
-                :class="{
-                    'CheckInput-isChecked': localValue,
-                    'CheckInput-isNotChecked': !localValue
-                }"
-                class="CheckInput-input">
-                <font-awesome-icon :icon="['fas', 'check']" />
-            </div>
-        </label>
-    </div>
+  <div class="CheckInput-container">
+    <label class="CheckInput-label">
+      <input v-model="localValue" class="CheckInput-checkbox" type="checkbox">
+      <div
+        :class="{
+          'CheckInput-isChecked': localValue,
+          'CheckInput-isNotChecked': !localValue
+        }"
+        class="CheckInput-input"
+      >
+        <font-awesome-icon :icon="['fas', 'check']" />
+      </div>
+    </label>
+  </div>
 </template>
 
 <script setup>
-import { defineProps, ref, watch, defineEmits } from 'vue'
+import { defineEmits,defineProps, ref, watch } from 'vue'
 
 const props = defineProps({
     modelValue: {

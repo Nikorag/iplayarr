@@ -22,27 +22,28 @@
       </tr>
     </thead>
     <tbody>
-      <QueueTableRow v-for="item in queue" :key="item.id" :item="item" ref="queueRows" />
-      <QueueTableRow v-for="item in history" :key="item.id" :item="item" ref="historyRows" />
+      <QueueTableRow v-for="item in queue" :key="item.id" ref="queueRows" :item="item" />
+      <QueueTableRow v-for="item in history" :key="item.id" ref="historyRows" :item="item" />
     </tbody>
   </table>
 </template>
 
 <script setup>
-import { computed, defineProps, ref, watch, defineExpose } from 'vue';
-import QueueTableRow from './QueueTableRow.vue';
+import { computed, defineExpose,defineProps, ref, watch } from 'vue';
+
 import CheckInput from '../common/form/CheckInput.vue';
+import QueueTableRow from './QueueTableRow.vue';
 
 defineProps({
-  queue: {
-    type: Array,
-    required: true
-  },
+    queue: {
+        type: Array,
+        required: true
+    },
 
-  history: {
-    type: Array,
-    required: true
-  }
+    history: {
+        type: Array,
+        required: true
+    }
 });
 
 const allChecked = ref(false);
@@ -51,25 +52,25 @@ const queueRows = ref([]);
 const historyRows = ref([]);
 
 const selectedHistory = computed(() => {
-  return historyRows.value.filter((row) => row.checked).map((row) => row.item);
+    return historyRows.value.filter((row) => row.checked).map((row) => row.item);
 });
 
 const selectedQueue = computed(() => {
-  return queueRows.value.filter((row) => row.checked).map((row) => row.item);
+    return queueRows.value.filter((row) => row.checked).map((row) => row.item);
 });
 
 defineExpose({
-  selectedHistory,
-  selectedQueue
+    selectedHistory,
+    selectedQueue
 });
 
 watch(allChecked, (newValue) => {
-  queueRows.value.forEach((row) => {
-    row.checked = newValue;
-  });
-  historyRows.value.forEach((row) => {
-    row.checked = newValue;
-  });
+    queueRows.value.forEach((row) => {
+        row.checked = newValue;
+    });
+    historyRows.value.forEach((row) => {
+        row.checked = newValue;
+    });
 }, { immediate: true });
 </script>
 

@@ -4,7 +4,7 @@
       <button v-if="icons.some((i) => i == 'delete')" class="SettingsPageToolbar-button clickable" @click="emit('deleteQueueItem')">
         <font-awesome-icon :icon="['fas', 'trash']" />
         <div class="SettingsPageToolbar-label">
-          {{deleteLabel}}
+          {{ deleteLabel }}
         </div>
       </button>
       <button v-if="icons.some((i) => i == 'save')" class="SettingsPageToolbar-button clickable" :disabled="!saveEnabled" @click="emit('save')">

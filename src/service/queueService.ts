@@ -6,7 +6,7 @@ import { VideoType } from '../types/IPlayerSearchResult';
 import { QueueEntry } from '../types/QueueEntry'
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import configService from './configService';
-import hiistoryService from './historyService';
+import historyService from './historyService';
 import iplayerService from './iplayerService';
 import socketService from './socketService';
 
@@ -70,7 +70,7 @@ const queueService = {
         if (archive){
             const queueItem : QueueEntry | undefined = queue.find(({pid: id}) => id == pid);
             if (queueItem){
-                hiistoryService.addArchive(queueItem);
+                historyService.addArchive(queueItem);
             }
         }
         queueService.removeFromQueue(pid);

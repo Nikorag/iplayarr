@@ -35,6 +35,14 @@ const historyService = {
         socketService.emit('history', history);
     },
 
+    addArchive : async(item : QueueEntry) : Promise<void> => {
+        const historyItem : QueueEntry = {...item, status: QueueEntryStatus.CANCELLED, details : {...item.details, eta: '', speed: 0, progress: 100}, process : undefined};
+        const history : QueueEntry[] = await historyService.getHistory();
+        history.push(historyItem);
+        await storage.setItem('history', history);
+        socketService.emit('history', history);
+    },
+
     removeHistory : async(pid : string) : Promise<void> => {
         let history : QueueEntry[] = await historyService.getHistory();
         history = history.filter(({pid : historyPid}) => historyPid !== pid);

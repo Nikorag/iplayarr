@@ -14,9 +14,11 @@ if (process.env.STORAGE_LOCATION){
 
 
 const synonymService = {
-    getSynonym : async (from : string) : Promise<Synonym | undefined> => {
+    getSynonym : async (inputTerm : string) : Promise<Synonym | undefined> => {
         const allSynonyms = await synonymService.getAllSynonyms();
-        return allSynonyms.find(({from : savedFrom}) => savedFrom.toLocaleLowerCase() == from.toLocaleLowerCase());
+        return allSynonyms.find(({from : savedFrom, target : savedTarget }) => 
+            savedFrom.toLocaleLowerCase() == inputTerm.toLocaleLowerCase() ||
+            savedTarget.toLocaleLowerCase() == inputTerm.toLocaleLowerCase());
     },
 
     getAllSynonyms : async () : Promise<Synonym[]> => {

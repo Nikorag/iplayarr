@@ -16,7 +16,7 @@ if (process.env.STORAGE_LOCATION){
 const synonymService = {
     getSynonym : async (from : string) : Promise<Synonym | undefined> => {
         const allSynonyms = await synonymService.getAllSynonyms();
-        return allSynonyms.find(({from : savedFrom}) => savedFrom == from);
+        return allSynonyms.find(({from : savedFrom}) => savedFrom.toLocaleLowerCase() == from.toLocaleLowerCase());
     },
 
     getAllSynonyms : async () : Promise<Synonym[]> => {

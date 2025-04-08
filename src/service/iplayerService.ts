@@ -279,7 +279,7 @@ const iplayerService = {
             }
 
             // const infos = await iplayerService.details(resultPids);
-            return await Promise.all(infos.map((info: IPlayerDetails) => createResult(info.title, info, sizeFactor)));
+            return await Promise.all(infos.map((info: IPlayerDetails) => createResult(info.title, info, sizeFactor, synonym)));
         } else {
             return [];
         }
@@ -405,15 +405,16 @@ function removeLastFourDigitNumber(str: string) {
     return str.replace(/\d{4}(?!.*\d{4})/, '').trim();
 }
 
-async function createResult(term: string, details: IPlayerDetails, sizeFactor: number): Promise<IPlayerSearchResult> {
+async function createResult(term: string, details: IPlayerDetails, sizeFactor: number, synonym: Synonym | undefined): Promise<IPlayerSearchResult> {
     const size: number | undefined = details.runtime ? (details.runtime * 60) * sizeFactor : undefined;
 
     const type: VideoType = details.episode && details.series ? VideoType.TV : VideoType.MOVIE;
-
+    const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
     const nzbName = await createNZBName(type, {
         title: details.title.replaceAll(' ', '.'),
         season: details.series ? details.series.toString().padStart(2, '0') : undefined,
         episode: details.episode ? details.episode.toString().padStart(2, '0') : undefined,
+        synonym: synonymName
     });
 
     return {
@@ -428,7 +429,7 @@ async function createResult(term: string, details: IPlayerDetails, sizeFactor: n
         episode: details.episode,
         pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
         series: details.series,
-        type: VideoType.TV,
+        type,
         size,
         nzbName
     }

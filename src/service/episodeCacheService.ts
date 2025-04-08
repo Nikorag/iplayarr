@@ -7,7 +7,7 @@ import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QueuedStorage } from '../types/QueuedStorage'
 import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
 import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
-import { createNZBName, getQualityPofile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
+import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerService from './iplayerService';
 
 
@@ -123,7 +123,7 @@ const episodeCacheService = {
 
     cacheEpisodesForUrl : async (inputUrl : string) : Promise<boolean> => {
         await episodeCacheService.initStorage();
-        const {sizeFactor} = await getQualityPofile();
+        const {sizeFactor} = await getQualityProfile();
 
         const url = removeAllQueryParams(inputUrl);
 

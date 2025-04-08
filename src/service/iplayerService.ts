@@ -14,7 +14,7 @@ import { QueueEntry } from '../types/QueueEntry';
 import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
 import { IPlayerChilrenResponse } from '../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../types/Synonym';
-import { createNZBName, getQualityPofile, splitArrayIntoChunks } from '../utils/Utils';
+import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';
 import historyService from './historyService';
@@ -241,7 +241,7 @@ const iplayerService = {
     },
 
     nativeSearch: async (term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> => {
-        const { sizeFactor } = await getQualityPofile();
+        const { sizeFactor } = await getQualityProfile();
 
         const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(synonym?.target ?? term)}`;
 
@@ -286,7 +286,7 @@ const iplayerService = {
     },
 
     getIplayerSearch : async(term: string, synonym?: Synonym) : Promise<IPlayerSearchResult[]> => {
-        const { sizeFactor } = await getQualityPofile();
+        const { sizeFactor } = await getQualityProfile();
         return new Promise(async (resolve, reject) => {
             const results: IPlayerSearchResult[] = []
             const [exec, args] = await getIPlayerExec();

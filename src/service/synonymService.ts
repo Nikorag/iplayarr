@@ -5,13 +5,6 @@ import { Synonym } from '../types/Synonym';
 import iplayerService from './iplayerService';
 
 const storage : QueuedStorage = new QueuedStorage();
-let isStorageInitialized : boolean = false;
-
-const storageOptions : any = {};
-if (process.env.STORAGE_LOCATION){
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
-
 
 const synonymService = {
     getSynonym : async (inputTerm : string) : Promise<Synonym | undefined> => {
@@ -22,10 +15,6 @@ const synonymService = {
     },
 
     getAllSynonyms : async () : Promise<Synonym[]> => {
-        if (!isStorageInitialized) {
-            await storage.init(storageOptions);
-            isStorageInitialized = true;
-        }
         return (await storage.getItem('synonyms')) || [];
     },
 

@@ -1,5 +1,3 @@
-import storage from 'node-persist';
-
 import {redis} from '../service/redisService';
 
 export class QueuedStorage {
@@ -7,34 +5,6 @@ export class QueuedStorage {
 
     constructor() {
         this.current = Promise.resolve(); // Start with a resolved promise
-    }
-
-    // Keep this method to migrate settings
-    async init(opts: Record<string, any>): Promise<void> {
-        await storage.init(opts);
-
-        const migrationTypes = [
-            'history',
-            'synonyms',
-            'series-cache-definition',
-            'config',
-            'apps',
-        ]
-
-        const rawMigrated : string | null = await redis.get('node-persist-migrated');
-        let migrated : string[] = [];
-        if (rawMigrated){
-            migrated = JSON.parse(rawMigrated) as string[]
-        }
-        const keys = await storage.keys();
-        for (const key of keys.filter((k) => !migrated.includes(k))){
-            const value = await storage.getItem(key);
-            const redisKey = `${!migrationTypes.includes(key) ? 'offSchedule_' : ''}${key}`
-            await redis.set(redisKey, JSON.stringify(value));
-            migrated.push(key);
-        }
-
-        await redis.set('node-persist-migrated', JSON.stringify(migrated));
     }
 
     async values(): Promise<any[]> {

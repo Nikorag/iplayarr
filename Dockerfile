@@ -19,7 +19,7 @@ RUN apk --update add \
 # Symlink AtomicParsley
 RUN ln -s `which atomicparsley` /usr/local/bin/AtomicParsley
 
-RUN mkdir -p /data/output /data/config
+RUN mkdir -p /data/output /data/config /config /data /node-persist /app/frontend
 
 WORKDIR /iplayer
 
@@ -34,8 +34,6 @@ ENV GET_IPLAYER_EXEC=/iplayer/get_iplayer
 ENV STORAGE_LOCATION=/node-persist
 ENV CACHE_LOCATION=/data
 
-RUN mkdir /config /data /node-persist
-
 # Copy Redis binary from the Redis Alpine image
 WORKDIR /redis
 COPY --from=redis /usr/local/bin/redis-server /redis/redis-server
@@ -44,7 +42,6 @@ RUN chmod +x /redis/redis-server
 # Install iplayarr
 WORKDIR /app
 
-RUN mkdir /config && mkdir /app/frontend
 COPY package*.json ./
 COPY frontend/package*.json ./frontend/
 

@@ -43,5 +43,10 @@ defineProps({
       background-color: @warn-color;
     }
   }
+  &.Cancelled {
+    .progress {
+      background-color: @error-color;
+    }
+  }
 }
 </style>

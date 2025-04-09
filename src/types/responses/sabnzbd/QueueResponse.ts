@@ -9,7 +9,8 @@ export enum QueueEntryStatus {
     DOWNLOADING = 'Downloading',
     QUEUED = 'Queued',
     FORWARDED = 'Forwarded',
-    COMPLETE = 'Complete'
+    COMPLETE = 'Complete',
+    CANCELLED = 'Cancelled'
 }
 
 export interface SabNZBDQueueResponse {

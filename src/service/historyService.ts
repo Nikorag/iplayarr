@@ -4,19 +4,8 @@ import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import socketService from './socketService';
 const storage : QueuedStorage = new QueuedStorage();
 
-let isStorageInitialized : boolean = false;
-
-const storageOptions : any = {};
-if (process.env.STORAGE_LOCATION){
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
-
 const historyService = {
     getHistory : async() : Promise<QueueEntry[]> => {
-        if (!isStorageInitialized) {
-            await storage.init(storageOptions);
-            isStorageInitialized = true;
-        }
         return (await storage.getItem('history')) ?? [];
     },
 

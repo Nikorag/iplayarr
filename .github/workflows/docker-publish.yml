@@ -47,7 +47,7 @@ jobs:
 
       - name: Extract Git tag
         id: extract_tag
-        run: echo "git_tag=`${{GITHUB_REF#refs/tags/}" >>}$`GITHUB_ENV
+        run: echo "git_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         id: push

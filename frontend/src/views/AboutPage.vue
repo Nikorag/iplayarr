@@ -2,7 +2,7 @@
   <div class="inner-content about-content">
     <img src="/iplayarr.png" alt="Logo" class="logo">
     <h3>iPlayarr</h3>
-    <p>Version {{hiddenSettings.VERSION}}</p>
+    <p>Version {{ hiddenSettings.VERSION }}</p>
     <p>2025</p>
     <p>
       iPlayarr is a companion for Sonarr (and the rest of the *arr stack) to simplify integrating get_iplayer for

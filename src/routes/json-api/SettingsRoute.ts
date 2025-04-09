@@ -14,8 +14,8 @@ router.get('/hiddenSettings', (_, res : Response) => {
     res.json(
         {
 	 'HIDE_DONATE' : process.env.HIDE_DONATE || false,
-         'VERSION' : process.env.VERSION ?? '0'
-	}
+            'VERSION' : process.env.VERSION ?? '0'
+        }
     )
 });
 

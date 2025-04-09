@@ -138,7 +138,7 @@ watch(() => form.value.type, () => {
 }, { immediate: true });
 
 const saveApp = async () => {
-    if (tagInput.value != ''){
+    if (tagInput.value && tagInput.value != ''){
         tagInput.value.addTag();
     }
     const method = form.value.id ? 'PUT' : 'POST';

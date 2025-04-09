@@ -19,7 +19,7 @@ export function formatBytes(bytes: number, unit: boolean = true, decimals: numbe
 }
 
 export async function createNZBName(type: VideoType, context: FilenameTemplateContext) {
-    context.quality = (await getQualityPofile()).quality;
+    context.quality = (await getQualityProfile()).quality;
     const templateKey: IplayarrParameter = type == VideoType.MOVIE ? IplayarrParameter.MOVIE_FILENAME_TEMPLATE : IplayarrParameter.TV_FILENAME_TEMPLATE;
     const template = await configService.getParameter(templateKey) as string;
     return Handlebars.compile(template)(context);
@@ -37,7 +37,7 @@ export function createNZBDownloadLink({ pid, nzbName, type }: IPlayerSearchResul
     return `/api?mode=nzb-download&pid=${pid}&nzbName=${nzbName}&type=${type}&apikey=${apiKey}${app ? `&app=${app}` : ''}`
 }
 
-export async function getQualityPofile(): Promise<QualityProfile> {
+export async function getQualityProfile(): Promise<QualityProfile> {
     const videoQuality = await configService.getParameter(IplayarrParameter.VIDEO_QUALITY) as string;
     return qualityProfiles.find(({ id }) => id == videoQuality) as QualityProfile;
 }

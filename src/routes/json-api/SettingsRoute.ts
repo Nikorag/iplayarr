@@ -12,7 +12,10 @@ const router = Router();
 
 router.get('/hiddenSettings', (_, res : Response) => {
     res.json(
-        {'HIDE_DONATE' : process.env.HIDE_DONATE || false}
+        {
+	 'HIDE_DONATE' : process.env.HIDE_DONATE || false,
+            'VERSION' : process.env.VERSION ?? '0'
+        }
     )
 });
 

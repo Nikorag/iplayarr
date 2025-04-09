@@ -6,14 +6,12 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue';
+import { inject, ref, provide, onMounted } from 'vue';
 
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
-<<<<<<< HEAD
-=======
+
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
->>>>>>> main
 
 import QueueTable from '../components/queue/QueueTable.vue';
 

@@ -5,7 +5,7 @@ import { IPlayerDetails } from '../types/data/IPlayerDetails';
 import { IPlayerSearchResult, VideoType } from '../types/data/IPlayerSearchResult';
 import { EpisodeCacheDefinition } from '../types/models/EpisodeCacheDefinition';
 import { IPlayerChilrenResponse } from '../types/responses/IPlayerMetadataResponse';
-import { createNZBName, getQualityPofile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
+import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import AbstractStorageService from './AbstractStorageService';
 import iplayerService from './iplayerService';
 
@@ -50,7 +50,7 @@ class OffScheduleService extends AbstractStorageService<EpisodeCacheDefinition> 
 
     async cacheEpisodeUrl(inputUrl : string) {
         await this.initStorage();
-        const {sizeFactor} = await getQualityPofile();
+        const {sizeFactor} = await getQualityProfile();
 
         const url : string = removeAllQueryParams(inputUrl);
 

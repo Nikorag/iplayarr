@@ -31,7 +31,7 @@ RUN wget -qO- https://github.com/get-iplayer/get_iplayer/archive/v${GET_IPLAYER_
     chmod +x ./get_iplayer
 
 ENV GET_IPLAYER_EXEC=/iplayer/get_iplayer
-ENV STORAGE_LOCATION=/config
+ENV STORAGE_LOCATION=/node-persist
 ENV CACHE_LOCATION=/data
 
 # Copy Redis binary from the Redis Alpine image

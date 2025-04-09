@@ -6,6 +6,7 @@ import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { QueueEntry } from '../types/models/QueueEntry'
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import configService from './configService';
+import historyService from './historyService';
 import iplayerService from './iplayerService';
 import socketService from './socketService';
 
@@ -60,10 +61,16 @@ const queueService = {
         queueService.moveQueue();
     },
 
-    cancelItem: (pid : string) : void => {
+    cancelItem: (pid : string, archive : boolean = false) : void => {
         for (const queueItem of queue){
             if (queueItem.process && queueItem.pid == pid){
                 spawn('kill', ['-9', String(queueItem.process.pid)]);
+            }
+        }
+        if (archive){
+            const queueItem : QueueEntry | undefined = queue.find(({pid: id}) => id == pid);
+            if (queueItem){
+                historyService.addArchive(queueItem);
             }
         }
         queueService.removeFromQueue(pid);

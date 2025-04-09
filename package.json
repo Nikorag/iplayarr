@@ -9,7 +9,7 @@
     "build:both": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
     "serve:frontend": "cd frontend && npm run serve",
     "start": "node dist/server.js",
-    "dev": "DEBUG=true concurrently \"nodemon src/server.ts\" \"npm run serve:frontend\"",
+    "dev": "cross-env DEBUG=true concurrently \"nodemon src/server.ts\" \"npm run serve:frontend\"",
     "test": "jest",
     "lint": "eslint . --ext .ts",
     "tsoa": "npx tsoa spec-and-routes"
@@ -60,6 +60,7 @@
     "@typescript-eslint/parser": "^8.26.1",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
     "eslint": "^9.22.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",

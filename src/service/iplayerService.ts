@@ -14,7 +14,7 @@ import { QueueEntry } from '../types/models/QueueEntry';
 import { Synonym } from '../types/models/Synonym';
 import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
 import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
-import { createNZBName, getQualityPofile, splitArrayIntoChunks } from '../utils/Utils';
+import { createNZBName,getQualityProfile,splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
 import historyService from './historyService';
 import loggingService from './loggingService';
@@ -251,7 +251,7 @@ const iplayerService = {
     },
 
     nativeSearch: async (term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> => {
-        const { sizeFactor } = await getQualityPofile();
+        const { sizeFactor } = await getQualityProfile();
 
         const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(synonym?.target ?? term)}`;
 
@@ -288,8 +288,8 @@ const iplayerService = {
                 infos = [...infos, ...chunkInfos];
             }
 
-            // const infos = await iplayerService.details(resultPids);
-            return await Promise.all(infos.map((info: IPlayerDetails) => createResult(info.title, info, sizeFactor)));
+            const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
+            return await Promise.all(infos.map((info: IPlayerDetails) => createResult(info.title, info, sizeFactor, synonymName)));
         } else {
             return [];
         }
@@ -321,7 +321,7 @@ const iplayerService = {
     },
 
     getIplayerSearch : async(term: string, synonym?: Synonym) : Promise<IPlayerSearchResult[]> => {
-        const { sizeFactor } = await getQualityPofile();
+        const { sizeFactor } = await getQualityProfile();
         return new Promise(async (resolve, reject) => {
             const results: IPlayerSearchResult[] = []
             const [exec, args] = await getIPlayerExec();
@@ -440,15 +440,15 @@ function removeLastFourDigitNumber(str: string) {
     return str.replace(/\d{4}(?!.*\d{4})/, '').trim();
 }
 
-async function createResult(term: string, details: IPlayerDetails, sizeFactor: number): Promise<IPlayerSearchResult> {
+async function createResult(term: string, details: IPlayerDetails, sizeFactor: number, synonymName: string | undefined): Promise<IPlayerSearchResult> {
     const size: number | undefined = details.runtime ? (details.runtime * 60) * sizeFactor : undefined;
 
     const type: VideoType = details.episode && details.series ? VideoType.TV : VideoType.MOVIE;
-
     const nzbName = await createNZBName(type, {
         title: details.title.replaceAll(' ', '.'),
         season: details.series ? details.series.toString().padStart(2, '0') : undefined,
         episode: details.episode ? details.episode.toString().padStart(2, '0') : undefined,
+        synonym: synonymName
     });
 
     return {
@@ -463,7 +463,7 @@ async function createResult(term: string, details: IPlayerDetails, sizeFactor: n
         episode: details.episode,
         pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
         series: details.series,
-        type: VideoType.TV,
+        type,
         size,
         nzbName
     }

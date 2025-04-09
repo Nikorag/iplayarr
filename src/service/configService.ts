@@ -39,7 +39,8 @@ const defaultConfigMap: ConfigMap = {
     'TV_FILENAME_TEMPLATE': '{{#if synonym}}{{synonym}}{{else}}{{title}}{{/if}}.S{{season}}E{{episode}}.WEB.{{quality}}.H.264.BBC',
     'VIDEO_QUALITY': 'hd',
     'RSS_FEED_HOURS': '48',
-    'NATIVE_SEARCH': 'true'
+    'NATIVE_SEARCH': 'true',
+    'ARCHIVE_ENABLED' : 'false'
 };
 
 class ConfigService extends AbstractEntityService<IplayarrParameter, string> {

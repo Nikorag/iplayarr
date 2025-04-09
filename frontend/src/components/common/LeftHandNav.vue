@@ -107,6 +107,8 @@ const handleClickOutside = (event) => {
     left: 0;
     width: 100%;
     padding: 24px 24px;
+    box-sizing: border-box;
+    width: 200px;
 
     span {
       &:hover {

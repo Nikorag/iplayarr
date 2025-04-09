@@ -12,6 +12,14 @@ class HistoryService extends AbstractStorageService<QueueEntry> {
         return historyItem;
     }
 
+    async addArchive(item : QueueEntry): Promise<QueueEntry> {
+        const historyItem : QueueEntry = {...item, status: QueueEntryStatus.CANCELLED, details : {...item.details, eta: '', speed: 0, progress: 100}, process : undefined};
+        await super.setItem(historyItem.id, historyItem);
+        const history : QueueEntry[] = await this.all();
+        socketService.emit('history', history);
+        return historyItem;
+    }
+
     async setItem(id: string | undefined, value: QueueEntry): Promise<QueueEntry> {
         const historyItem = {...value, id : value.pid};
         await super.setItem(value.pid, historyItem)

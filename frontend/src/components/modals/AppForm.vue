@@ -62,7 +62,7 @@
 
         <template v-if="showForm('tags')">
           <legend class="sub">
-            Download Client
+            Tags
           </legend>
           <TagInput ref="tagInput" v-model="form.tags" name="Tags" :tooltip="`Tags for Download Client & Indexer for ${capitalize(form.type)}`" :error="validationErrors?.tags" />
         </template>
@@ -135,7 +135,7 @@ watch(() => form.value.type, () => {
 }, { immediate: true });
 
 const saveApp = async () => {
-    if (tagInput.value){
+    if (tagInput.value && tagInput.value != ''){
         tagInput.value.addTag();
     }
     const method = form.value.id ? 'update' : 'create';

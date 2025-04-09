@@ -23,7 +23,8 @@ export default async (req : Request, res : Response, next : NextFunction) => {
         actionDirectory[name](req, res, next);
         return
     } else {
-        const history : QueueEntry[] = await historyService.all();
+        let history : QueueEntry[] = await historyService.all();
+        history = history.filter(({status}) => status != QueueEntryStatus.FORWARDED && status != QueueEntryStatus.CANCELLED);
         const completeDir : string = await configService.getItem(IplayarrParameter.COMPLETE_DIR) as string;
 
         const historyObject : SabNZBDHistoryResponse = {

@@ -34,6 +34,8 @@ ENV GET_IPLAYER_EXEC=/iplayer/get_iplayer
 ENV STORAGE_LOCATION=/node-persist
 ENV CACHE_LOCATION=/data
 
+RUN mkdir /config /data /node-persist
+
 # Copy Redis binary from the Redis Alpine image
 WORKDIR /redis
 COPY --from=redis /usr/local/bin/redis-server /redis/redis-server

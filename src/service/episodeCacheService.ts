@@ -193,6 +193,7 @@ async function createResult(term : string, details : IPlayerDetails, sizeFactor 
         title: details.title.replaceAll(' ', '.'),
         season: details.series ? details.series.toString().padStart(2, '0') : undefined,
         episode: details.episode ? details.episode.toString().padStart(2, '0') : undefined,
+        episodeTitle: details.episodeTitle?.replaceAll(' ', '.')
     });
 
     return {
@@ -205,6 +206,7 @@ async function createResult(term : string, details : IPlayerDetails, sizeFactor 
             line: term
         },
         episode: details.episode,
+        episodeTitle: details.episodeTitle,
         pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
         series: details.series,
         type: VideoType.TV,

@@ -131,7 +131,7 @@ const iplayerService = {
         }
 
         let returnResults: IPlayerSearchResult[] = [];
-        if (season && episode) {
+        if (season != null && episode != null) {
             returnResults = results.filter((result) => result.series == season && result.episode == episode);
         } else {
             returnResults = results;
@@ -212,19 +212,27 @@ const iplayerService = {
 
     episodeDetails: async (pid: string): Promise<IPlayerDetails> => {
         const { programme } = await episodeCacheService.getMetadata(pid);
-        const runtime = programme.versions ? (programme.versions[0].duration / 60) : 0;
-        const category = programme.categories ? programme.categories[0].title : '';
+        
+        const runtime = programme.versions?.length ? (programme.versions[0].duration / 60) : 0;
+        const category = programme.categories?.length ? programme.categories[0].title : '';
 
-        //Get the series number, we'll override with a series name "Series X" to avoid christmas specials
-        const seriesName : string | undefined = programme.parent?.programme?.type == 'series' ? programme.parent?.programme?.title : undefined;
+        // TODO: Troubleshoot https://www.bbc.co.uk/programmes/m000jbtq.json showing up as MOVIE for "chelsea"
+        const belongToASeries = programme.parent?.programme.type == 'series';
+        const seriesName : string | undefined = belongToASeries ? programme.parent?.programme?.title : undefined;
+        // Parse the season number from the title if we can as it accounts for specials, unlike the position
         const seriesMatch = seriesName?.match(nativeSeriesRegex);
+        const series = seriesMatch ? getPotentialRoman(seriesMatch[1])
+            : belongToASeries ? programme.parent?.programme?.position // Fall back to the position if within a series
+                : programme.parent ? 0 : undefined; // Leave blank for movies but map TV specials to season 0
+        const episode = belongToASeries // Work out the episode number within the season if we don't have a position
+            ? programme.position ?? (series ? programme.parent?.programme?.aggregated_episode_count : undefined)
+            : programme.parent ? 0 : undefined; // Leave blank for movies but map TV specials to episode 0
 
-        const series = seriesMatch ? getPotentialRoman(seriesMatch[1]) : programme.parent?.programme?.position;
-        const episode = programme.position ?? (series ? programme.parent?.programme?.aggregated_episode_count : undefined);
         return {
             pid,
             title: programme.display_title?.title ?? programme.title,
             episode,
+            episodeTitle: series != null && episode != null ? programme.title : undefined,
             series,
             channel: programme.ownership?.service?.title,
             category,
@@ -266,8 +274,10 @@ const iplayerService = {
 
             for (const brandPid of brandPids){
                 const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
-                const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
-
+                const episodes = (await Promise.all(seriesList.programmes.filter(({ type }) => type == 'series').map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid))))
+                    .flat();
+                episodes.push(...seriesList.programmes.filter(({ type, first_broadcast_date }) => type == 'episode' && first_broadcast_date != null).map(({ pid }) => pid));
+                
                 const chunks = splitArrayIntoChunks(episodes, 5);
                 const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
                     const acc = await accPromise; // Ensure previous results are awaited
@@ -346,8 +356,8 @@ const iplayerService = {
     
                         const nzbName = await createNZBName(result.type, {
                             title: result.title.replaceAll(' ', '.'),
-                            season: result.series ? result.series.toString().padStart(2, '0') : undefined,
-                            episode: result.episode ? result.episode.toString().padStart(2, '0') : undefined,
+                            season: result.series != null ? result.series.toString().padStart(2, '0') : undefined,
+                            episode: result.episode != null ? result.episode.toString().padStart(2, '0') : undefined,
                             synonym: synonymName
                         });
                         result.nzbName = nzbName;
@@ -408,11 +418,13 @@ function removeLastFourDigitNumber(str: string) {
 async function createResult(term: string, details: IPlayerDetails, sizeFactor: number, synonymName: string | undefined): Promise<IPlayerSearchResult> {
     const size: number | undefined = details.runtime ? (details.runtime * 60) * sizeFactor : undefined;
 
-    const type: VideoType = details.episode && details.series ? VideoType.TV : VideoType.MOVIE;
+    const type: VideoType = details.episode != null && details.series != null ? VideoType.TV : VideoType.MOVIE;
+
     const nzbName = await createNZBName(type, {
         title: details.title.replaceAll(' ', '.'),
-        season: details.series ? details.series.toString().padStart(2, '0') : undefined,
-        episode: details.episode ? details.episode.toString().padStart(2, '0') : undefined,
+        season: details.series != null ? details.series.toString().padStart(2, '0') : undefined,
+        episode: details.episode != null ? details.episode.toString().padStart(2, '0') : undefined,
+        episodeTitle: details.episodeTitle?.replaceAll(' ', '.'),
         synonym: synonymName
     });
 
@@ -426,6 +438,7 @@ async function createResult(term: string, details: IPlayerDetails, sizeFactor: n
             line: term
         },
         episode: details.episode,
+        episodeTitle: details.episodeTitle,
         pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
         series: details.series,
         type,

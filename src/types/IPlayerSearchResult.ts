@@ -14,6 +14,7 @@ export interface IPlayerSearchResult {
     type : VideoType
     series? : number,
     episode? : number,
+    episodeTitle? : string,
     size? : number,
     pubDate? : Date
 }

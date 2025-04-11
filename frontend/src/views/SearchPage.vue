@@ -9,10 +9,11 @@
           </th>
           <th>Type</th>
           <th>Title</th>
-          <th>Calculated Filename</th>
+          <th>Subtitle</th>
+          <th>Filename</th>
           <th>Est. Size</th>
           <th>Channel</th>
-          <th>PID</th>
+          <th>Published</th>
           <th>
             <font-awesome-icon :icon="['fas', 'gears']" />
           </th>
@@ -28,10 +29,13 @@
               {{ result.type }}
             </span>
           </td>
-          <td class="clickable" @click="download(result)">
+          <td class="clickable wrap" @click="download(result)">
             {{ result.title }}
           </td>
-          <td class="clickable" @click="download(result)">
+          <td class="clickable wrap" @click="download(result)">
+            {{ result.episode ? `Series ${result.series}, Episode ${result.episode}` : result.episodeTitle }}
+          </td>
+          <td class="clickable wrap" @click="download(result)">
             {{ result.nzbName }}
           </td>
           <td>{{ formatStorageSize(result.size) }}</td>
@@ -40,7 +44,7 @@
               {{ result.channel }}
             </span>
           </td>
-          <td>{{ result.pid }}</td>
+          <td class="wrap">{{ result.pubDate }}</td>
           <td>
             <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" @click="immediateDownload(result)" />
           </td>
@@ -150,6 +154,10 @@ watch(allChecked, (newValue) => {
                 padding: 8px;
                 border-top: 1px solid @table-border-color;
                 line-height: 1.52857143;
+                
+                &.wrap {
+                  word-break: break-word;
+                }
             }
         }
     }

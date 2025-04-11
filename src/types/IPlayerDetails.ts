@@ -2,6 +2,7 @@ export interface IPlayerDetails {
     pid: string,
     title: string,
     episode? : number,
+    episodeTitle?: string,
     series? : number,
     channel? : string,
     category? : string,

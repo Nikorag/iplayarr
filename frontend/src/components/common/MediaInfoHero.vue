@@ -2,6 +2,7 @@
   <div class="infoBanner" :style="{ 'background-image': `url(${details.thumbnail})` }">
     <div class="infoContainer">
       <h1>{{ title }}</h1>
+      <h2 v-if="details.episodeTitle">{{ details.episodeTitle }}</h2>
       <div v-if="details.category" class="seriesDetails">
         <span>{{ details.runtime }} Minutes</span>
         <span>{{ details.category }}</span>

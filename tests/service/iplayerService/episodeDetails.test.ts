@@ -2,6 +2,7 @@ import episodeCacheService from 'src/service/episodeCacheService';
 import iplayerService from 'src/service/iplayerService';
 import { IPlayerDetails } from 'src/types/IPlayerDetails';
 import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';  
+import b008m7xk from 'tests/data/b008m7xk';
 import m000jbtq from 'tests/data/m000jbtq';
 import m001kscd from 'tests/data/m001kscd';
 import m001zh3r from 'tests/data/m001zh3r';
@@ -88,20 +89,37 @@ describe('episodes', () => {
     }));
 });
 
-it('movie', async () => assertDetails(m001kscd, {
-    pid: 'm001kscd',
-    title: 'Children of Men',
-    episode: undefined,
-    episodeTitle: undefined,
-    series: undefined,
-    channel: 'BBC Two',
-    category: 'Drama',
-    description: 'In a chaotic future Britain where no child has been born for years, a loner helps the world\'s only known pregnant woman to safety.',
-    runtime: 98,
-    firstBroadcast: '2023-04-02T22:00:00+01:00',
-    link: 'https://www.bbc.co.uk/programmes/m001kscd',
-    thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0fbqr8s.jpg'
-}));
+describe('movies', () => {
+    it('standalone', async () => assertDetails(m001kscd, {
+        pid: 'm001kscd',
+        title: 'Children of Men',
+        episode: undefined,
+        episodeTitle: undefined,
+        series: undefined,
+        channel: 'BBC Two',
+        category: 'Drama',
+        description: 'In a chaotic future Britain where no child has been born for years, a loner helps the world\'s only known pregnant woman to safety.',
+        runtime: 98,
+        firstBroadcast: '2023-04-02T22:00:00+01:00',
+        link: 'https://www.bbc.co.uk/programmes/m001kscd',
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0fbqr8s.jpg'
+    }));
+
+    it('sequel', async () => assertDetails(b008m7xk, {
+        pid: 'b008m7xk',
+        title: 'Shrek 2',
+        episode: undefined,
+        episodeTitle: undefined,
+        series: undefined,
+        channel: 'BBC One',
+        category: 'Animation',
+        description: 'Animated sequel following the grumpy ogre (voiced by Mike Myers) and his bride as they head off to meet her parents. The occasion is marred by the wicked Fairy Godmother.',
+        runtime: 85,
+        firstBroadcast: '2007-12-25T16:40:00Z',
+        link: 'https://www.bbc.co.uk/programmes/b008m7xk',
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p07xpnby.jpg',
+    }));
+});
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -113,7 +131,5 @@ const mockedEpisodeCacheService = jest.mocked(episodeCacheService);
 const assertDetails = async (metadata: IPlayerMetadataResponse, expected: IPlayerDetails) => {
     mockedEpisodeCacheService.getMetadata.mockResolvedValueOnce(metadata);
     await expect(iplayerService.episodeDetails(metadata.programme.pid)).resolves.toEqual<IPlayerDetails>(expected);
-    expect(mockedEpisodeCacheService.getMetadata).toHaveBeenCalledWith(
-        metadata.programme.pid
-    );
+    expect(mockedEpisodeCacheService.getMetadata).toHaveBeenCalledWith(metadata.programme.pid);
 }

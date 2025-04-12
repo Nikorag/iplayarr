@@ -366,6 +366,7 @@ const iplayerService = {
                             title: result.title.replaceAll(' ', '.'),
                             season: result.series != null ? result.series.toString().padStart(2, '0') : undefined,
                             episode: result.episode != null ? result.episode.toString().padStart(2, '0') : undefined,
+                            episodeTitle: result.episodeTitle?.replaceAll(' ', '.'),
                             synonym: synonymName
                         });
                         result.nzbName = nzbName;

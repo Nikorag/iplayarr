@@ -6,7 +6,7 @@ import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QueuedStorage } from '../types/QueuedStorage'
 import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
-import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
+import { IPlayerChildrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerService from './iplayerService';
 
@@ -129,7 +129,7 @@ const episodeCacheService = {
 
         const brandPid = await episodeCacheService.findBrandForUrl(inputUrl);
         if (brandPid){
-            const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
+            const {data : {children : seriesList}} : {data : IPlayerChildrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
             const episodes = (await Promise.all(seriesList.programmes.filter(({type}) => type == 'series').map(({pid}) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
 
             const chunks = splitArrayIntoChunks(episodes, 20);
@@ -153,7 +153,7 @@ const episodeCacheService = {
 
     getSeriesEpisodes : async (pid : string) : Promise<string[]> => {
         try {
-            const response : AxiosResponse<IPlayerChilrenResponse> = await axios.get(`https://www.bbc.co.uk/programmes/${pid}/children.json?limit=100`);
+            const response : AxiosResponse<IPlayerChildrenResponse> = await axios.get(`https://www.bbc.co.uk/programmes/${pid}/children.json?limit=100`);
             return response.data.children.programmes.map(({pid}) => pid);
         } catch {
             return [];

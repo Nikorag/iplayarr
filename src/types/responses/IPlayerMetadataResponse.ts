@@ -6,11 +6,7 @@ export interface IPlayerProgramMetadata {
     type : 'series' | 'episode' | 'brand',
     pid : string,
     parent? : IPlayerMetadataResponse,
-    categories? : {
-        type : string,
-        key : string,
-        title : string
-    }[],
+    categories? : IPlayerCategoryResponse[],
     display_title? : {
         title : string,
         subtitle? : string
@@ -24,16 +20,33 @@ export interface IPlayerProgramMetadata {
     },
     medium_synopsis? : string,
     versions? : {
-        duration : number
+        canonical: number,
+        pid: string,
+        duration : number,
+        types: string[]
     }[],
     first_broadcast_date? : string,
     image? : {
         pid : string
     },
-    aggregated_episode_count : number
+    aggregated_episode_count? : number
 }
 
-export interface IPlayerChilrenResponse {
+export interface IPlayerCategoryResponse {
+    type : string
+    id : string
+    key : string
+    title : string,
+    narrower? : IPlayerCategoryResponse[],
+    broader : {
+        category? : IPlayerCategoryResponse
+    },
+    has_topic_page : boolean,
+    sameAs? : IPlayerCategoryResponse
+}
+
+
+export interface IPlayerChildrenResponse {
     children : {
         page : number,
         total : number,

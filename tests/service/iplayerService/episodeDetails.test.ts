@@ -5,9 +5,10 @@ import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResp
 import m001kscd from 'tests/data/m001kscd';
 import m0026fkl from 'tests/data/m0026fkl';
 import m0029c0g from 'tests/data/m0029c0g';
+import p00bp2rm from 'tests/data/p00bp2rm';
 
-describe('Beyond Paradise', () => {
-    it('S03E01 Episode 1', async () => assertDetails(m0029c0g, {
+describe('episodes', () => {
+    it('within series', async () => assertDetails(m0029c0g, {
         pid: 'm0029c0g',
         title: 'Beyond Paradise',
         episode: 1,
@@ -21,8 +22,23 @@ describe('Beyond Paradise', () => {
         link: 'https://www.bbc.co.uk/programmes/m0029c0g',
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0kzjr9f.jpg'
     }));
+
+    it('series with roman numerals', async () => assertDetails(p00bp2rm, {
+        pid: 'p00bp2rm',
+        title: 'Red Dwarf',
+        episode: 5,
+        episodeTitle: 'Dimension Jump',
+        series: 4,
+        channel: 'BBC Two',
+        category: 'Sitcoms',
+        description: 'In a parallel universe, another Arnold Rimmer exists, but he\'s charming, popular, brave and modest. After his craft breaks the speed of reality, he meets his counterpart.',
+        runtime: 30,
+        firstBroadcast: '1991-03-14T21:00:00Z',
+        link: 'https://www.bbc.co.uk/programmes/p00bp2rm',
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p08vxx0m.jpg'
+    }));
     
-    it('S00E00 Christmas Special 2024', async () => assertDetails(m0026fkl, {
+    it('special', async () => assertDetails(m0026fkl, {
         pid: 'm0026fkl',
         title: 'Beyond Paradise',
         episode: 0,
@@ -38,7 +54,7 @@ describe('Beyond Paradise', () => {
     }));
 });
 
-it('Children of Men', async () => assertDetails(m001kscd, {
+it('movie', async () => assertDetails(m001kscd, {
     pid: 'm001kscd',
     title: 'Children of Men',
     episode: undefined,
@@ -60,10 +76,8 @@ beforeEach(() => {
 jest.mock('src/service/episodeCacheService');
 const mockedEpisodeCacheService = jest.mocked(episodeCacheService);
 
-async function assertDetails(metadata: IPlayerMetadataResponse, expected: IPlayerDetails) {
+const assertDetails = async (metadata: IPlayerMetadataResponse, expected: IPlayerDetails) => {
     mockedEpisodeCacheService.getMetadata.mockResolvedValueOnce(metadata);
-    const result = await iplayerService.episodeDetails(metadata.programme.pid);
-    console.log(result);
-    expect(result).toEqual(expected);
+    expect(await iplayerService.episodeDetails(metadata.programme.pid)).toEqual(expected);
     expect(mockedEpisodeCacheService.getMetadata).toHaveBeenCalledWith(metadata.programme.pid);
 }

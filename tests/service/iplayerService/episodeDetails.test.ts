@@ -3,12 +3,13 @@ import iplayerService from 'src/service/iplayerService';
 import { IPlayerDetails } from 'src/types/IPlayerDetails';
 import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';  
 import m001kscd from 'tests/data/m001kscd';
+import m001zh3r from 'tests/data/m001zh3r';
 import m0026fkl from 'tests/data/m0026fkl';
 import m0029c0g from 'tests/data/m0029c0g';
 import p00bp2rm from 'tests/data/p00bp2rm';
 
 describe('episodes', () => {
-    it('within series', async () => assertDetails(m0029c0g, {
+    it('standard series', async () => assertDetails(m0029c0g, {
         pid: 'm0029c0g',
         title: 'Beyond Paradise',
         episode: 1,
@@ -36,6 +37,22 @@ describe('episodes', () => {
         firstBroadcast: '1991-03-14T21:00:00Z',
         link: 'https://www.bbc.co.uk/programmes/p00bp2rm',
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p08vxx0m.jpg'
+    }));
+
+    it('yearly series', async () => assertDetails(m001zh3r, {
+        pid: 'm001zh3r',
+        title: 'RHS Chelsea Flower Show',
+        episode: 15,
+        episodeTitle: 'RHS: Countdown to Chelsea',
+        series: 2024,
+        channel: 'BBC Two',
+        category: 'Gardens',
+        description:
+        'Join Sophie Raworth and Joe Swift for an exclusive first look at the Royal Horticultural Society’s Chelsea Flower Show 2024.',
+        runtime: 59,
+        firstBroadcast: '2024-05-19T18:15:00+01:00',
+        link: 'https://www.bbc.co.uk/programmes/m001zh3r',
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0hz5bjs.jpg',
     }));
     
     it('special', async () => assertDetails(m0026fkl, {
@@ -78,6 +95,8 @@ const mockedEpisodeCacheService = jest.mocked(episodeCacheService);
 
 const assertDetails = async (metadata: IPlayerMetadataResponse, expected: IPlayerDetails) => {
     mockedEpisodeCacheService.getMetadata.mockResolvedValueOnce(metadata);
-    expect(await iplayerService.episodeDetails(metadata.programme.pid)).toEqual(expected);
-    expect(mockedEpisodeCacheService.getMetadata).toHaveBeenCalledWith(metadata.programme.pid);
-}
+    await expect(iplayerService.episodeDetails(metadata.programme.pid)).resolves.toEqual<IPlayerDetails>(expected);
+    expect(mockedEpisodeCacheService.getMetadata).toHaveBeenCalledWith(
+        metadata.programme.pid
+    );
+};

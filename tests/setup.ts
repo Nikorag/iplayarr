@@ -1,3 +1,6 @@
-jest.mock('src/service/redisService', () => ({
-    redis: () => jest.mock('ioredis/Redis'),
-}));
+jest.mock('dotenv');
+jest.mock('ioredis', () => jest.requireActual('ioredis-mock'))
+
+beforeEach(() => {
+    jest.clearAllMocks();
+});

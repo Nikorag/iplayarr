@@ -129,10 +129,6 @@ describe('movies', () => {
     }));
 });
 
-beforeEach(() => {
-    jest.clearAllMocks();
-});
-
 jest.mock('src/service/episodeCacheService');
 const mockedEpisodeCacheService = jest.mocked(episodeCacheService);
 

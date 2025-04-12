@@ -1,6 +1,7 @@
 import episodeCacheService from 'src/service/episodeCacheService';
 import iplayerService from 'src/service/iplayerService';
 import { IPlayerDetails } from 'src/types/IPlayerDetails';
+import { VideoType } from 'src/types/IPlayerSearchResult';
 import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';  
 import b008m7xk from 'tests/data/b008m7xk';
 import m000jbtq from 'tests/data/m000jbtq';
@@ -23,7 +24,8 @@ describe('episodes', () => {
         runtime: 57,
         firstBroadcast: '2025-03-28T20:00:00Z',
         link: 'https://www.bbc.co.uk/programmes/m0029c0g',
-        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0kzjr9f.jpg'
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0kzjr9f.jpg',
+        type: VideoType.TV
     }));
 
     it('series with roman numerals', async () => assertDetails(p00bp2rm, {
@@ -38,7 +40,8 @@ describe('episodes', () => {
         runtime: 30,
         firstBroadcast: '1991-03-14T21:00:00Z',
         link: 'https://www.bbc.co.uk/programmes/p00bp2rm',
-        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p08vxx0m.jpg'
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p08vxx0m.jpg',
+        type: VideoType.TV
     }));
 
     it('yearly series', async () => assertDetails(m001zh3r, {
@@ -55,6 +58,7 @@ describe('episodes', () => {
         firstBroadcast: '2024-05-19T18:15:00+01:00',
         link: 'https://www.bbc.co.uk/programmes/m001zh3r',
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0hz5bjs.jpg',
+        type: VideoType.TV
     }));
     
     it('special episode', async () => assertDetails(m0026fkl, {
@@ -69,7 +73,8 @@ describe('episodes', () => {
         runtime: 57,
         firstBroadcast: '2024-12-27T21:00:00Z',
         link: 'https://www.bbc.co.uk/programmes/m0026fkl',
-        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0k99rdl.jpg'
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0k99rdl.jpg',
+        type: VideoType.TV
     }));
 
     it('special series episode', async () => assertDetails(m000jbtq, {
@@ -86,6 +91,7 @@ describe('episodes', () => {
         firstBroadcast: '2020-05-22T15:45:00+01:00',
         link: 'https://www.bbc.co.uk/programmes/m000jbtq',
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p08d4pr0.jpg',
+        type: VideoType.TV
     }));
 });
 
@@ -102,7 +108,8 @@ describe('movies', () => {
         runtime: 98,
         firstBroadcast: '2023-04-02T22:00:00+01:00',
         link: 'https://www.bbc.co.uk/programmes/m001kscd',
-        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0fbqr8s.jpg'
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0fbqr8s.jpg',
+        type: VideoType.MOVIE
     }));
 
     it('sequel', async () => assertDetails(b008m7xk, {
@@ -118,6 +125,7 @@ describe('movies', () => {
         firstBroadcast: '2007-12-25T16:40:00Z',
         link: 'https://www.bbc.co.uk/programmes/b008m7xk',
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p07xpnby.jpg',
+        type: VideoType.MOVIE
     }));
 });
 

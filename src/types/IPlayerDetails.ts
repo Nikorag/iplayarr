@@ -1,3 +1,5 @@
+import { VideoType } from './IPlayerSearchResult'
+
 export interface IPlayerDetails {
     pid: string,
     title: string,
@@ -10,5 +12,6 @@ export interface IPlayerDetails {
     runtime? : number,
     firstBroadcast? : string,
     link? : string
-    thumbnail? : string
+    thumbnail? : string,
+    type: VideoType
 }

@@ -212,19 +212,25 @@ const iplayerService = {
 
     episodeDetails: async (pid: string): Promise<IPlayerDetails> => {
         const { programme } = await episodeCacheService.getMetadata(pid);
-        
-        const runtime = programme.versions?.length ? (programme.versions[0].duration / 60) : 0;
+
+        const runtime = programme.versions?.length ? programme.versions[0].duration / 60 : 0;
         const category = programme.categories?.length ? programme.categories[0].title : '';
 
-        // TODO: Troubleshoot https://www.bbc.co.uk/programmes/m000jbtq.json showing up as MOVIE for "chelsea"
-        const belongToASeries = programme.parent?.programme.type == 'series';
-        const seriesName : string | undefined = belongToASeries ? programme.parent?.programme?.title : undefined;
+        const episodeWithinSeries =
+          programme.parent?.programme.type == 'series';
+        const seriesName = episodeWithinSeries
+            ? programme.parent?.programme?.title
+            : undefined;
+        
         // Parse the season number from the title if we can as it accounts for specials, unlike the position
-        const seriesMatch = seriesName?.match(nativeSeriesRegex);
-        const series = seriesMatch ? getPotentialRoman(seriesMatch[1])
-            : belongToASeries ? programme.parent?.programme?.position // Fall back to the position if within a series
+        const nativeSeriesMatch = seriesName?.match(nativeSeriesRegex);
+        const series = nativeSeriesMatch
+            ? getPotentialRoman(nativeSeriesMatch[1])
+            : episodeWithinSeries
+                ? programme.parent?.programme?.position ?? 0 // Fall back to the position if within a series
                 : programme.parent ? 0 : undefined; // Leave blank for movies but map TV specials to season 0
-        const episode = belongToASeries // Work out the episode number within the season if we don't have a position
+        const hasSeriesNumber = (series ?? 0) > 0;
+        const episode = hasSeriesNumber // Work out the episode number within the season if we don't have a position
             ? programme.position ?? (series ? programme.parent?.programme?.aggregated_episode_count : undefined)
             : programme.parent ? 0 : undefined; // Leave blank for movies but map TV specials to episode 0
 
@@ -232,7 +238,9 @@ const iplayerService = {
             pid,
             title: programme.display_title?.title ?? programme.title,
             episode,
-            episodeTitle: series != null && episode != null ? programme.title : undefined,
+            episodeTitle: series != null && episode != null ? hasSeriesNumber
+                ? programme.title : programme.display_title?.subtitle
+                : undefined,
             series,
             channel: programme.ownership?.service?.title,
             category,
@@ -241,7 +249,7 @@ const iplayerService = {
             firstBroadcast: programme.first_broadcast_date,
             link: `https://www.bbc.co.uk/programmes/${pid}`,
             thumbnail: programme.image ? `https://ichef.bbci.co.uk/images/ic/1920x1080/${programme.image.pid}.jpg` : undefined
-        }
+        };
     },
 
     removeFromSearchCache: (term: string) => {

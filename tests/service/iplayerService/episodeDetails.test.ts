@@ -2,6 +2,7 @@ import episodeCacheService from 'src/service/episodeCacheService';
 import iplayerService from 'src/service/iplayerService';
 import { IPlayerDetails } from 'src/types/IPlayerDetails';
 import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';  
+import m000jbtq from 'tests/data/m000jbtq';
 import m001kscd from 'tests/data/m001kscd';
 import m001zh3r from 'tests/data/m001zh3r';
 import m0026fkl from 'tests/data/m0026fkl';
@@ -55,7 +56,7 @@ describe('episodes', () => {
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0hz5bjs.jpg',
     }));
     
-    it('special', async () => assertDetails(m0026fkl, {
+    it('special episode', async () => assertDetails(m0026fkl, {
         pid: 'm0026fkl',
         title: 'Beyond Paradise',
         episode: 0,
@@ -68,6 +69,22 @@ describe('episodes', () => {
         firstBroadcast: '2024-12-27T21:00:00Z',
         link: 'https://www.bbc.co.uk/programmes/m0026fkl',
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0k99rdl.jpg'
+    }));
+
+    it('special series episode', async () => assertDetails(m000jbtq, {
+        pid: 'm000jbtq',
+        title: 'RHS Chelsea Flower Show',
+        episode: 0,
+        episodeTitle: 'Your Chelsea Flower Show, Making the Most of Your Time',
+        series: 0,
+        channel: 'BBC Two',
+        category: 'Gardens',
+        description:
+        'Nicki Chapman and the team help you make the most of your time in your own garden, including ideas for low-maintenance lawns.',
+        runtime: 44,
+        firstBroadcast: '2020-05-22T15:45:00+01:00',
+        link: 'https://www.bbc.co.uk/programmes/m000jbtq',
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p08d4pr0.jpg',
     }));
 });
 
@@ -99,4 +116,4 @@ const assertDetails = async (metadata: IPlayerMetadataResponse, expected: IPlaye
     expect(mockedEpisodeCacheService.getMetadata).toHaveBeenCalledWith(
         metadata.programme.pid
     );
-};
+}

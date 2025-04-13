@@ -10,8 +10,7 @@ import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
 
-const removeDisallowedCharactersRegex = /[^a-zA-Z0-9\s\\._-]/g;
-const spacesOrDuplicateSpecialsRegex = /\s|[\s\\.\-_]{2,}/g;
+const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\._-]/g;
 
 export function formatBytes(bytes: number, unit: boolean = true, decimals: number = 2): string {
     if (bytes === 0) return '0 Bytes';
@@ -26,14 +25,15 @@ export function formatBytes(bytes: number, unit: boolean = true, decimals: numbe
 export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails, synonym?: Synonym) {
     const templateKey: IplayarrParameter = result.type == VideoType.MOVIE ? IplayarrParameter.MOVIE_FILENAME_TEMPLATE : IplayarrParameter.TV_FILENAME_TEMPLATE;
     const template = await configService.getParameter(templateKey) as string;
+    const qualityProfile = await getQualityProfile();
     return Handlebars.compile(template)({
-        title: result.title.replaceAll(removeDisallowedCharactersRegex, '').replaceAll(spacesOrDuplicateSpecialsRegex, '.'),
+        title: result.title.replaceAll(removeUnsafeCharsRegex, ''),
         season: result.series != null ? result.series.toString().padStart(2, '0') : undefined,
         episode: result.episode != null ? result.episode.toString().padStart(2, '0') : undefined,
-        episodeTitle: result.episodeTitle?.replaceAll(removeDisallowedCharactersRegex, '').replaceAll(spacesOrDuplicateSpecialsRegex, '.'),
-        synonym: synonym ? (synonym.filenameOverride || synonym.from).replaceAll(removeDisallowedCharactersRegex, '').replaceAll(spacesOrDuplicateSpecialsRegex, '.') : undefined,
-        quality: (await getQualityProfile()).quality
-    } as FilenameTemplateContext);
+        episodeTitle: result.episodeTitle?.replaceAll(removeUnsafeCharsRegex, ''),
+        synonym: (synonym?.filenameOverride ?? synonym?.from)?.replaceAll(removeUnsafeCharsRegex, ''),
+        quality: qualityProfile.quality
+    } as FilenameTemplateContext).replaceAll(/\s|[\s\\.\-_]{2,}/g, '.');
 }
 
 export function getBaseUrl(req: Request): string {

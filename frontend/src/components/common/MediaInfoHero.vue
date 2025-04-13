@@ -96,22 +96,19 @@ const fixCasing = (str) => {
 .infoBanner {
   position: relative;
   width: 100%;
-  height: 325px;
   background-size: cover;
   background-position: center;
 
   .infoContainer {
-    position: absolute;
     width: 100%;
-    height: 325px;
     background-color: rgba(0, 0, 0, 0.6);
     padding: 2rem;
     box-sizing: border-box;
 
     .seriesDetails {
-      margin-bottom: 8px;
+      margin-bottom: 16px;
       font-weight: 300;
-      font-size: 20px;
+      font-size: 18px;
 
       span {
         margin-right: 15px;

@@ -217,33 +217,29 @@ const iplayerService = {
         const category = programme.categories?.length ? programme.categories[0].title : '';
 
         const parent = programme.parent?.programme;
-        const episodeWithinSeries =
-          parent?.type == 'series';
-        const seriesName = episodeWithinSeries
-            ? parent?.title
-            : undefined;
         
-        // Parse the season number from the title if we can as it accounts for specials, unlike the position
-        const nativeSeriesMatch = seriesName?.match(nativeSeriesRegex);
-        const series = programme.position && nativeSeriesMatch
-            ? getPotentialRoman(nativeSeriesMatch[1])
-            : episodeWithinSeries
-                ? parent?.position ?? 0 // Fall back to the position if within a series
-                : programme.parent ? 0 : undefined; // Leave blank for movies but map TV specials to season 0
-        const hasSeriesNumber = (series ?? 0) > 0;
-        const outsideSeriesRange = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count
-        const episode = hasSeriesNumber // Work out the episode number within the season if we don't have a position
-            ? programme.position ?? (series ? outsideSeriesRange ? 0 : parent?.aggregated_episode_count : undefined)
-            : programme.parent ? 0 : undefined; // Leave blank for movies but map TV specials to episode 0
+        // Determine series number from the title, falling back to position values within JSON if unsuccessful
+        const nativeSeriesMatch = parent?.title?.match(nativeSeriesRegex);
+        const estimatedSeries = programme.position && nativeSeriesMatch
+            ? parseToNumber(nativeSeriesMatch[1])
+            : (parent?.type == 'series' ? parent?.position ?? 0 : (parent ? 0 : undefined));
+        const notSpecialOrMovie = (estimatedSeries ?? 0) > 0;
+        const afterSeriesSpecial = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count
+        const series = afterSeriesSpecial ? 0 : estimatedSeries
+        
+        // Determine episode based on position if available and not a special, otherwise assume last in series
+        const episode = notSpecialOrMovie
+            ? programme.position ?? (afterSeriesSpecial ? 0 : parent?.aggregated_episode_count)
+            : parent ? 0 : undefined;
 
         return {
             pid,
             title: programme.display_title?.title ?? programme.title,
             episode,
-            episodeTitle: series != null && episode != null ? hasSeriesNumber
-                ? programme.title : programme.display_title?.subtitle
+            episodeTitle: episode != null
+                ? (notSpecialOrMovie ? programme.title : programme.display_title?.subtitle)
                 : undefined,
-            series: outsideSeriesRange ? 0 : series,
+            series,
             channel: programme.ownership?.service?.title,
             category,
             description: programme.medium_synopsis,
@@ -443,7 +439,7 @@ async function createResult(term: string, details: IPlayerDetails, sizeFactor: n
     }
 }
 
-function getPotentialRoman(str : string) : number {
+function parseToNumber(str : string) : number {
     return (() => {
         try {
             return deromanize(str);

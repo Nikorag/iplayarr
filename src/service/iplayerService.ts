@@ -216,22 +216,24 @@ const iplayerService = {
         const runtime = programme.versions?.length ? programme.versions[0].duration / 60 : 0;
         const category = programme.categories?.length ? programme.categories[0].title : '';
 
+        const parent = programme.parent?.programme;
         const episodeWithinSeries =
-          programme.parent?.programme.type == 'series';
+          parent?.type == 'series';
         const seriesName = episodeWithinSeries
-            ? programme.parent?.programme?.title
+            ? parent?.title
             : undefined;
         
         // Parse the season number from the title if we can as it accounts for specials, unlike the position
         const nativeSeriesMatch = seriesName?.match(nativeSeriesRegex);
-        const series = nativeSeriesMatch
+        const series = programme.position && nativeSeriesMatch
             ? getPotentialRoman(nativeSeriesMatch[1])
             : episodeWithinSeries
-                ? programme.parent?.programme?.position ?? 0 // Fall back to the position if within a series
+                ? parent?.position ?? 0 // Fall back to the position if within a series
                 : programme.parent ? 0 : undefined; // Leave blank for movies but map TV specials to season 0
         const hasSeriesNumber = (series ?? 0) > 0;
+        const outsideSeriesRange = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count
         const episode = hasSeriesNumber // Work out the episode number within the season if we don't have a position
-            ? programme.position ?? (series ? programme.parent?.programme?.aggregated_episode_count : undefined)
+            ? programme.position ?? (series ? outsideSeriesRange ? 0 : parent?.aggregated_episode_count : undefined)
             : programme.parent ? 0 : undefined; // Leave blank for movies but map TV specials to episode 0
 
         return {
@@ -241,7 +243,7 @@ const iplayerService = {
             episodeTitle: series != null && episode != null ? hasSeriesNumber
                 ? programme.title : programme.display_title?.subtitle
                 : undefined,
-            series,
+            series: outsideSeriesRange ? 0 : series,
             channel: programme.ownership?.service?.title,
             category,
             description: programme.medium_synopsis,

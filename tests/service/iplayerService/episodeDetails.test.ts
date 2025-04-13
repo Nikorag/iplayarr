@@ -4,6 +4,7 @@ import { IPlayerDetails } from 'src/types/IPlayerDetails';
 import { VideoType } from 'src/types/IPlayerSearchResult';
 import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';  
 import b008m7xk from 'tests/data/b008m7xk';
+import b0211hsl from 'tests/data/b0211hsl';
 import m000jbtq from 'tests/data/m000jbtq';
 import m001kscd from 'tests/data/m001kscd';
 import m001zh3r from 'tests/data/m001zh3r';
@@ -13,7 +14,7 @@ import p00bp2rm from 'tests/data/p00bp2rm';
 import p0fq3s31 from 'tests/data/p0fq3s31';
 
 describe('episodes', () => {
-    it('standard series', async () => assertDetails(m0029c0g, {
+    it('series episode', async () => assertDetails(m0029c0g, {
         pid: 'm0029c0g',
         title: 'Beyond Paradise',
         episode: 1,
@@ -29,7 +30,7 @@ describe('episodes', () => {
         type: VideoType.TV
     }));
 
-    it('series with roman numerals', async () => assertDetails(p00bp2rm, {
+    it('roman numerals series', async () => assertDetails(p00bp2rm, {
         pid: 'p00bp2rm',
         title: 'Red Dwarf',
         episode: 5,
@@ -62,7 +63,7 @@ describe('episodes', () => {
         type: VideoType.TV
     }));
     
-    it('special episode', async () => assertDetails(m0026fkl, {
+    it('special with no series', async () => assertDetails(m0026fkl, {
         pid: 'm0026fkl',
         title: 'Beyond Paradise',
         episode: 0,
@@ -75,6 +76,39 @@ describe('episodes', () => {
         firstBroadcast: '2024-12-27T21:00:00Z',
         link: 'https://www.bbc.co.uk/programmes/m0026fkl',
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0k99rdl.jpg',
+        type: VideoType.TV
+    }));
+
+    it('special not broadcast', async () => assertDetails(p0fq3s31, {
+        pid: 'p0fq3s31',
+        title: 'Red Dwarf',
+        episode: 1,
+        episodeTitle: 'The Promised Land',
+        series: 13,
+        channel: 'BBC Two',
+        category: 'Sitcoms',
+        description: 'The posse meet three cat clerics who worship Lister. They\'re being hunted by Rodon, the feral cat leader who wants to wipe out cats who worship anyone but him.',
+        runtime: 89,
+        firstBroadcast: undefined,
+        link: 'https://www.bbc.co.uk/programmes/p0fq3s31',
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0fwp8mb.jpg',
+        type: VideoType.TV
+    }));
+
+    it('special episode after series', async () => assertDetails(b0211hsl, {
+        pid: 'b0211hsl',
+        title: 'RHS Chelsea Flower Show',
+        episode: 0,
+        episodeTitle: 'Red Button Special',
+        series: 0,
+        channel: 'BBC Two',
+        category: 'Gardens',
+        description:
+        'Professor Nigel Dunnett explains his rooftop garden which celebrates \'skyrise greening\' and looks at water management in a wonderful living, outside/inside spatial experience.',
+        runtime: 20,
+        firstBroadcast: '2013-05-25T12:00:00+01:00',
+        link: 'https://www.bbc.co.uk/programmes/b0211hsl',
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p01l9ftp.jpg',
         type: VideoType.TV
     }));
 
@@ -92,22 +126,6 @@ describe('episodes', () => {
         firstBroadcast: '2020-05-22T15:45:00+01:00',
         link: 'https://www.bbc.co.uk/programmes/m000jbtq',
         thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p08d4pr0.jpg',
-        type: VideoType.TV
-    }));
-
-    it('special without broadcast date', async () => assertDetails(p0fq3s31, {
-        pid: 'p0fq3s31',
-        title: 'Red Dwarf',
-        episode: 1,
-        episodeTitle: 'The Promised Land',
-        series: 13,
-        channel: 'BBC Two',
-        category: 'Sitcoms',
-        description: 'The posse meet three cat clerics who worship Lister. They\'re being hunted by Rodon, the feral cat leader who wants to wipe out cats who worship anyone but him.',
-        runtime: 89,
-        firstBroadcast: undefined,
-        link: 'https://www.bbc.co.uk/programmes/p0fq3s31',
-        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0fwp8mb.jpg',
         type: VideoType.TV
     }));
 });

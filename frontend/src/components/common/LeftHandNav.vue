@@ -14,14 +14,14 @@
       <LeftHandNavLink label="Logout" icon="sign-out" :no-link="true" @option-clicked="logout" />
     </ul>
     <div class="floor">
-      <span v-if="globalSettings.NATIVE_SEARCH == 'false'">
-        <font-awesome-icon :icon="['fas', 'box']" />
-        get_iplayer Search
-      </span>
-      <span v-else>
-        <font-awesome-icon :icon="['fas', 'desktop']" />
-        Native Search
-      </span>
+      <div v-if="globalSettings.NATIVE_SEARCH == 'false'">
+        <font-awesome-icon :icon="['fas', 'box']" fixed-width />
+        <span>get_iplayer Search</span>
+      </div>
+      <div v-else>
+        <font-awesome-icon :icon="['fas', 'desktop']" fixed-width />
+        <span>Native Search</span>
+      </div>
     </div>
   </div>
 </template>
@@ -111,6 +111,8 @@ const handleClickOutside = (event) => {
     width: 200px;
 
     span {
+      margin-left: 0.5rem;
+      
       &:hover {
         color: @nav-link-color;
       }

@@ -87,6 +87,24 @@ describe('createNZBName', () => {
                 episode: 2
             })).resolves.toBe('Thats.a.Title.S01E02.WEBDL.1080p-BBC');
         });
+
+        it('missing series', async () => {
+            await expect(createNZBName({
+                title: synonym.target,
+                pid: '',
+                type: VideoType.TV,
+                episode: 2
+            })).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
+        });
+
+        it('missing episode', async () => {
+            await expect(createNZBName({
+                title: synonym.target,
+                pid: '',
+                type: VideoType.TV,
+                series: 1
+            })).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
+        });
     });
 
     describe('MOVIE', () => {

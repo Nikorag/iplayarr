@@ -28,8 +28,12 @@ export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails
     const qualityProfile = await getQualityProfile();
     return Handlebars.compile(template)({
         title: result.title.replaceAll(removeUnsafeCharsRegex, ''),
-        season: result.series != null ? result.series.toString().padStart(2, '0') : undefined,
-        episode: result.episode != null ? result.episode.toString().padStart(2, '0') : undefined,
+        season: result.series != null && result.episode != null
+            ? result.series.toString().padStart(2, '0')
+            : result.type == VideoType.TV ? '00' : undefined,
+        episode: result.series != null && result.episode != null
+            ? result.episode.toString().padStart(2, '0')
+            : result.type == VideoType.TV ? '00' : undefined,
         episodeTitle: result.episodeTitle?.replaceAll(removeUnsafeCharsRegex, ''),
         synonym: (synonym?.filenameOverride ?? synonym?.from)?.replaceAll(removeUnsafeCharsRegex, ''),
         quality: qualityProfile.quality

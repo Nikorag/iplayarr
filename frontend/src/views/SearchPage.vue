@@ -44,7 +44,9 @@
               {{ result.channel }}
             </span>
           </td>
-          <td class="wrap">{{ result.pubDate }}</td>
+          <td class="wrap">
+            {{ result.pubDate }}
+          </td>
           <td>
             <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" @click="immediateDownload(result)" />
           </td>

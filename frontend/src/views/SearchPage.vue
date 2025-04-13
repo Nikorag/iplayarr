@@ -9,7 +9,7 @@
           </th>
           <th>Type</th>
           <th>Title</th>
-          <th>Subtitle</th>
+          <th>Episode</th>
           <th>Filename</th>
           <th>Est. Size</th>
           <th>Channel</th>
@@ -29,10 +29,10 @@
               {{ result.type }}
             </span>
           </td>
-          <td class="clickable wrap" @click="download(result)">
+          <td class="clickable" @click="download(result)">
             {{ result.title }}
           </td>
-          <td class="clickable wrap" @click="download(result)">
+          <td class="clickable" @click="download(result)">
             {{ result.episode ? `Series ${result.series}, Episode ${result.episode}` : result.episodeTitle }}
           </td>
           <td class="clickable wrap" @click="download(result)">

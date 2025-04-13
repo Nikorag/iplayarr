@@ -87,7 +87,7 @@ watch(() => props.pid, async (newPid) => {
 const fixCasing = (str) => {
     return str
         .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map(word => word == 'TV' ? 'TV' : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 }
 </script>

@@ -13,7 +13,7 @@
           <th>Filename</th>
           <th>Est. Size</th>
           <th>Channel</th>
-          <th>Published</th>
+          <th>First Broadcast</th>
           <th>
             <font-awesome-icon :icon="['fas', 'gears']" />
           </th>

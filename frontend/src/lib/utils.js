@@ -49,6 +49,6 @@ export function getCleanSceneTitle(title) {
 }
 
 export function formatDate(dateString, dateStyle, timeStyle) {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('default', { dateStyle: dateStyle ?? 'medium', timeStyle: timeStyle ?? 'short' }).format(date);
+    const date = dateString != null ? new Date(dateString) : undefined;
+    return isNaN(date?.getTime()) ? undefined : new Intl.DateTimeFormat('en-GB', { dateStyle: dateStyle ?? 'medium', timeStyle: timeStyle ?? 'short', hour12: true }).format(date);
 }

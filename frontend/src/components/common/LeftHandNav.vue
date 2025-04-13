@@ -3,13 +3,13 @@
     <ul>
       <LeftHandNavLink label="Queue" icon="tasks" path="/queue" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Logs" icon="history" path="/logs" @option-clicked="closeLHN" />
-      <LeftHandNavLink label="Settings" icon="gears" path="/settings" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Apps" icon="laptop-code" path="/apps" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Synonyms" icon="arrows-rotate" path="/synonyms" @option-clicked="closeLHN" />
       <template v-if="globalSettings.NATIVE_SEARCH == 'false'">
         <LeftHandNavLink label="Off Schedule" icon="calendar" path="/offSchedule" @option-clicked="closeLHN" />
         <LeftHandNavLink label="Refresh Index" icon="address-book" :no-link="true" @option-clicked="refreshCache" />
       </template>
+      <LeftHandNavLink label="Settings" icon="gears" path="/settings" @option-clicked="closeLHN" />
       <LeftHandNavLink label="About" icon="circle-info" path="/about" @option-clicked="closeLHN" />
       <LeftHandNavLink label="Logout" icon="sign-out" :no-link="true" @option-clicked="logout" />
     </ul>

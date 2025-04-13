@@ -2,8 +2,8 @@
   <div class="infoBanner" :style="{ 'background-image': `url(${details.thumbnail})` }">
     <div class="infoContainer">
       <h1>{{ title }}</h1>
-      <h2 v-if="details.episodeTitle">
-        {{ details.episodeTitle }}
+      <h2 v-if="details.episodeTitle || subtitle">
+        {{ details.episodeTitle ?? subtitle }}
       </h2>
       <div v-if="details.category" class="seriesDetails">
         <span>{{ details.runtime }} Minutes</span>
@@ -61,6 +61,10 @@ const props = defineProps({
     type: {
         type: String,
         required: true
+    },
+    subtitle: {
+      type: String,
+      required: false,
     }
 });
 

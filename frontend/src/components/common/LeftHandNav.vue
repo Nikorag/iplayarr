@@ -96,19 +96,19 @@ const handleClickOutside = (event) => {
   width: 210px;
   background-color: @nav-background-color;
   color: @nav-text-color;
-  height: 100vh;
-  z-index: 3;
+  height: calc(100vh - 60px);
+  z-index: 1;
   font-size: 14px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: sticky;
+  top: 60px;
 
   .floor {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
     padding: 24px 24px;
     box-sizing: border-box;
-    width: 200px;
 
     span {
       margin-left: 0.5rem;
@@ -160,11 +160,12 @@ const handleClickOutside = (event) => {
 
 @media (max-width: @mobile-breakpoint) {
   .LeftHandNav {
-    position: absolute;
-    height: 100vh;
+    position: fixed;
+    top: 0px;
+    bottom: 0;
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
-    display: block;
+    padding-top: 60px;
   }
 
   .LeftHandNav.show {

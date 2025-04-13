@@ -188,14 +188,7 @@ const episodeCacheService = {
 
 async function createResult(term : string, details : IPlayerDetails, sizeFactor : number) : Promise<IPlayerSearchResult> {
     const size : number | undefined = details.runtime ? ((details.runtime * 60) * sizeFactor) / 100 : undefined;
-
-    const nzbName = await createNZBName(VideoType.TV, {
-        title: details.title.replaceAll(' ', '.'),
-        season: details.series ? details.series.toString().padStart(2, '0') : undefined,
-        episode: details.episode ? details.episode.toString().padStart(2, '0') : undefined,
-        episodeTitle: details.episodeTitle?.replaceAll(' ', '.')
-    });
-
+    const nzbName = await createNZBName(details);
     return {
         number: 0,
         title: details.title,

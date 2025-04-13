@@ -297,8 +297,7 @@ const iplayerService = {
                 infos = [...infos, ...chunkInfos];
             }
 
-            const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
-            return await Promise.all(infos.map((info: IPlayerDetails) => createResult(info.title, info, sizeFactor, synonymName)));
+            return await Promise.all(infos.map((info: IPlayerDetails) => createResult(info.title, info, sizeFactor, synonym)));
         } else {
             return [];
         }
@@ -361,16 +360,7 @@ const iplayerService = {
             searchProcess.on('close', async (code) => {
                 if (code === 0) {
                     for (const result of results) {
-                        const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
-    
-                        const nzbName = await createNZBName(result.type, {
-                            title: result.title.replaceAll(' ', '.'),
-                            season: result.series != null ? result.series.toString().padStart(2, '0') : undefined,
-                            episode: result.episode != null ? result.episode.toString().padStart(2, '0') : undefined,
-                            episodeTitle: result.episodeTitle?.replaceAll(' ', '.'),
-                            synonym: synonymName
-                        });
-                        result.nzbName = nzbName;
+                        result.nzbName = await createNZBName(result, synonym);
                     }
                     resolve(results);
                 } else {
@@ -425,18 +415,12 @@ function removeLastFourDigitNumber(str: string) {
     return str.replace(/\d{4}(?!.*\d{4})/, '').trim();
 }
 
-async function createResult(term: string, details: IPlayerDetails, sizeFactor: number, synonymName: string | undefined): Promise<IPlayerSearchResult> {
+async function createResult(term: string, details: IPlayerDetails, sizeFactor: number, synonym?: Synonym): Promise<IPlayerSearchResult> {
     const size: number | undefined = details.runtime ? (details.runtime * 60) * sizeFactor : undefined;
 
     const type: VideoType = details.episode != null && details.series != null ? VideoType.TV : VideoType.MOVIE;
 
-    const nzbName = await createNZBName(type, {
-        title: details.title.replaceAll(' ', '.'),
-        season: details.series != null ? details.series.toString().padStart(2, '0') : undefined,
-        episode: details.episode != null ? details.episode.toString().padStart(2, '0') : undefined,
-        episodeTitle: details.episodeTitle?.replaceAll(' ', '.'),
-        synonym: synonymName
-    });
+    const nzbName = await createNZBName(details, synonym);
 
     return {
         number: 0,

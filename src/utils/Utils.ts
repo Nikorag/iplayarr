@@ -1,12 +1,17 @@
 import * as crypto from 'crypto';
 import { Request } from 'express';
 import Handlebars from 'handlebars';
+import { IPlayerDetails } from 'src/types/IPlayerDetails';
+import { Synonym } from 'src/types/Synonym';
 
 import configService from '../service/configService';
 import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
+
+const removeDisallowedCharactersRegex = /[^a-zA-Z0-9\s\\._-]/g;
+const spacesOrDuplicateSpecialsRegex = /\s|[\s\\.\-_]{2,}/g;
 
 export function formatBytes(bytes: number, unit: boolean = true, decimals: number = 2): string {
     if (bytes === 0) return '0 Bytes';
@@ -18,11 +23,17 @@ export function formatBytes(bytes: number, unit: boolean = true, decimals: numbe
     return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + (unit ? ' ' + sizes[i] : '');
 }
 
-export async function createNZBName(type: VideoType, context: FilenameTemplateContext) {
-    context.quality = (await getQualityProfile()).quality;
-    const templateKey: IplayarrParameter = type == VideoType.MOVIE ? IplayarrParameter.MOVIE_FILENAME_TEMPLATE : IplayarrParameter.TV_FILENAME_TEMPLATE;
+export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails, synonym?: Synonym) {
+    const templateKey: IplayarrParameter = result.type == VideoType.MOVIE ? IplayarrParameter.MOVIE_FILENAME_TEMPLATE : IplayarrParameter.TV_FILENAME_TEMPLATE;
     const template = await configService.getParameter(templateKey) as string;
-    return Handlebars.compile(template)(context);
+    return Handlebars.compile(template)({
+        title: result.title.replaceAll(removeDisallowedCharactersRegex, '').replaceAll(spacesOrDuplicateSpecialsRegex, '.'),
+        season: result.series != null ? result.series.toString().padStart(2, '0') : undefined,
+        episode: result.episode != null ? result.episode.toString().padStart(2, '0') : undefined,
+        episodeTitle: result.episodeTitle?.replaceAll(removeDisallowedCharactersRegex, '').replaceAll(spacesOrDuplicateSpecialsRegex, '.'),
+        synonym: synonym ? (synonym.filenameOverride || synonym.from).replaceAll(removeDisallowedCharactersRegex, '').replaceAll(spacesOrDuplicateSpecialsRegex, '.') : undefined,
+        quality: (await getQualityProfile()).quality
+    } as FilenameTemplateContext);
 }
 
 export function getBaseUrl(req: Request): string {

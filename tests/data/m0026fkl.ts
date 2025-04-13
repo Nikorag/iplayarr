@@ -85,7 +85,7 @@ export default {
                         has_topic_page: false,
                     },
                 },
-                has_topic_page: false
+                has_topic_page: false,
             },
         ],
     },

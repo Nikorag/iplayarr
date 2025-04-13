@@ -3,41 +3,32 @@ import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResp
 export default {
     programme: {
         type: 'episode',
-        pid: 'm000jbtq',
-        position: 5,
-        image: { pid: 'p08d4pr0' },
+        pid: 'm001zr9t',
+        image: { pid: 'p0hzqtss' },
         media_type: 'audio_video',
-        title: 'Making the Most of Your Time',
+        title: 'Highlights',
         short_synopsis:
-      'Nicki Chapman and the team help you make the most of your time in your own garden.',
+      'Monty Don and Joe Swift look back at the highlights of the RHS Chelsea Flower Show 2024.',
         medium_synopsis:
-      'Nicki Chapman and the team help you make the most of your time in your own garden, including ideas for low-maintenance lawns.',
-        long_synopsis:
-      'Nicki Chapman and the team help you make the most of your time in your own garden. They reveal some beautiful flowers that are really easy to grow and some plants that need virtually no attention. There are ideas for low-maintenance lawns and border planting that takes very little effort.   We find out why spending very little time on orchids could make them even prettier and show how they can be used in a very Instagram-friendly display that needs virtually no maintenance.',
-        first_broadcast_date: '2020-05-22T15:45:00+01:00',
+      'Monty Don and Joe Swift look back at the highlights of their week at the RHS Chelsea Flower Show 2024.',
+        first_broadcast_date: '2024-05-25T20:25:00+01:00',
         display_title: {
             title: 'RHS Chelsea Flower Show',
-            subtitle: 'Your Chelsea Flower Show, Making the Most of Your Time',
+            subtitle: '2024, Highlights',
         },
         ownership: {
-            service: {
-                type: 'tv',
-                id: 'bbc_two',
-                key: 'bbctwo',
-                title: 'BBC Two',
-            },
+            service: { type: 'tv', id: 'bbc_two', key: 'bbctwo', title: 'BBC Two' },
         },
         parent: {
             programme: {
                 type: 'series',
-                pid: 'm000jbqb',
-                title: 'Your Chelsea Flower Show',
-                short_synopsis:
-          'A week of inspiring programmes from the greatest flower show in the world.',
-                image: { pid: 'p08d4rwj' },
-                expected_child_count: 5,
-                first_broadcast_date: '2020-05-18T15:45:00+01:00',
-                aggregated_episode_count: 5,
+                pid: 'm001zh3s',
+                title: '2024',
+                short_synopsis: 'Coverage of the yearly horticultural event in London',
+                position: 2024,
+                image: { pid: 'p0hxs0gh' },
+                first_broadcast_date: '2024-05-19T18:15:00+01:00',
+                aggregated_episode_count: 15,
                 ownership: {
                     service: {
                         type: 'tv',
@@ -71,18 +62,24 @@ export default {
         peers: {
             previous: {
                 type: 'episode',
-                pid: 'm000jbw4',
-                title: 'Making the Most of Your Budget',
-                first_broadcast_date: '2020-05-21T15:45:00+01:00',
-                position: 4,
+                pid: 'm001zjnt',
+                title: 'Episode 12',
+                first_broadcast_date: '2024-05-24T20:00:00+01:00',
+                media_type: 'audio_video',
+            },
+            next: {
+                type: 'episode',
+                pid: 'm001zpwf',
+                title: 'Episode 14',
+                first_broadcast_date: '2024-05-26T18:00:00+01:00',
                 media_type: 'audio_video',
             },
         },
         versions: [
             {
                 canonical: 1,
-                pid: 'm000jbtn',
-                duration: 2640,
+                pid: 'm001zr9s',
+                duration: 3540,
                 types: ['Original version'],
             },
         ],

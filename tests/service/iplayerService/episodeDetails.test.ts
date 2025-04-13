@@ -9,6 +9,8 @@ import m000jbtq from 'tests/data/m000jbtq';
 import m001kscd from 'tests/data/m001kscd';
 import m001zh3r from 'tests/data/m001zh3r';
 import m001zh50 from 'tests/data/m001zh50';
+import m001zr9t from 'tests/data/m001zr9t';
+import m002b3cb from 'tests/data/m002b3cb';
 import m0026fkl from 'tests/data/m0026fkl';
 import m0029c0g from 'tests/data/m0029c0g';
 import p00bp2rm from 'tests/data/p00bp2rm';
@@ -64,6 +66,22 @@ describe('episodes', () => {
         type: VideoType.TV
     }));
 
+    it('no series', async () => assertDetails(m002b3cb, {
+        pid: 'm002b3cb',
+        title: 'BBC News',
+        episode: 0,
+        episodeTitle: '13/04/2025',
+        series: 0,
+        channel: 'BBC News',
+        category: 'Bulletins',
+        description: 'The latest news from the BBC.',
+        runtime: 26,
+        firstBroadcast: '2025-04-13T23:00:00+01:00',
+        link: 'https://www.bbc.co.uk/programmes/m002b3cb',
+        thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0fj0528.jpg',
+        type: VideoType.TV
+    }));
+
     describe('specials', () => {
         it('with no series', async () => assertDetails(m0026fkl, {
             pid: 'm0026fkl',
@@ -81,7 +99,7 @@ describe('episodes', () => {
             type: VideoType.TV
         }));
 
-        it('in numbered series', async () => assertDetails(p0fq3s31, {
+        it('only one in series', async () => assertDetails(p0fq3s31, {
             pid: 'p0fq3s31',
             title: 'Red Dwarf',
             episode: 0,
@@ -105,15 +123,30 @@ describe('episodes', () => {
             series: 2024,
             channel: 'BBC Two',
             category: 'Gardens',
-            description:
-        'Join Sophie Raworth and Joe Swift for an exclusive first look at the Royal Horticultural Society’s Chelsea Flower Show 2024.',
+            description: 'Join Sophie Raworth and Joe Swift for an exclusive first look at the Royal Horticultural Society’s Chelsea Flower Show 2024.',
             runtime: 59,
             firstBroadcast: '2024-05-19T18:15:00+01:00',
             link: 'https://www.bbc.co.uk/programmes/m001zh3r',
             thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0hz5bjs.jpg',
             type: VideoType.TV
         }));
-    
+
+        it('episode within series', async () => assertDetails(m001zr9t, {
+            pid: 'm001zr9t',
+            title: 'RHS Chelsea Flower Show',
+            episode: 0,
+            episodeTitle: 'Highlights',
+            series: 2024,
+            channel: 'BBC Two',
+            category: 'Gardens',
+            description: 'Monty Don and Joe Swift look back at the highlights of their week at the RHS Chelsea Flower Show 2024.',
+            runtime: 59,
+            firstBroadcast: '2024-05-25T20:25:00+01:00',
+            link: 'https://www.bbc.co.uk/programmes/m001zr9t',
+            thumbnail: 'https://ichef.bbci.co.uk/images/ic/1920x1080/p0hzqtss.jpg',
+            type: VideoType.TV,
+        }));
+        
         it('episode after series', async () => assertDetails(b0211hsl, {
             pid: 'b0211hsl',
             title: 'RHS Chelsea Flower Show',

@@ -26,6 +26,7 @@ import synonymService from './synonymService';
 const progressRegex: RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
 const seriesRegex: RegExp = /: (?:Series|Season) (\d+)/
 const nativeSeriesRegex : RegExp = /^(?:(?:Series|Season) )?(\d+|[MDCLXVI]+)$/
+const episodeRegex: RegExp = /^Episode (\d+)$/
 
 const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
 
@@ -220,18 +221,18 @@ const iplayerService = {
         
         // Determine series number from the title, falling back to position values within JSON if unsuccessful
         const nativeSeriesMatch = parent?.title?.match(nativeSeriesRegex);
-        const estimatedSeries = programme.position && nativeSeriesMatch
+        const estimatedSeries = nativeSeriesMatch
             ? parseToNumber(nativeSeriesMatch[1])
             : (parent?.type == 'series' ? parent?.position ?? 0 : (parent ? 0 : undefined));
         const notSpecialOrMovie = (estimatedSeries ?? 0) > 0;
-        const afterSeriesSpecial = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count
-        const series = afterSeriesSpecial ? 0 : estimatedSeries
+        const series = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count ? 0 : estimatedSeries
         
-        // Determine episode based on position if available and not a special, otherwise assume last in series
-        const episode = notSpecialOrMovie
-            ? programme.position ?? (afterSeriesSpecial ? 0 : parent?.aggregated_episode_count)
-            : parent ? 0 : undefined;
-
+        // Determine episode from title, falling back to positions and counts if unsuccessful and not a special
+        const episodeMatch = programme.title?.match(episodeRegex);
+        const episode = episodeMatch
+            ? parseInt(episodeMatch[1])
+            : (notSpecialOrMovie ? programme.position ?? 0 : (parent ? 0 : undefined));
+            
         return {
             pid,
             title: programme.display_title?.title ?? programme.title,

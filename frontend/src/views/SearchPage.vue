@@ -20,35 +20,37 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="result of filteredResults" :key="result.pid">
+        <tr v-for="result of filteredResults" :key="result.pid" class="clickable">
           <td>
             <CheckInput v-model="result.checked" />
           </td>
-          <td>
+          <td @click="download(result)">
             <span :class="['pill', result.type]">
               {{ result.type }}
             </span>
           </td>
-          <td class="clickable" @click="download(result)">
+          <td @click="download(result)">
             {{ result.title }}
           </td>
-          <td class="clickable" @click="download(result)">
+          <td @click="download(result)">
             {{ result.episode ? `Series ${result.series}, Episode ${result.episode}` : result.episodeTitle }}
           </td>
-          <td class="clickable wrap" @click="download(result)">
+          <td class="wrap" @click="download(result)">
             {{ result.nzbName }}
           </td>
-          <td>{{ formatStorageSize(result.size) }}</td>
-          <td>
+          <td @click="download(result)">
+            {{ formatStorageSize(result.size) }}
+          </td>
+          <td @click="download(result)">
             <span :class="['pill', result.channel.replaceAll(' ', '')]">
               {{ result.channel }}
             </span>
           </td>
-          <td class="wrap">
-            {{ result.pubDate }}
+          <td @click="download(result)">
+            {{ formatDate(result.pubDate) }}
           </td>
-          <td>
-            <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" @click="immediateDownload(result)" />
+          <td @click="immediateDownload(result)">
+            <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" />
           </td>
         </tr>
       </tbody>
@@ -66,7 +68,7 @@ import LoadingIndicator from '@/components/common/LoadingIndicator.vue';
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
-import { formatStorageSize } from '@/lib/utils';
+import { formatDate, formatStorageSize } from '@/lib/utils';
 
 const route = useRoute();
 const router = useRouter();

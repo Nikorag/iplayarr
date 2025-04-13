@@ -1,6 +1,6 @@
 <template>
   <SettingsPageToolbar :icons="['download']" @download="download" />
-  <MediaInfoHero :pid="searchResult.pid" :type="searchResult.type" :title="`${searchResult.title}${searchResult.type == 'TV' ? ` - Series ${searchResult.series || 'Unknown'}, Episode ${searchResult.episode}` : ''}`" :subtitle="searchResult.episodeTitle" />
+  <MediaInfoHero :pid="searchResult.pid" :type="searchResult.type" :title="`${searchResult.title}${searchResult.series && searchResult.episode ? ` - Series ${searchResult.series}, Episode ${searchResult.episode}` : ''}`" :subtitle="searchResult.episodeTitle" />
   <div class="inner-content">
     <TextInput v-model="searchResult.nzbName" name="Filename" tooltip="Filename to Download as (extension will be added automatically)" />
   </div>

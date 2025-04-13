@@ -8,7 +8,7 @@
       <div v-if="details.category" class="seriesDetails">
         <span>{{ details.runtime }} Minutes</span>
         <span>{{ details.category }}</span>
-        <span>{{ details.firstBroadcast }}</span>
+        <span>{{ formatDate(details.firstBroadcast, 'full', 'long') }}</span>
       </div>
       <div v-if="details.category" class="seriesDetails">
         <span :class="['pill', 'grey']">
@@ -42,6 +42,7 @@
 import { computed, defineProps, inject, ref, watch } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
+import { formatDate } from '@/lib/utils';
 
 import LoadingIndicator from './LoadingIndicator.vue';
 
@@ -63,8 +64,8 @@ const props = defineProps({
         required: true
     },
     subtitle: {
-      type: String,
-      required: false,
+        type: String,
+        required: false,
     }
 });
 

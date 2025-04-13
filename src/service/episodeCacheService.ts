@@ -131,6 +131,7 @@ const episodeCacheService = {
         if (brandPid){
             const {data : {children : seriesList}} : {data : IPlayerChildrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
             const episodes = (await Promise.all(seriesList.programmes.filter(({type}) => type == 'series').map(({pid}) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+            episodes.push(...seriesList.programmes.filter(({ type, first_broadcast_date }) => type == 'episode' && first_broadcast_date != null).map(({ pid }) => pid));
 
             const chunks = splitArrayIntoChunks(episodes, 20);
             const infos : IPlayerDetails[] = await chunks.reduce(async (accPromise, chunk) => {

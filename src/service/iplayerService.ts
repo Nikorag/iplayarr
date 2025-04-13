@@ -28,7 +28,7 @@ const seriesRegex: RegExp = /: (?:Series|Season) (\d+)/
 const nativeSeriesRegex : RegExp = /^(?:(?:Series|Season) )?(\d+|[MDCLXVI]+)$/
 const episodeRegex: RegExp = /^Episode (\d+)$/
 
-const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
+const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>|:|<episode>'
 
 const searchCache: NodeCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
@@ -270,6 +270,7 @@ const iplayerService = {
             //Only get the first result from iplayer
             //for (const { id } of results) {
             if (results.length > 0){
+                console.log(results);
                 const {id} = results[0];
                 const brandPid = await episodeCacheService.findBrandForPid(id);
                 if (brandPid) {
@@ -331,10 +332,10 @@ const iplayerService = {
                 for (const line of lines) {
                     if (line.startsWith('RESULT|:|')) {
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom] = line.split('|:|');
+                        const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom, episodeTitle] = line.split('|:|');
                         const episode: number | undefined = (episodeStr == '' ? undefined : parseInt(episodeStr));
                         const [title, series] = (seriesStr == '' ? [rawTitle, undefined] : extractSeriesNumber(rawTitle, seriesStr))
-                        const type: VideoType = episode && series ? VideoType.TV : VideoType.MOVIE;
+                        const type: VideoType = series != null && episode != null ? VideoType.TV : VideoType.MOVIE;
                         const size: number | undefined = durationStr ? parseInt(durationStr) * sizeFactor : undefined;
                         results.push({
                             pid,
@@ -346,7 +347,8 @@ const iplayerService = {
                             series,
                             type,
                             size,
-                            pubDate: onlineFrom ? new Date(onlineFrom) : undefined
+                            pubDate: onlineFrom ? new Date(onlineFrom) : undefined,
+                            episodeTitle
                         });
                     }
                 }
@@ -381,7 +383,7 @@ function extractSeriesNumber(title: string, series: string): any[] {
 
 async function getIPlayerExec(): Promise<(string | RegExpMatchArray)[]> {
     const fullExec: string = await configService.getParameter(IplayarrParameter.GET_IPLAYER_EXEC) as string;
-    const args: RegExpMatchArray = fullExec.match(/(?:[^\s"]+|"[^"]*")+/g) as RegExpMatchArray;
+    const args: RegExpMatchArray = (fullExec?.match(/(?:[^\s"]+|"[^"]*")+/g) ?? ['get_iplayer']) as RegExpMatchArray ;
 
     const exec: string = args.shift() as string;
 

@@ -1,4 +1,5 @@
 import { toCamelCase } from './SharedUtils';
+import { StaticServices } from './StaticServices';
 import swaggerDef from './tsoa/swagger.json';
 
 // The expectation is that these services provide GET, POST, PUT and DELETE
@@ -98,17 +99,5 @@ export const getServiceLibrary = () => {
     }
     
 
-    return [...ServiceLibrary, 
-        {
-            name: 'auth',
-            path: 'auth',
-            microservices : {
-                '/login' : ['POST'],
-                '/logout' : ['POST'],
-                '/generateToken' : ['POST'],
-                '/resetPassword' : ['POST']
-            },
-            crud : false
-        }   
-    ];
+    return [...ServiceLibrary, ...StaticServices];
 }

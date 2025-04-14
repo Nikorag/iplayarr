@@ -6,34 +6,18 @@
 </template>
 
 <script setup>
-import { inject, ref, provide, onMounted } from 'vue';
+import { inject, ref } from 'vue';
 
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 
 import QueueTable from '../components/queue/QueueTable.vue';
 
-// const filterOptions = ref([
-//     'ALL',
-//     'COMPLETE',
-//     'IN PROGRESS',
-//     'QUEUED'
-// ]);
-// const filter = ref('ALL');
-
-const {queue} = inject('queue');
-const {history} = inject('history');
+const {queue, editQueue} = inject('queue');
+const {history, editHistory} = inject('history');
 
 const queueTable = ref(null);
-
-const apps = ref([]);
-provide('apps', apps);
-
-onMounted(async () => {
-    apps.value = (await ipFetch('json-api/apps')).data;
-});
 
 const deleteItems = async () => {
     const queueItems = queueTable.value.selectedQueue;
@@ -44,11 +28,11 @@ const deleteItems = async () => {
     const count = queueItems.length + historyItems.length;
     if (await dialogService.confirm('Remove From Queue', `Are you sure you want to remove these ${count} items?`)){
         for (const { pid } of queueItems) {
-            await ipFetch(`json-api/queue/queue?pid=${pid}`, 'DELETE');
+            await editQueue.delete(pid);
         }
 
         for (const { pid } of historyItems) {
-            await ipFetch(`json-api/queue/history?pid=${pid}`, 'DELETE');
+            await editHistory.delete(pid);
         }
     }
 }

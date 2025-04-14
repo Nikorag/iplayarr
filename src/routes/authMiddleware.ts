@@ -71,7 +71,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
 });
 
-router.get('/logout', (req, res) => {
+router.post('/logout', (req, res) => {
     req.session.destroy(() => {
         res.json({status : true});
     });
@@ -87,7 +87,7 @@ router.get('/me', (req : Request, res : Response) => {
     }
 });
 
-router.get('/generateToken', (_ : Request, res : Response) => {
+router.post('/generateToken', (_ : Request, res : Response) => {
     token = v4();
     console.log(`FORGOT PASSWORD TOKEN: ${token} This expires in 5 minutes`);
     if (resetTimer){

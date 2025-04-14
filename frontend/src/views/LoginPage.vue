@@ -10,15 +10,15 @@
             SIGN IN TO CONTINUE
           </div>
           <div class="form-group">
-            <input v-model="loginForm.username" type="email" class="form-input" placeholder="Username" @keyup.enter="login">
+            <input v-model="loginForm.username" type="email" class="form-input" placeholder="Username" @keyup.enter="attemptLogin">
           </div>
           <div class="form-group">
-            <input v-model="loginForm.password" type="password" class="form-input" placeholder="Password" @keyup.enter="login">
+            <input v-model="loginForm.password" type="password" class="form-input" placeholder="Password" @keyup.enter="attemptLogin">
           </div>
           <div class="forgot-container">
             <a href="#" @click="showForgot">Forgot your password?</a>
           </div>
-          <button type="button" class="button" @click="login">
+          <button type="button" class="button" @click="attemptLogin">
             Login
           </button>
           <div v-if="error" id="login-failed" class="login-failed">
@@ -46,11 +46,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, inject } from 'vue';
 import { useRouter } from 'vue-router';
 
 import dialogService from '@/lib/dialogService';
-import { ipFetch } from '@/lib/ipFetch';
 
 const router = useRouter();
 
@@ -66,8 +65,10 @@ const forgotForm = ref({
 const error = ref(false);
 const forgot = ref(false);
 
-const login = async () => {
-    const response = await ipFetch('auth/login', 'POST', loginForm.value);
+const {login, generateToken, resetPassword} = inject('auth');
+
+const attemptLogin = async () => {
+    const response = await login(loginForm.value);
     if (response.ok) {
         router.push('/queue');
     } else {
@@ -77,7 +78,7 @@ const login = async () => {
 
 const showForgot = async () => {
     forgot.value = true;
-    ipFetch('auth/generateToken');
+    generateToken({});
 }
 
 const hideForgot = async () => {
@@ -85,7 +86,7 @@ const hideForgot = async () => {
 }
 
 const submitForgot = async () => {
-    ipFetch('auth/resetPassword', 'POST', forgotForm.value);
+    resetPassword(forgotForm.value);
     dialogService.alert('Reset Password', 'If the code is correct, the password will be reset!');
     forgot.value = false;
 }

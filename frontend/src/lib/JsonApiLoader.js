@@ -23,27 +23,31 @@ export default (userCallback) => {
     provide('socket', socket);
 
     // Initialize REST api
-    for (const { name, path, microservices, initial } of ServiceLibrary) {
+    for (const { name, path, microservices, initial, crud } of ServiceLibrary) {
         const dataRef = ref(initial ?? []);
         const hasFetched = ref([]);
 
-        const [computedData, refreshData] = createComputedAndRefresh(hasFetched, path, dataRef);
+        const [computedData, refreshData] = 
+        crud ? 
+            createComputedAndRefresh(hasFetched, path, dataRef) :
+            [computed(() => true), () => {}]
 
         const deleteItem = async (id) => {
-            const response = await ipFetch(`json-api${path}/${id}`, 'DELETE', {});
+            alert("Deleting "+id);
+            const response = await ipFetch(`${path}/${id}`, 'DELETE', {});
             refreshData();
             return response;
         }
 
         const upsertMethod = (httpMethod, path) => {
             return async (item) => {
-                const response = await ipFetch(`json-api${path}`, httpMethod, item);
+                const response = await ipFetch(`${path}`, httpMethod, item);
                 refreshData();
                 return response;
             }
         }
 
-        const obj = {
+        const obj = crud ? {
             [name]: computedData,
             [`edit${capitalize(name, false)}`]: {
                 delete: deleteItem,
@@ -51,7 +55,7 @@ export default (userCallback) => {
                 update: upsertMethod('PUT', path)
             },
             [`refresh${capitalize(name, false)}`]: refreshData,
-        }
+        } : {};
         if (microservices) {
             for (const microserviceName of Object.keys(microservices)) {
                 const methods = microservices[microserviceName];
@@ -64,7 +68,7 @@ export default (userCallback) => {
                         const [msComputedData, msRefreshData] = msCreateComputedAndRefresh(hasFetched, `${path}${microserviceName}`, msDataRef);
                         obj[toCamelCase(microserviceName)] = msComputedData;
                         obj[toCamelCase(`refresh-${microserviceName}`)] = msRefreshData;
-                        console.log(`adding ${microserviceName} to ${name}`);
+                        console.log(`adding ${toCamelCase(microserviceName)} to ${name}`);
                     }
                 }
             }
@@ -115,10 +119,10 @@ function getMethodAction(method) {
 function msCreateComputedAndRefresh(hasFetched, path, dataRef){
     const refreshData = async (errorCallback) => {
         hasFetched.value.push(path);
-        console.log(`fetching json-api${path}`)
-        const response = await ipFetch(`json-api${path}`);
+        console.log(`fetching ${path}`)
+        const response = await ipFetch(`${path}`);
         if (response.ok) {
-            console.log(`json-api${path} - Response ${JSON.stringify(response.data, null, 2)}`);
+            console.log(`${path} - Response ${JSON.stringify(response.data, null, 2)}`);
             dataRef.value = response.data;
         } else {
             if (errorCallback) {
@@ -140,7 +144,7 @@ function msCreateComputedAndRefresh(hasFetched, path, dataRef){
 function createComputedAndRefresh(hasFetched, path, dataRef){
     const refreshData = async (errorCallback) => {
         hasFetched.value.push(path);
-        const response = await ipFetch(`json-api${path}`);
+        const response = await ipFetch(`${path}`);
         if (response.ok) {
             dataRef.value = response.data;
         } else {

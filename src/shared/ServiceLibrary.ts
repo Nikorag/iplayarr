@@ -9,7 +9,8 @@ export interface Service {
     microservices?: {
         [key: string]: ('POST' | 'PUT' | 'GET' | 'DELETE')[]
     },
-    initial?: any
+    initial?: any,
+    crud: boolean
 }
 
 
@@ -34,7 +35,8 @@ export const getServiceLibrary = () => {
                     service = {
                         name,
                         path: `/${tag}`, // You can adjust the path structure here if necessary
-                        microservices: {}
+                        microservices: {},
+                        crud : true
                     };
                     ServiceLibrary.push(service);
                 }
@@ -44,7 +46,7 @@ export const getServiceLibrary = () => {
                     service.microservices = {};
                 }
     
-                const correctedPath = path.replace(/\/json-api/g, '');
+                const correctedPath = path.replace(/\/json-api/g, 'json-api');
     
                 if (!service.microservices![correctedPath]) {
                     service.microservices![correctedPath] = [];
@@ -94,6 +96,19 @@ export const getServiceLibrary = () => {
             }
         }
     }
+    
 
-    return ServiceLibrary;
+    return [...ServiceLibrary, 
+        {
+            name: 'auth',
+            path: 'auth',
+            microservices : {
+                '/login' : ['POST'],
+                '/logout' : ['POST'],
+                '/generateToken' : ['POST'],
+                '/resetPassword' : ['POST']
+            },
+            crud : false
+        }   
+    ];
 }

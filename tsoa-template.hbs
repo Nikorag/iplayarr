@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import type { TsoaRoute } from '@tsoa/runtime';
+import type { FieldErrors, TsoaRoute } from '@tsoa/runtime';
 import {  fetchMiddlewares, ExpressTemplateService } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -109,8 +109,9 @@ export function RegisterRoutes(app: Router) {
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-            let validatedArgs: any[] = [request.body];
+            let validatedArgs: any[] = [];
             try {
+                validatedArgs = getValidatedArgs({ args: args{{../name}}_{{name}}, request, response });
 
               {{#if ../../iocModule}}
                 const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
@@ -218,3 +219,53 @@ export function RegisterRoutes(app: Router) {
 }
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+type ExpressValidationArgsParameters = {
+  args: Record<string, TsoaRoute.ParameterSchema>;
+  request: ExRequest;
+  response: ExResponse;
+};
+
+function getValidatedArgs(params: ExpressValidationArgsParameters): any[] {
+  const { args, request, response } = params;
+
+  const fieldErrors: FieldErrors = {};
+  const values = Object.values(args).map(param => {
+    const name = param.name;
+    switch (param.in) {
+      case 'request':
+        return request;
+      case 'request-prop': {
+        const descriptor = Object.getOwnPropertyDescriptor(request, name);
+        const value = descriptor ? descriptor.value : undefined;
+        return value
+      }
+      case 'query':
+        return request.query[name]
+      case 'queries':
+        return request.query
+      case 'path':
+        return request.params[name]
+      case 'header':
+        return request.header(name)
+      case 'body':
+        return request.body
+      case 'body-prop':
+        return request.body?.[name]
+      case 'formData': {
+        const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
+        if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
+          const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] } | undefined;
+
+          const fileArgs = requestFiles?.[name];
+          if (param.dataType === 'array') {
+            return fileArgs;
+          }
+          return Array.isArray(fileArgs) && fileArgs.length === 1 ? fileArgs[0] : fileArgs;
+        }
+        return request.body?.[name];
+      }
+    }
+  });
+  return values;
+}

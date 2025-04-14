@@ -40,6 +40,9 @@ const router = useRouter();
 const lhn = ref(null);
 const emit = defineEmits(['clear-search']);
 const {config} = inject('config');
+const {logout : callLogout} = inject('auth');
+
+
 
 const toggleLHN = () => {
     lhn.value.classList.toggle('show');
@@ -60,7 +63,7 @@ defineExpose({ toggleLHN });
 
 const logout = async () => {
     if (await dialogService.confirm('Logout', 'Are you sure you want to log out?')) {
-        const response = await ipFetch('auth/logout');
+        const response = await callLogout({});
         if (response.ok) {
             router.go(0);
         }

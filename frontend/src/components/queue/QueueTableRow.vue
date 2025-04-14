@@ -96,7 +96,7 @@ const deleteRow = async ({pid, status}) => {
 }
 
 const getAppForId = (id) => {
-    return apps.value.find(({ id: appId }) => id == appId);
+    return apps ? apps.value.find(({ id: appId }) => id == appId) : undefined;
 }
 
 const getDownloadIcon = ({status}) => {

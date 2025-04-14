@@ -29,6 +29,9 @@
       Tools
     </h2>
     <p>
+      <a :href="`${getHost()}/api-docs`">Api Documentation</a>
+    </p>
+    <p>
       <a href="shortcuts/Download%20With%20iPlayarr.shortcut" target="_blank">
         Add to iPlayarr iOS Shortcut
       </a>
@@ -46,6 +49,7 @@
 
 <script setup>
 import { computed, inject } from 'vue';
+import { getHost } from '../lib/utils.js';
 
 const {hiddenSettings} = inject('config');
 

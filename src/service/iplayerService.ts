@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
-import NodeCache from 'node-cache';
 import path from 'path';
 import { deromanize } from 'romans';
 
@@ -20,17 +19,17 @@ import episodeCacheService from './episodeCacheService';
 import historyService from './historyService';
 import loggingService from './loggingService';
 import queueService from './queueService';
+import RedisCacheService from './redisCacheService';
 import socketService from './socketService';
 import synonymService from './synonymService';
 
 const progressRegex: RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
 const seriesRegex: RegExp = /: (?:Series|Season) (\d+)/
-const nativeSeriesRegex : RegExp = /^(?:(?:Series|Season) )?(\d+|[MDCLXVI]+)$/
+const nativeSeriesRegex: RegExp = /^(?:(?:Series|Season) )?(\d+|[MDCLXVI]+)$/
+
+const searchCache: RedisCacheService<IPlayerSearchResult[]> = new RedisCacheService('search_cache', 300);
 
 const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>'
-
-const searchCache: NodeCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
-
 const timestampFile = 'iplayarr_timestamp';
 
 const iplayerService = {
@@ -123,11 +122,17 @@ const iplayerService = {
         const searchTerm = synonym ? synonym.target : term;
 
         //Check the cache
-        let results: IPlayerSearchResult[] | undefined = searchCache.get(searchTerm);
+        let results: IPlayerSearchResult[] | undefined = await searchCache.get(searchTerm);
         if (!results) {
-            const method : 'nativeSearch' | 'getIplayerSearch' = (searchTerm != '*' && nativeSearchEnabled == 'true' ? 'nativeSearch' : 'getIplayerSearch') 
+            const method: 'nativeSearch' | 'getIplayerSearch' = (searchTerm != '*' && nativeSearchEnabled == 'true' ? 'nativeSearch' : 'getIplayerSearch')
             results = await iplayerService[method](searchTerm, synonym);
             searchCache.set(searchTerm, results);
+        } else {
+            //Fix the results which are stored as string
+            results.forEach(result => {
+                result.pubDate = new Date((result.pubDate as unknown as string));
+            });
+
         }
 
         let returnResults: IPlayerSearchResult[] = [];
@@ -138,7 +143,7 @@ const iplayerService = {
         }
 
         //Get the out of schedule results form cache
-        if (nativeSearchEnabled == 'false'){
+        if (nativeSearchEnabled == 'false') {
             const episodeCache: IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
             for (const cachedEpisode of episodeCache) {
                 if (cachedEpisode) {
@@ -152,7 +157,7 @@ const iplayerService = {
             }
         }
 
-        return returnResults.filter(({pubDate}) => !pubDate || pubDate < new Date());
+        return returnResults.filter(({ pubDate }) => !pubDate || pubDate < new Date());
     },
 
     refreshCache: async () => {
@@ -216,7 +221,7 @@ const iplayerService = {
         const category = programme.categories ? programme.categories[0].title : '';
 
         //Get the series number, we'll override with a series name "Series X" to avoid christmas specials
-        const seriesName : string | undefined = programme.parent?.programme?.type == 'series' ? programme.parent?.programme?.title : undefined;
+        const seriesName: string | undefined = programme.parent?.programme?.type == 'series' ? programme.parent?.programme?.title : undefined;
         const seriesMatch = seriesName?.match(nativeSeriesRegex);
 
         const series = seriesMatch ? getPotentialRoman(seriesMatch[1]) : programme.parent?.programme?.position;
@@ -248,13 +253,13 @@ const iplayerService = {
         const response: AxiosResponse<IPlayerNewSearchResponse> = await axios.get(url);
         if (response.status == 200) {
             const { new_search: { results } } = response.data;
-            const brandPids : Set<string> = new Set();
-            let infos : IPlayerDetails[] = [];
+            const brandPids: Set<string> = new Set();
+            let infos: IPlayerDetails[] = [];
 
             //Only get the first result from iplayer
             //for (const { id } of results) {
-            if (results.length > 0){
-                const {id} = results[0];
+            if (results.length > 0) {
+                const { id } = results[0];
                 const brandPid = await episodeCacheService.findBrandForPid(id);
                 if (brandPid) {
                     brandPids.add(brandPid);
@@ -264,8 +269,8 @@ const iplayerService = {
                 }
             }
 
-            for (const brandPid of brandPids){
-                const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
+            for (const brandPid of brandPids) {
+                const { data: { children: seriesList } }: { data: IPlayerChilrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
                 const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
 
                 const chunks = splitArrayIntoChunks(episodes, 5);
@@ -285,7 +290,7 @@ const iplayerService = {
         }
     },
 
-    getIplayerSearch : async(term: string, synonym?: Synonym) : Promise<IPlayerSearchResult[]> => {
+    getIplayerSearch: async (term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> => {
         const { sizeFactor } = await getQualityProfile();
         return new Promise(async (resolve, reject) => {
             const results: IPlayerSearchResult[] = []
@@ -304,10 +309,10 @@ const iplayerService = {
                 (args as RegExpMatchArray).push(rssHours);
             }
             const allArgs = [...args, '--listformat', `"${listFormat}"`, ...exemptionArgs, `"${term}"`];
-    
+
             loggingService.debug(`Executing get_iplayer with args: ${allArgs.join(' ')}`);
             const searchProcess = spawn(exec as string, allArgs, { shell: true });
-    
+
             searchProcess.stdout.on('data', (data) => {
                 loggingService.debug(data.toString().trim());
                 const lines: string[] = data.toString().split('\n');
@@ -334,16 +339,16 @@ const iplayerService = {
                     }
                 }
             });
-    
+
             searchProcess.stderr.on('data', (data) => {
                 loggingService.error(data.toString().trim());
             });
-    
+
             searchProcess.on('close', async (code) => {
                 if (code === 0) {
                     for (const result of results) {
                         const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
-    
+
                         const nzbName = await createNZBName(result.type, {
                             title: result.title.replaceAll(' ', '.'),
                             season: result.series ? result.series.toString().padStart(2, '0') : undefined,
@@ -434,7 +439,7 @@ async function createResult(term: string, details: IPlayerDetails, sizeFactor: n
     }
 }
 
-function getPotentialRoman(str : string) : number {
+function getPotentialRoman(str: string): number {
     return (() => {
         try {
             return deromanize(str);

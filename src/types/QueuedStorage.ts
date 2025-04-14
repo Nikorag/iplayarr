@@ -40,7 +40,9 @@ export class QueuedStorage {
     async setItem(key: string, value: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.current = this.current.then(() => 
-                redis.set(key, JSON.stringify(value)).then(() => resolve()).catch(reject)
+                redis.set(key, JSON.stringify(value)).then(() => {
+                    redis.save().then(() => resolve()).catch(reject)
+                }).catch(reject)
             );
         });
     }
@@ -48,7 +50,9 @@ export class QueuedStorage {
     async removeItem(key: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.current = this.current.then(() => 
-                redis.del(key).then(() => resolve()).catch(reject)
+                redis.del(key).then(() => {
+                    redis.save().then(() => resolve()).catch(reject)
+                }).catch(reject)
             );
         });
     }

@@ -12,9 +12,7 @@ import iplayerService from './iplayerService';
 let lunrIndex : lunr.Index;
 
 class OffScheduleService extends AbstractStorageService<EpisodeCacheDefinition> {
-    async initStorage() : Promise<void> {
-        await super.initStorage();
-
+    async buildIndex() : Promise<void> {
         //Build the lunr index
         const allEpisodeKeys = (await this.storage.keys())
             .filter((k) => k.startsWith('offSchedule_'))
@@ -28,7 +26,7 @@ class OffScheduleService extends AbstractStorageService<EpisodeCacheDefinition> 
     }
 
     async searchCachedEpisodes(term : string) : Promise<IPlayerSearchResult[]> {
-        await this.initStorage();
+        await this.buildIndex();
         const lunrResult = lunrIndex.search(term);
         const results = await Promise.all(lunrResult.map(({ref}) => this.storage.getItem(`offSchedule_${ref}`)));
         return results.filter(res => res).map(({results}) => results).flat();
@@ -49,7 +47,7 @@ class OffScheduleService extends AbstractStorageService<EpisodeCacheDefinition> 
     }
 
     async cacheEpisodeUrl(inputUrl : string) {
-        await this.initStorage();
+        await this.buildIndex();
         const {sizeFactor} = await getQualityProfile();
 
         const url : string = removeAllQueryParams(inputUrl);

@@ -9,7 +9,6 @@ import arrService, { ArrConfig } from './arrService';
 import configService from './configService';
 import socketService from './socketService';
 
-
 class AppService extends AbstractStorageService<App> {
 
     async createUpdateIntegrations (input : App, allowCreate : boolean = true) : Promise<App> {

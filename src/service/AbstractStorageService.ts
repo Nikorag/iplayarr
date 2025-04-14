@@ -5,10 +5,6 @@ import { Entity } from '../types/models/Entity';
 import AbstractEntityService from './AbstractEntityService';
 import socketService from './socketService';
 
-const storageOptions : any = {};
-if (process.env.STORAGE_LOCATION){
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
 
 export default abstract class AbstractStorageService<T extends Entity> extends AbstractEntityService<string, T> {
     type : string;
@@ -20,13 +16,6 @@ export default abstract class AbstractStorageService<T extends Entity> extends A
         this.type = type;
         this.storage = new QueuedStorage();
         this.isStorageInitialized = false;
-    }
-
-    async initStorage() : Promise<void> {
-        if (!this.isStorageInitialized) {
-            await this.storage.init(storageOptions);
-            this.isStorageInitialized = true;
-        }
     }
 
     async getItem(id: string): Promise<T | undefined> {
@@ -71,7 +60,6 @@ export default abstract class AbstractStorageService<T extends Entity> extends A
     }
 
     async all(): Promise<T[]> {
-        await this.initStorage();
         return (await this.storage.getItem(this.type)) || [];
     }
 }

@@ -8,23 +8,11 @@ import AbstractEntityService from './AbstractEntityService';
 
 dotenv.config();
 
-let isStorageInitialized: boolean = false;
-
-const storageOptions: any = {};
-if (process.env.STORAGE_LOCATION) {
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
-
-
 export interface ConfigMap {
     [key: string]: any
 }
 
 async function getConfigMap(): Promise<ConfigMap> {
-    if (!isStorageInitialized) {
-        await storage.init(storageOptions);
-        isStorageInitialized = true;
-    }
     return (await storage.getItem('config')) || {};
 }
 

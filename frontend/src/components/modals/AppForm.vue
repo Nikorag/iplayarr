@@ -138,6 +138,7 @@ const saveApp = async () => {
     if (tagInput.value && tagInput.value != ''){
         tagInput.value.addTag();
     }
+  form.value.tags = form.value.tags.filter((tag) => tag !== '');
     const method = form.value.id ? 'update' : 'create';
     loading.value = true;
     const response = await editApps[method](form.value);

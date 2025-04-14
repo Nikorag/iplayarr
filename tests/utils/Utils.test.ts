@@ -73,8 +73,8 @@ describe('createNZBName', () => {
                 type: VideoType.TV,
                 series: 1,
                 episode: 2,
-                episodeTitle: 'We Call That... an Episode.'
-            })).resolves.toBe('Thats.a.Title.S01E02.We.Call.That.an.Episode.WEBDL.720p-BBC');
+                episodeTitle: '14/04/2025: We Call That... an Episode.'
+            })).resolves.toBe('Thats.a.Title.S01E02.14.04.2025.We.Call.That.an.Episode.WEBDL.720p-BBC');
         });
 
         it('quality', async () => {

@@ -10,7 +10,7 @@ import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
 
-const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\._-]/g;
+const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\/._-]/g;
 
 export function formatBytes(bytes: number, unit: boolean = true, decimals: number = 2): string {
     if (bytes === 0) return '0 Bytes';
@@ -27,17 +27,17 @@ export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails
     const template = await configService.getParameter(templateKey) as string;
     const qualityProfile = await getQualityProfile();
     return Handlebars.compile(template)({
-        title: result.title.replaceAll(removeUnsafeCharsRegex, ''),
+        title: result.title.trim().replaceAll(removeUnsafeCharsRegex, ''),
         season: result.series != null && result.episode != null
             ? result.series.toString().padStart(2, '0')
             : result.type == VideoType.TV ? '00' : undefined,
         episode: result.series != null && result.episode != null
             ? result.episode.toString().padStart(2, '0')
             : result.type == VideoType.TV ? '00' : undefined,
-        episodeTitle: result.episodeTitle?.replaceAll(removeUnsafeCharsRegex, ''),
-        synonym: (synonym?.filenameOverride ?? synonym?.from)?.replaceAll(removeUnsafeCharsRegex, ''),
+        episodeTitle: result.episodeTitle?.trim().replaceAll(removeUnsafeCharsRegex, ''),
+        synonym: (synonym?.filenameOverride ?? synonym?.from)?.trim().replaceAll(removeUnsafeCharsRegex, ''),
         quality: qualityProfile.quality
-    } as FilenameTemplateContext).replaceAll(/\s|[\s\\.\-_]{2,}/g, '.');
+    } as FilenameTemplateContext).replaceAll(/[\s/]|[\s\\-_]{2,}/g, '.').replaceAll(/\.{2,}/g, '.');
 }
 
 export function getBaseUrl(req: Request): string {

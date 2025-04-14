@@ -97,7 +97,6 @@ const saveConfig = async () => {
 
     loading.value = false;
     if (config.value.API_KEY != originalApiKey) {
-        alert(`${config.value.API_KEY} != ${originalApiKey}`)
         if (await dialogService.confirm('API Key Changed', 'Api Key Changed, do you want to update any relevant apps?')) {
             const formModal = useModal({
                 component: UpdateAppDialog,

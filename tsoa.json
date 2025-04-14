@@ -6,7 +6,9 @@
   ],
   "routes": {
     "routesDir": "src/tsoa",
-    "authenticationModule": "src/routes/authMiddleware.ts"
+    "authenticationModule": "src/routes/authMiddleware.ts",
+    "middleware" : "express",
+    "middlewareTemplate" : "tsoa-template.hbs"
   },
   "spec": {
     "outputDirectory": "src/shared/tsoa",

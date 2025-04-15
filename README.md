@@ -6,6 +6,8 @@ iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to in
 
 ![Build Status](https://img.shields.io/github/actions/workflow/status/nikorag/iplayarr/build.yml?logo=github)
 
+[![Coverage Status](https://coveralls.io/repos/github/Nikorag/iplayarr/badge.svg?branch=main)](https://coveralls.io/github/Nikorag/iplayarr?branch=main)
+
 ## 📸 Screenshots
 
 <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/login.png" alt="Login View" width="200" style="margin-right: 1rem; display: inline-block;">

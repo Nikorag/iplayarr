@@ -95,4 +95,38 @@ describe('Utils', () => {
             expect(name).toBe('TV - Doctor Who - 720p');
         });
     });
+
+    describe('removeLastFourDigitNumber', () => {
+        it('removes the last 4-digit number', () => {
+            expect(Utils.removeLastFourDigitNumber('Some title 2024')).toBe('Some title');
+            expect(Utils.removeLastFourDigitNumber('Another 1999 title 2022')).toBe('Another 1999 title');
+            expect(Utils.removeLastFourDigitNumber('No year here')).toBe('No year here');
+        });
+    });
+    
+    describe('extractSeriesNumber', () => {
+        it('extracts number from title using regex', () => {
+            const [title, number] = Utils.extractSeriesNumber('Doctor Who: Series 3', '1');
+            expect(title.trim()).toBe('Doctor Who');
+            expect(number).toBe(3);
+        });
+    
+        it('falls back to default series number if no match', () => {
+            const [title, number] = Utils.extractSeriesNumber('Doctor Who', '7');
+            expect(title).toBe('Doctor Who');
+            expect(number).toBe(7);
+        });
+    });
+    
+    describe('getPotentialRoman', () => {
+        it('parses valid roman numerals', () => {
+            expect(Utils.getPotentialRoman('X')).toBe(10);
+            expect(Utils.getPotentialRoman('IV')).toBe(4);
+        });
+    
+        it('falls back to integer if not roman', () => {
+            expect(Utils.getPotentialRoman('12')).toBe(12);
+            expect(Utils.getPotentialRoman('not-a-number')).toBeNaN();
+        });
+    });    
 });

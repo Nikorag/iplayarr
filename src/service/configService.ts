@@ -49,6 +49,10 @@ const configService = {
         return configMap[parameter.toString()] || process.env[parameter.toString()] || configService.defaultConfigMap[parameter.toString()];
     },
 
+    getParameters : async (...parameters : IplayarrParameter[]): Promise<(string | undefined)[]> => {
+        return await Promise.all(parameters.map(configService.getParameter));
+    },
+
     setParameter : async (parameter: IplayarrParameter, value : string) : Promise<void> => {
         const configMap = await getConfigMap();
         configMap[parameter] = value;

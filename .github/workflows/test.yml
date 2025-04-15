@@ -1,4 +1,4 @@
-name: Run Jest Tests and Coverage Report
+name: Run Jest Tests
 
 on:
   push:
@@ -7,10 +7,8 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
-  testing:
-    name: Run Jest Tests
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,12 +24,11 @@ jobs:
 
     - name: Run Jest Tests
       run: |
-        npm test -- --coverage
-      working-directory: apps/my-first-app
-
+        npm test
+  
   coverage_report:
     name: Generate Coverage Report
-    needs: testing
+    needs: test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code

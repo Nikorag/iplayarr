@@ -2,6 +2,12 @@
 
 iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to integrate **get_iplayer** for searching and downloading iPlayer content directly. It acts as both an **indexer** and a **download client**, allowing seamless automation of TV and movie downloads. 
 
+[![Discord](https://img.shields.io/discord/1359619754456907856?label=Discord&logo=discord&style=flat)](https://discord.com/channels/1359619754456907856)
+
+![Build Status](https://img.shields.io/github/actions/workflow/status/nikorag/iplayarr/build.yml?logo=github)
+
+[![Coverage Status](https://coveralls.io/repos/github/Nikorag/iplayarr/badge.svg?branch=main)](https://coveralls.io/github/Nikorag/iplayarr?branch=main)
+
 ## 📸 Screenshots
 
 <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/login.png" alt="Login View" width="200" style="margin-right: 1rem; display: inline-block;">
@@ -26,7 +32,7 @@ Unlike torrents and Usenet, iPlayarr operates in a less legally ambiguous space 
 
 ## Why Create iPlayarr?
 
-This project started as an experiment: Could I integrate iPlayer with Sonarr/Radarr in a clean, automated way?
+This project started as an experiment: Is it possible to integrate iPlayer with Sonarr/Radarr in a clean, automated way?
 
 Most existing solutions rely on torrents or Usenet, but I wanted something that could get media from a reliable source. iPlayarr functions like a personal DVR for iPlayer, making it easier to automate downloads without needing traditional PVR software.
 
@@ -112,9 +118,13 @@ The default details are:
 
 **Sonarr and Radarr link**
 
+<div style="padding: 10px; margin: 10px 0; border: 2px solid #faebcc; border-radius: 4px; background-color: #fcf8e3; color: #8a6d3b;"> 
+  <strong>Info:</strong> The best way to add iPlayarr to Sonarr or Radarr is to use the "Apps" section of the web UI in iPlayarr
+</div>
+
 iPlayarr presents itself as both an indexer and a download client on port 4404. You can configure it automatically in the Settings menu or manually as follows:
 
-**Add iPlayarr as a Download Client**
+**Add iPlayarr manually as a Download Client**
 
 1. Go to Settings > Download Clients in Sonarr/Radarr.
 2. Add a new SABnzbd client with the following details:
@@ -129,7 +139,7 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 
 3. Test and save.
 
-**Add iPlayarr as an Indexer**
+**Add iPlayarr manually as an Indexer**
 
 1. Go to Settings > Indexers in Sonarr/Radarr.
 2. Add a new Newznab indexer with these settings:

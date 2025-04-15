@@ -13,23 +13,8 @@ import socketService from './socketService';
 
 const storage : QueuedStorage = new QueuedStorage();
 
-let isStorageInitialized : boolean = false;
-
-const storageOptions : any = {};
-if (process.env.STORAGE_LOCATION){
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
-
-const appService = {
-    initStorage : async () : Promise<void> => {
-        if (!isStorageInitialized) {
-            await storage.init(storageOptions);
-            isStorageInitialized = true;
-        }
-    },
-    
+const appService = {    
     getAllApps : async () : Promise<App[]> => {
-        await appService.initStorage();
         return (await storage.getItem('apps')) || [];
     },
 

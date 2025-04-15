@@ -141,6 +141,7 @@ const saveApp = async () => {
     if (tagInput.value && tagInput.value != ''){
         tagInput.value.addTag();
     }
+    form.value.tags = form.value.tags.filter((tag) => tag !== '');
     const method = form.value.id ? 'PUT' : 'POST';
     loading.value = true;
     const response = await ipFetch('json-api/apps', method, form.value);

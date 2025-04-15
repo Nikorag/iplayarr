@@ -1,18 +1,12 @@
 import dotenv from 'dotenv'
 
-import { QueuedStorage } from '../types/QueuedStorage'
-const storage : QueuedStorage = new QueuedStorage();
-
 import { IplayarrParameter } from '../types/IplayarrParameters';
+import { QueuedStorage } from '../types/QueuedStorage'
+
 
 dotenv.config();
 
-let isStorageInitialized : boolean = false;
-
-const storageOptions : any = {};
-if (process.env.STORAGE_LOCATION){
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
+const storage : QueuedStorage = new QueuedStorage();
 
 
 export interface ConfigMap {
@@ -20,10 +14,6 @@ export interface ConfigMap {
 }
 
 async function getConfigMap() : Promise<ConfigMap> {
-    if (!isStorageInitialized) {
-        await storage.init(storageOptions);
-        isStorageInitialized = true;
-    }
     return (await storage.getItem('config')) || {};
 }
 
@@ -59,6 +49,10 @@ const configService = {
         return configMap[parameter.toString()] || process.env[parameter.toString()] || configService.defaultConfigMap[parameter.toString()];
     },
 
+    getParameters : async (...parameters : IplayarrParameter[]): Promise<(string | undefined)[]> => {
+        return await Promise.all(parameters.map(configService.getParameter));
+    },
+
     setParameter : async (parameter: IplayarrParameter, value : string) : Promise<void> => {
         const configMap = await getConfigMap();
         configMap[parameter] = value;
@@ -69,10 +63,6 @@ const configService = {
         const configMap = await getConfigMap();
         delete configMap[parameter];
         await storage.setItem('config', configMap);
-    },
-
-    resetConfigService : () => {
-        isStorageInitialized = false;
     }
 }
 

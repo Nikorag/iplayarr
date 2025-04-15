@@ -12,24 +12,12 @@ import iplayerService from './iplayerService';
 
 
 const storage : QueuedStorage = new QueuedStorage();
-
 let lunrIndex : lunr.Index;
-
-let isStorageInitialized : boolean = false;
-const storageOptions : any = {};
-if (process.env.STORAGE_LOCATION){
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
 
 const PID_REGEX = /\/([a-z0-9]{8})(?:\/|$)/
 
 const episodeCacheService = {
-    initStorage : async () : Promise<void> => {
-        if (!isStorageInitialized) {
-            await storage.init(storageOptions);
-            isStorageInitialized = true;
-        }
-
+    buildIndex : async () : Promise<void> => {
         const allEpisodeKeys = (await storage.keys())
             .filter((k) => k.startsWith('offSchedule_'))
             .map((k) => k.split('offSchedule_')[1]);
@@ -44,27 +32,27 @@ const episodeCacheService = {
     },
 
     getEpisodeCache : async (term : string) : Promise<IPlayerSearchResult[]> => {
-        await episodeCacheService.initStorage();
+        await episodeCacheService.buildIndex();
         const result = (await storage.getItem(term))?.results || [];
         return result.map((sr : any) => ({...sr, pubDate : new Date(sr.pubDate)}));
     },
 
     searchEpisodeCache : async (term : string) : Promise<IPlayerSearchResult[]> => {
-        await episodeCacheService.initStorage();
+        await episodeCacheService.buildIndex();
         const lunrResult = lunrIndex.search(term);
         const results = await Promise.all(lunrResult.map(({ref}) => storage.getItem(`offSchedule_${ref}`)));
         return results.filter(res => res).map(({results}) => results).flat();
     },
 
     getEpisodeCacheForUrl : async (url : string) : Promise<IPlayerSearchResult[]> => {
-        await episodeCacheService.initStorage();
+        await episodeCacheService.buildIndex();
         const allStorage = await storage.values();
         const episodeCache = allStorage.find((item) => item.url && item.url == url);
         return episodeCache?.results || [];
     },
 
     getCachedSeries : async () : Promise<EpisodeCacheDefinition[]> => {
-        await episodeCacheService.initStorage();
+        await episodeCacheService.buildIndex();
         return (await storage.getItem('series-cache-definition')) || [];
     },
 
@@ -122,7 +110,7 @@ const episodeCacheService = {
     },
 
     cacheEpisodesForUrl : async (inputUrl : string) : Promise<boolean> => {
-        await episodeCacheService.initStorage();
+        await episodeCacheService.buildIndex();
         const {sizeFactor} = await getQualityProfile();
 
         const url = removeAllQueryParams(inputUrl);

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { Builder } from 'xml2js'
 
-import iplayerService from '../../service/iplayerService';
 import searchHistoryService from '../../service/searchHistoryService';
+import searchService from '../../service/searchService';
 import { IPlayerSearchResult, VideoType } from '../../types/IPlayerSearchResult';
 import { NewzNabAttr,NewzNabSearchResponse } from '../../types/responses/newznab/NewzNabSearchResponse';
 import { SearchHistoryEntry } from '../../types/SearchHistoryEntry';
@@ -20,7 +20,7 @@ export default async (req : Request, res : Response) => {
     const {q, season, ep, cat : catList, app} = req.query as any as SearchRequest;
     const cat : string[] | undefined = catList ? catList.split(',') : undefined;
     const searchTerm = q ?? '*';
-    let results : IPlayerSearchResult[] = await iplayerService.search(searchTerm, season, ep);
+    let results : IPlayerSearchResult[] = await searchService.search(searchTerm, season, ep);
     
     if (cat){
         results = results.filter(({type}) => categoriesForType(type).some(category => cat.includes(category)));

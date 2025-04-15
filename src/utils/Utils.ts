@@ -1,14 +1,17 @@
 import * as crypto from 'crypto';
 import { Request } from 'express';
 import Handlebars from 'handlebars';
+import { deromanize } from 'romans';
 import { IPlayerDetails } from 'src/types/IPlayerDetails';
 import { Synonym } from 'src/types/Synonym';
 
+import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
 import configService from '../service/configService';
 import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
+import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
 
 const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\/._-]/g;
 
@@ -70,3 +73,50 @@ export function splitArrayIntoChunks(arr: any[], chunkSize: number) {
     }
     return chunks;
 } 
+
+export function removeLastFourDigitNumber(str: string) {
+    return str.replace(/\d{4}(?!.*\d{4})/, '').trim();
+}
+
+export function parseEpisodeDetailStrings(title: string, episode?: string, series?: string): [title: string, episode?: number, series?: number] {
+    const episodeNum = parseInt(episode ?? '')
+    const seriesMatch = getIplayerSeriesRegex.exec(title);
+    const seriesNum = parseInt(seriesMatch ? seriesMatch[1] : series ?? '')
+    return [title.replace(getIplayerSeriesRegex, '').split(': ')[0], isNaN(episodeNum) ? undefined : episodeNum, isNaN(seriesNum) ? undefined : seriesNum];
+}
+
+export function getPotentialRoman(str: string): number {
+    return (() => {
+        try {
+            return deromanize(str);
+        } catch {
+            return parseInt(str);
+        }
+    })()
+}
+
+export function calculateSeasonAndEpisode(programme: IPlayerProgramMetadata) : [ type: VideoType, episode?: number, episodeTitle?: string, series?: number ] {
+    const parent = programme.parent?.programme;
+
+    // Determine series number from the title, falling back to position values within JSON if unsuccessful
+    const nativeSeriesMatch = parent?.title?.match(nativeSeriesRegex);
+    const estimatedSeries = nativeSeriesMatch
+        ? getPotentialRoman(nativeSeriesMatch[1])
+        : (parent?.type == 'series' ? parent?.position ?? 0 : (parent ? 0 : undefined));
+    const notSpecialOrMovie = (estimatedSeries ?? 0) > 0;
+    const series = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count ? 0 : estimatedSeries;
+
+    // Determine episode from title, falling back to positions and counts if unsuccessful and not a special
+    const episodeMatch = programme.title?.match(episodeRegex);
+    const episode = episodeMatch
+        ? parseInt(episodeMatch[1])
+        : (notSpecialOrMovie ? programme.position ?? 0 : (parent ? 0 : undefined));
+
+    // Determine episode title if not a movie
+    const episodeTitle = episode != null
+        ? (notSpecialOrMovie ? programme.title : programme.display_title?.subtitle)
+        : undefined;
+
+    const type = series != null && episode != null ? VideoType.TV : VideoType.MOVIE;
+    return [ type, episode, episodeTitle, series ];
+}

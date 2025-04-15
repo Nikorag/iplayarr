@@ -2,16 +2,9 @@ import { v4 } from 'uuid';
 
 import { QueuedStorage } from '../types/QueuedStorage'
 import { Synonym } from '../types/Synonym';
-import iplayerService from './iplayerService';
+import searchService from './searchService';
 
 const storage : QueuedStorage = new QueuedStorage();
-let isStorageInitialized : boolean = false;
-
-const storageOptions : any = {};
-if (process.env.STORAGE_LOCATION){
-    storageOptions.dir = process.env.STORAGE_LOCATION;
-}
-
 
 const synonymService = {
     getSynonym : async (inputTerm : string) : Promise<Synonym | undefined> => {
@@ -22,10 +15,6 @@ const synonymService = {
     },
 
     getAllSynonyms : async () : Promise<Synonym[]> => {
-        if (!isStorageInitialized) {
-            await storage.init(storageOptions);
-            isStorageInitialized = true;
-        }
         return (await storage.getItem('synonyms')) || [];
     },
 
@@ -37,7 +26,7 @@ const synonymService = {
         const allSynonyms = await synonymService.getAllSynonyms();
         allSynonyms.push(synonym);
         await storage.setItem('synonyms', allSynonyms);
-        iplayerService.removeFromSearchCache(synonym.target);
+        searchService.removeFromSearchCache(synonym.target);
     },
 
     updateSynonym : async (synonym : Synonym) : Promise<void> => {
@@ -45,7 +34,7 @@ const synonymService = {
         const allSynonyms = await synonymService.getAllSynonyms();
         allSynonyms.push(synonym);
         await storage.setItem('synonyms', allSynonyms);
-        iplayerService.removeFromSearchCache(synonym.target);
+        searchService.removeFromSearchCache(synonym.target);
     },
 
     removeSynonym : async (id : string) : Promise<void> => {
@@ -54,7 +43,7 @@ const synonymService = {
         if (foundSynonym){
             allSynonyms = allSynonyms.filter(({id : savedId}) => savedId != id);
             await storage.setItem('synonyms', allSynonyms);
-            iplayerService.removeFromSearchCache(foundSynonym.target);
+            searchService.removeFromSearchCache(foundSynonym.target);
         }
     }
 }

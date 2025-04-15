@@ -1,164 +1,51 @@
-import axios, { AxiosResponse } from 'axios';
 import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
-import NodeCache from 'node-cache';
 import path from 'path';
-import { deromanize } from 'romans';
 
+import { episodeRegex, nativeSeriesRegex, timestampFile } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
-import { LogLine, LogLineLevel } from '../types/LogLine';
-import { QueueEntry } from '../types/QueueEntry';
-import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
-import { IPlayerChildrenResponse, IPlayerProgramMetadata } from '../types/responses/IPlayerMetadataResponse';
+import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { Synonym } from '../types/Synonym';
-import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../utils/Utils';
+import { calculateSeasonAndEpisode, getPotentialRoman, getQualityProfile } from '../utils/Utils';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';
-import historyService from './historyService';
+import getIplayerExecutableService from './getIplayerExecutableService';
 import loggingService from './loggingService';
 import queueService from './queueService';
-import socketService from './socketService';
-import synonymService from './synonymService';
-
-const progressRegex: RegExp = /([\d.]+)% of ~?([\d.]+ [A-Z]+) @[ ]+([\d.]+ [A-Za-z]+\/s) ETA: ([\d:]+).*video\]$/;
-const seriesRegex: RegExp = /: (?:Series|Season) (\d+)/
-const nativeSeriesRegex : RegExp = /^(?:(?:Series|Season) )?(\d+|[MDCLXVI]+)$/
-const episodeRegex: RegExp = /^Episode (\d+)$/
-
-const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>|:|<episode>|:|'
-
-const searchCache: NodeCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
-
-const timestampFile = 'iplayarr_timestamp';
 
 const iplayerService = {
-    download: async (pid: string): Promise<ChildProcess> => {
-        const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
-        const completeDir = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
-
-        const [exec, args] = await getIPlayerExec();
-        const additionalParams: string[] = await getAddDownloadParams();
+    createPidDirectory: async (pid : string): Promise<void> => {
+        const downloadDir : string = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
         fs.mkdirSync(`${downloadDir}/${pid}`, { recursive: true });
         fs.writeFileSync(`${downloadDir}/${pid}/${timestampFile}`, '');
-        const allArgs = [...args, ...additionalParams, await getQualityParam(), '--output', `${downloadDir}/${pid}`, '--overwrite', '--force', '--log-progress', `--pid=${pid}`];
+    },
 
-        loggingService.debug(`Executing get_iplayer with args: ${allArgs.join(' ')}`);
-        const downloadProcess = spawn(exec as string, allArgs);
+    download: async (pid: string): Promise<ChildProcess> => {
+        const {exec, args} = await getIplayerExecutableService.getAllDownloadParameters(pid);
+
+        await iplayerService.createPidDirectory(pid);
+        loggingService.debug(`Executing get_iplayer with args: ${args.join(' ')}`);
+        const downloadProcess = spawn(exec, args);
 
         downloadProcess.stdout.on('data', (data) => {
             if (queueService.getFromQueue(pid)) {
-                const logLine: LogLine = { level: LogLineLevel.INFO, id: pid, message: data.toString(), timestamp: new Date() }
-                socketService.emit('log', logLine);
-                console.log(data.toString());
-                const lines: string[] = data.toString().split('\n');
-                const progressLines: string[] = lines.filter((l) => progressRegex.exec(l));
-                if (progressLines.length > 0) {
-                    const progressLine: string = progressLines.pop() as string;
-                    const match = progressRegex.exec(progressLine);
-                    if (match) {
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const [_, progress, size, speed, eta] = match;
-                        const percentFactor = (100 - parseFloat(progress)) / 100;
-                        const sizeLeft = parseFloat(size) * percentFactor;
-
-                        const deltaDetails: Partial<DownloadDetails> = {
-                            uuid: pid,
-                            progress: parseFloat(progress),
-                            size: parseFloat(size),
-                            speed: parseFloat(speed),
-                            eta,
-                            sizeLeft
-                        }
-
-                        queueService.updateQueue(pid, deltaDetails);
-                    }
+                getIplayerExecutableService.logProgress(pid, data);
+                const downloadDetails : DownloadDetails | undefined = getIplayerExecutableService.parseProgress(pid, data);
+                if (downloadDetails){
+                    queueService.updateQueue(pid, downloadDetails);
                 }
             }
         });
 
-        downloadProcess.on('close', async (code) => {
-            if (code === 0) {
-                const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
-                if (queueItem) {
-                    try {
-                        const uuidPath = path.join(downloadDir, pid);
-                        loggingService.debug(pid, `Looking for MP4 files in ${uuidPath}`);
-                        const files = fs.readdirSync(uuidPath);
-                        const mp4File = files.find(file => file.endsWith('.mp4'));
-
-                        if (mp4File) {
-                            const oldPath = path.join(uuidPath, mp4File);
-                            loggingService.debug(pid, `Found MP4 file ${oldPath}`);
-                            const newPath = path.join(completeDir, `${queueItem?.nzbName}.mp4`);
-                            loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
-
-                            fs.copyFileSync(oldPath, newPath);
-                        }
-
-                        // Delete the uuid directory and file after moving it
-                        loggingService.debug(pid, `Deleting old directory ${uuidPath}`);
-                        fs.rmSync(uuidPath, { recursive: true, force: true });
-
-                        await historyService.addHistory(queueItem);
-                    } catch (err) {
-                        loggingService.error(err);
-                    }
-                }
-            }
-            queueService.removeFromQueue(pid);
-        });
+        downloadProcess.on('close', (code) => getIplayerExecutableService.processCompletedDownload(pid, code));
 
         return downloadProcess;
     },
 
-    search: async (inputTerm: string, season?: number, episode?: number): Promise<IPlayerSearchResult[]> => {
-        const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
-
-        //Sanitize the term, BBC don't put years on their movies
-        const term = !season ? removeLastFourDigitNumber(inputTerm) : inputTerm;
-
-        const synonym = await synonymService.getSynonym(inputTerm);
-        const searchTerm = synonym ? synonym.target : term;
-
-        //Check the cache
-        let results: IPlayerSearchResult[] | undefined = searchCache.get(searchTerm);
-        if (!results) {
-            const method : 'nativeSearch' | 'getIplayerSearch' = (searchTerm != '*' && nativeSearchEnabled == 'true' ? 'nativeSearch' : 'getIplayerSearch') 
-            results = await iplayerService[method](searchTerm, synonym);
-            searchCache.set(searchTerm, results);
-        }
-
-        let returnResults: IPlayerSearchResult[] = [];
-        if (season != null && episode != null) {
-            returnResults = results.filter((result) => result.series == season && result.episode == episode);
-        } else {
-            returnResults = results;
-        }
-
-        //Get the out of schedule results form cache
-        if (nativeSearchEnabled == 'false'){
-            const episodeCache: IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
-            for (const cachedEpisode of episodeCache) {
-                if (cachedEpisode) {
-                    const exists = returnResults.some(({ pid }) => pid == cachedEpisode.pid);
-                    const validSeason = season ? cachedEpisode.series == season : true;
-                    const validEpisode = episode ? cachedEpisode.episode == episode : true;
-                    if (!exists && validSeason && validEpisode) {
-                        returnResults.push({ ...cachedEpisode, pubDate: cachedEpisode.pubDate ? new Date(cachedEpisode.pubDate) : undefined });
-                    }
-                }
-            }
-        }
-
-        return returnResults.filter(({pubDate}) => !pubDate || pubDate < new Date());
-    },
-
     refreshCache: async () => {
-        const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
-        const [exec, args] = await getIPlayerExec();
+        const {exec, args} = await getIplayerExecutableService.getIPlayerExec();
 
         //Refresh the cache
         loggingService.debug(`Executing get_iplayer with args: ${[...args].join(' ')} --cache-rebuild`);
@@ -173,6 +60,11 @@ const iplayerService = {
         });
 
         //Delete failed jobs
+        iplayerService.cleanupFailedDownloads();
+    },
+
+    cleanupFailedDownloads: async() : Promise<void> => {
+        const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
         const threeHoursAgo: number = Date.now() - 3 * 60 * 60 * 1000;
         fs.readdir(downloadDir, { withFileTypes: true }, (err, entries) => {
             if (err) {
@@ -231,131 +123,28 @@ const iplayerService = {
         };
     },
 
-    removeFromSearchCache: (term: string) => {
-        searchCache.del(term);
-    },
-
-    nativeSearch: async (term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> => {
-        const { sizeFactor } = await getQualityProfile();
-
-        const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(synonym?.target ?? term)}`;
-
-        const response: AxiosResponse<IPlayerNewSearchResponse> = await axios.get(url);
-        if (response.status == 200) {
-            const { new_search: { results } } = response.data;
-            const brandPids : Set<string> = new Set();
-            let infos : IPlayerDetails[] = [];
-
-            //Only get the first result from iplayer
-            //for (const { id } of results) {
-            if (results.length > 0){
-                const {id} = results[0];
-                const brandPid = await episodeCacheService.findBrandForPid(id);
-                if (brandPid) {
-                    brandPids.add(brandPid);
-                } else {
-                    const pidInfos = await iplayerService.details([id]);
-                    infos = [...infos, ...pidInfos];
-                }
-            }
-
-            for (const brandPid of brandPids){
-                const {data : {children : seriesList}} : {data : IPlayerChildrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
-                const episodes = (await Promise.all(seriesList.programmes.filter(({ type }) => type == 'series').map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid))))
-                    .flat();
-                episodes.push(...seriesList.programmes.filter(({ type, first_broadcast_date }) => type == 'episode' && first_broadcast_date != null).map(({ pid }) => pid));
-                
-                const chunks = splitArrayIntoChunks(episodes, 5);
-                const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
-                    const acc = await accPromise; // Ensure previous results are awaited
-                    const results: IPlayerDetails[] = await iplayerService.details(chunk);
-                    return [...acc, ...results];
-                }, Promise.resolve([])); // Initialize accumulator as a resolved Promise
-
-                infos = [...infos, ...chunkInfos];
-            }
-
-            return await Promise.all(infos.map((info: IPlayerDetails) => createResult(info.title, info, sizeFactor, synonym)));
-        } else {
-            return [];
-        }
-    },
-
-    getIplayerSearch : async(term: string, synonym?: Synonym) : Promise<IPlayerSearchResult[]> => {
+    performSearch: async (term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> => {
         const { sizeFactor } = await getQualityProfile();
         return new Promise(async (resolve, reject) => {
             const results: IPlayerSearchResult[] = []
-            const [exec, args] = await getIPlayerExec();
-            const exemptionArgs: string[] = [];
-            if (synonym && synonym.exemptions) {
-                const exemptions = synonym.exemptions.split(',');
-                for (const exemption of exemptions) {
-                    exemptionArgs.push('--exclude');
-                    exemptionArgs.push(`"${exemption}"`);
-                }
-            }
-            if (term == '*') {
-                const rssHours: string = (await configService.getParameter(IplayarrParameter.RSS_FEED_HOURS)) as string;
-                (args as RegExpMatchArray).push('--available-since');
-                (args as RegExpMatchArray).push(rssHours);
-            }
-            const allArgs = [...args, '--listformat', `"${listFormat}"`, ...exemptionArgs, `"${term}"`];
-    
-            loggingService.debug(`Executing get_iplayer with args: ${allArgs.join(' ')}`);
-            const searchProcess = spawn(exec as string, allArgs, { shell: true });
-    
+            const {exec, args} = await getIplayerExecutableService.getSearchParameters(term, synonym);
+
+            loggingService.debug(`Executing get_iplayer with args: ${args.join(' ')}`);
+            const searchProcess = spawn(exec as string, args, { shell: true });
+
             searchProcess.stdout.on('data', (data) => {
                 loggingService.debug(data.toString().trim());
-                const lines: string[] = data.toString().split('\n');
-                for (const line of lines) {
-                    if (line.startsWith('RESULT|:|')) {
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom, epTitle] = line.split('|:|');
-                        const [ title, episodeNum, seriesNum ] = parseEpisodeDetailStrings(rawTitle, episodeStr, seriesStr)
-                        const [ type, episode, episodeTitle, series ] = calculateSeasonAndEpisode({
-                            type: 'episode',
-                            pid,
-                            title: episodeNum != null || epTitle != '' ? epTitle : title,
-                            position: episodeNum,
-                            display_title: {
-                                title,
-                                subtitle: epTitle,
-                            },
-                            parent: episodeNum != null || epTitle != '' ? {
-                                programme: {
-                                    type: 'series',
-                                    position: seriesNum
-                                }
-                            } : undefined
-                        } as IPlayerProgramMetadata);
-                        const size: number | undefined = durationStr ? parseInt(durationStr) * sizeFactor : undefined;
-                        results.push({
-                            pid,
-                            title,
-                            channel,
-                            number: parseInt(number),
-                            request: { term, line },
-                            episode,
-                            series,
-                            type,
-                            size,
-                            pubDate: onlineFrom ? new Date(onlineFrom) : undefined,
-                            episodeTitle
-                        });
-                    }
-                }
+                const chunkResults : IPlayerSearchResult[] = getIplayerExecutableService.parseResults(term, data, sizeFactor);
+                chunkResults.forEach((chunk) => results.push(chunk));
             });
-    
+
             searchProcess.stderr.on('data', (data) => {
                 loggingService.error(data.toString().trim());
             });
-    
+
             searchProcess.on('close', async (code) => {
                 if (code === 0) {
-                    for (const result of results) {
-                        result.nzbName = await createNZBName(result, synonym);
-                    }
-                    resolve(results);
+                    resolve((await getIplayerExecutableService.processCompletedSearch(results, synonym)));
                 } else {
                     reject(new Error(`Process exited with code ${code}`));
                 }
@@ -364,111 +153,4 @@ const iplayerService = {
     }
 }
 
-function parseEpisodeDetailStrings(title: string, episode?: string, series?: string): [title: string, episode?: number, series?: number] {
-    const episodeNum = parseInt(episode ?? '')
-    const seriesMatch = seriesRegex.exec(title);
-    const seriesNum = parseInt(seriesMatch ? seriesMatch[1] : series ?? '')
-    return [title.replace(seriesRegex, '').split(': ')[0], isNaN(episodeNum) ? undefined : episodeNum, isNaN(seriesNum) ? undefined : seriesNum];
-}
-
-async function getIPlayerExec(): Promise<(string | RegExpMatchArray)[]> {
-    const fullExec: string = await configService.getParameter(IplayarrParameter.GET_IPLAYER_EXEC) as string;
-    const args: RegExpMatchArray = (fullExec?.match(/(?:[^\s"]+|"[^"]*")+/g) ?? ['get_iplayer']) as RegExpMatchArray ;
-
-    const exec: string = args.shift() as string;
-    args.push('--encoding-console-out');
-    args.push('UTF-8')
-
-    const cacheLocation = process.env.CACHE_LOCATION;
-    if (cacheLocation) {
-        args.push('--profile-dir');
-        args.push(`"${cacheLocation}"`);
-    }
-    
-    return [exec, args];
-}
-
-async function getQualityParam(): Promise<string> {
-    const videoQuality = await configService.getParameter(IplayarrParameter.VIDEO_QUALITY) as string;
-
-    return `--tv-quality=${videoQuality}`;
-}
-
-async function getAddDownloadParams(): Promise<string[]> {
-    const additionalParams = await configService.getParameter(IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS);
-
-    if (additionalParams) {
-        return additionalParams.split(' ');
-    } else {
-        return [];
-    }
-}
-
-function removeLastFourDigitNumber(str: string) {
-    return str.replace(/\d{4}(?!.*\d{4})/, '').trim();
-}
-
-async function createResult(term: string, details: IPlayerDetails, sizeFactor: number, synonym?: Synonym): Promise<IPlayerSearchResult> {
-    const size: number | undefined = details.runtime ? (details.runtime * 60) * sizeFactor : undefined;
-
-    const type: VideoType = details.episode != null && details.series != null ? VideoType.TV : VideoType.MOVIE;
-
-    const nzbName = await createNZBName(details, synonym);
-
-    return {
-        number: 0,
-        title: details.title,
-        channel: details.channel || '',
-        pid: details.pid,
-        request: {
-            term,
-            line: term
-        },
-        episode: details.episode,
-        episodeTitle: details.episodeTitle,
-        pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
-        series: details.series,
-        type,
-        size,
-        nzbName
-    }
-}
-
-function parseToNumber(str : string) : number {
-    return (() => {
-        try {
-            return deromanize(str);
-        } catch {
-            return parseInt(str);
-        }
-    })()
-}
-
-function calculateSeasonAndEpisode(programme: IPlayerProgramMetadata) : [ type: VideoType, episode?: number, episodeTitle?: string, series?: number ] {
-    const parent = programme.parent?.programme;
-
-    // Determine series number from the title, falling back to position values within JSON if unsuccessful
-    const nativeSeriesMatch = parent?.title?.match(nativeSeriesRegex);
-    const estimatedSeries = nativeSeriesMatch
-        ? parseToNumber(nativeSeriesMatch[1])
-        : (parent?.type == 'series' ? parent?.position ?? 0 : (parent ? 0 : undefined));
-    const notSpecialOrMovie = (estimatedSeries ?? 0) > 0;
-    const series = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count ? 0 : estimatedSeries;
-
-    // Determine episode from title, falling back to positions and counts if unsuccessful and not a special
-    const episodeMatch = programme.title?.match(episodeRegex);
-    const episode = episodeMatch
-        ? parseInt(episodeMatch[1])
-        : (notSpecialOrMovie ? programme.position ?? 0 : (parent ? 0 : undefined));
-
-    // Determine episode title if not a movie
-    const episodeTitle = episode != null
-        ? (notSpecialOrMovie ? programme.title : programme.display_title?.subtitle)
-        : undefined;
-
-    const type = series != null && episode != null ? VideoType.TV : VideoType.MOVIE;
-    return [ type, episode, episodeTitle, series ];
-}
-
 export default iplayerService;
-

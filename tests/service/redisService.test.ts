@@ -61,6 +61,8 @@ describe('Redis Client Initialization', () => {
     it('should enable TLS if REDIS_SSL is true', async () => {
         process.env.REDIS_SSL = 'true';
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { redis } = await import('../../src/service/redisService');
         const Redis = (await import('ioredis')).default;
 
         expect(Redis).toHaveBeenCalledWith(expect.objectContaining({ tls: {} }));
@@ -70,6 +72,8 @@ describe('Redis Client Initialization', () => {
         process.env.REDIS_PASSWORD = 'secret';
         process.env.REDIS_SSL = 'false';
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { redis } = await import('../../src/service/redisService');
         const Redis = (await import('ioredis')).default;
 
         expect(Redis).toHaveBeenCalledWith(expect.objectContaining({

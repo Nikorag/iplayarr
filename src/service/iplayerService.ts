@@ -12,7 +12,7 @@ import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
 import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
-import { IPlayerChildrenResponse } from '../types/responses/IPlayerMetadataResponse';
+import { IPlayerChildrenResponse, IPlayerProgramMetadata } from '../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../types/Synonym';
 import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
@@ -28,7 +28,7 @@ const seriesRegex: RegExp = /: (?:Series|Season) (\d+)/
 const nativeSeriesRegex : RegExp = /^(?:(?:Series|Season) )?(\d+|[MDCLXVI]+)$/
 const episodeRegex: RegExp = /^Episode (\d+)$/
 
-const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>|:|<episode>'
+const listFormat: string = 'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>|:|<episode>|:|'
 
 const searchCache: NodeCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
@@ -217,29 +217,13 @@ const iplayerService = {
         const runtime = programme.versions?.length ? programme.versions[0].duration / 60 : 0;
         const category = programme.categories?.length ? programme.categories[0].title : '';
 
-        const parent = programme.parent?.programme;
-        
-        // Determine series number from the title, falling back to position values within JSON if unsuccessful
-        const nativeSeriesMatch = parent?.title?.match(nativeSeriesRegex);
-        const estimatedSeries = nativeSeriesMatch
-            ? parseToNumber(nativeSeriesMatch[1])
-            : (parent?.type == 'series' ? parent?.position ?? 0 : (parent ? 0 : undefined));
-        const notSpecialOrMovie = (estimatedSeries ?? 0) > 0;
-        const series = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count ? 0 : estimatedSeries
-        
-        // Determine episode from title, falling back to positions and counts if unsuccessful and not a special
-        const episodeMatch = programme.title?.match(episodeRegex);
-        const episode = episodeMatch
-            ? parseInt(episodeMatch[1])
-            : (notSpecialOrMovie ? programme.position ?? 0 : (parent ? 0 : undefined));
-            
+        const [ episode, episodeTitle, series ] = getSeasonAndEpisode(programme);
+
         return {
             pid,
             title: programme.display_title?.title ?? programme.title,
             episode,
-            episodeTitle: episode != null
-                ? (notSpecialOrMovie ? programme.title : programme.display_title?.subtitle)
-                : undefined,
+            episodeTitle,
             series,
             channel: programme.ownership?.service?.title,
             category,
@@ -270,7 +254,6 @@ const iplayerService = {
             //Only get the first result from iplayer
             //for (const { id } of results) {
             if (results.length > 0){
-                console.log(results);
                 const {id} = results[0];
                 const brandPid = await episodeCacheService.findBrandForPid(id);
                 if (brandPid) {
@@ -332,11 +315,27 @@ const iplayerService = {
                 for (const line of lines) {
                     if (line.startsWith('RESULT|:|')) {
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom, episodeTitle] = line.split('|:|');
-                        const episode: number | undefined = (episodeStr == '' ? undefined : parseInt(episodeStr));
-                        const [title, series] = (seriesStr == '' ? [rawTitle, undefined] : extractSeriesNumber(rawTitle, seriesStr))
-                        const type: VideoType = series != null && episode != null ? VideoType.TV : VideoType.MOVIE;
+                        const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom, epTitle] = line.split('|:|');
+                        const episodeNum = episodeStr == '' ? undefined : parseInt(episodeStr);
+                        const [title, seriesNum] = extractSeriesNumber(rawTitle, seriesStr)
+                        const type: VideoType = episodeNum != null || epTitle != '' ? VideoType.TV : VideoType.MOVIE;
                         const size: number | undefined = durationStr ? parseInt(durationStr) * sizeFactor : undefined;
+                        const [ episode, episodeTitle, series ] = getSeasonAndEpisode({
+                            type: 'episode',
+                            pid,
+                            title: VideoType.TV ? epTitle : title,
+                            position: episodeNum,
+                            display_title: {
+                                title,
+                                subtitle: epTitle,
+                            },
+                            parent: type == VideoType.TV ? {
+                                programme: {
+                                    type: 'series',
+                                    position: seriesNum
+                                }
+                            } : undefined
+                        } as IPlayerProgramMetadata);
                         results.push({
                             pid,
                             title,
@@ -372,12 +371,14 @@ const iplayerService = {
     }
 }
 
-function extractSeriesNumber(title: string, series: string): any[] {
+
+function extractSeriesNumber(title: string, series?: string): [title: string, series?: number] {
     const match = seriesRegex.exec(title);
     if (match) {
-        return [title.replace(seriesRegex, ''), parseInt(match[1])];
+        return [title.replace(seriesRegex, '').split(': ')[0], parseInt(match[1])];
     } else {
-        return [title, parseInt(series)];
+        const num = parseInt(series ?? '');
+        return [title.split(': ')[0], isNaN(num) ? undefined : num];
     }
 }
 
@@ -452,4 +453,30 @@ function parseToNumber(str : string) : number {
     })()
 }
 
+function getSeasonAndEpisode(programme: IPlayerProgramMetadata) : [episode?: number, episodeTitle?: string, series?: number] {
+    const parent = programme.parent?.programme;
+
+    // Determine series number from the title, falling back to position values within JSON if unsuccessful
+    const nativeSeriesMatch = parent?.title?.match(nativeSeriesRegex);
+    const estimatedSeries = nativeSeriesMatch
+        ? parseToNumber(nativeSeriesMatch[1])
+        : (parent?.type == 'series' ? parent?.position ?? 0 : (parent ? 0 : undefined));
+    const notSpecialOrMovie = (estimatedSeries ?? 0) > 0;
+    const series = parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count ? 0 : estimatedSeries;
+
+    // Determine episode from title, falling back to positions and counts if unsuccessful and not a special
+    const episodeMatch = programme.title?.match(episodeRegex);
+    const episode = episodeMatch
+        ? parseInt(episodeMatch[1])
+        : (notSpecialOrMovie ? programme.position ?? 0 : (parent ? 0 : undefined));
+
+    // Determine episode title if not a movie
+    const episodeTitle = episode != null
+        ? (notSpecialOrMovie ? programme.title : programme.display_title?.subtitle)
+        : undefined;
+
+    return [ episode, episodeTitle, series ];
+}
+
 export default iplayerService;
+

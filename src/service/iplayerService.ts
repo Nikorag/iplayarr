@@ -387,13 +387,15 @@ async function getIPlayerExec(): Promise<(string | RegExpMatchArray)[]> {
     const args: RegExpMatchArray = (fullExec?.match(/(?:[^\s"]+|"[^"]*")+/g) ?? ['get_iplayer']) as RegExpMatchArray ;
 
     const exec: string = args.shift() as string;
+    args.push('--encoding-console-out');
+    args.push('UTF-8')
 
     const cacheLocation = process.env.CACHE_LOCATION;
     if (cacheLocation) {
         args.push('--profile-dir');
         args.push(`"${cacheLocation}"`);
     }
-
+    
     return [exec, args];
 }
 

@@ -1,0 +1,48 @@
+name: Run Jest Tests
+
+permissions:
+  checks: write
+  pull-requests: write
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  test:
+    name: Run Tests and publish Reports
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 23
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Run Jest Tests
+      run: |
+        npm test
+     
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v5
+      if: success() || failure()
+      with:
+        report_paths: ./test-results/junit.xml 
+        token: ${{ secrets.GITHUB_TOKEN }}   
+    
+    - uses: hrishikesh-kadam/setup-lcov@v1 
+
+    - name: Coverage Report
+      uses: kefasjw/lcov-pull-request-report@v1
+      with:
+        lcov-file: coverage/lcov.info
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        changed-files-minimum-coverage: 40

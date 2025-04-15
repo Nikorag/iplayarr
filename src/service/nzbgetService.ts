@@ -22,7 +22,7 @@ const nzbGetService = {
         }
     },
 
-    addFile: async ({url : inputUrl, username, password} : App, files: Express.Multer.File[]): Promise<AxiosResponse> => {
+    addFile: async ({ url: inputUrl, username, password }: App, files: Express.Multer.File[]): Promise<AxiosResponse> => {
         const url = `${inputUrl}/jsonrpc`;
 
         const file = files[0];
@@ -44,28 +44,37 @@ const nzbGetService = {
             id: 1
         };
 
-        const response = await axios.post(`${url}/append`, requestBody, {
-            auth: {
-                username : username as string,
-                password : password as string
-            },
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        try {
+            const response = await axios.post(`${url}/append`, requestBody, {
+                auth: {
+                    username: username as string,
+                    password: password as string
+                },
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-        if (response.status == 200){
+            if (response.status == 200) {
+                return {
+                    status: 200,
+                    data: {
+                        status: true,
+                        nzo_ids: [nzo_id]
+                    }
+                } as unknown as AxiosResponse
+            } else {
+                return response
+            }
+        } catch {
             return {
-                status : 200,
-                data : {
-                    status: true,
-                    nzo_ids: [nzo_id]
+                status: 500,
+                data: {
+                    status: false,
+                    nzo_ids: []
                 }
             } as unknown as AxiosResponse
-        } else {
-            return response
         }
-        return response;
     }
 }
 

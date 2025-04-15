@@ -46,3 +46,6 @@ jobs:
         lcov-file: coverage/lcov.info
         github-token: ${{ secrets.GITHUB_TOKEN }}
         changed-files-minimum-coverage: 40
+
+    - name: Coveralls
+      uses: coverallsapp/github-action@v2    

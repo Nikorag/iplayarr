@@ -31,7 +31,7 @@ const iplayerService = {
 
         downloadProcess.stdout.on('data', (data) => {
             if (queueService.getFromQueue(pid)) {
-                getIplayerExecutableService.logProgress(pid);
+                getIplayerExecutableService.logProgress(pid, data);
                 const downloadDetails : DownloadDetails | undefined = getIplayerExecutableService.parseProgress(pid, data);
                 if (downloadDetails){
                     queueService.updateQueue(pid, downloadDetails);

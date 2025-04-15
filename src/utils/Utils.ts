@@ -3,6 +3,7 @@ import { Request } from 'express';
 import Handlebars from 'handlebars';
 import { deromanize } from 'romans';
 import { IPlayerDetails } from 'src/types/IPlayerDetails';
+import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
 import { Synonym } from 'src/types/Synonym';
 
 import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
@@ -11,7 +12,6 @@ import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
-import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
 
 const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\/._-]/g;
 

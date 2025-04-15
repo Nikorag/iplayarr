@@ -92,7 +92,6 @@ export class SearchService {
                 infos = [...infos, ...chunkInfos];
             }
 
-            const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
             return await Promise.all(infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonym)));
 
         } else {

@@ -1,23 +1,18 @@
 import fs from 'fs';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import path from 'path';
+import configService from 'src/service/configService';
+import { GetIplayerExecutableService } from 'src/service/getIplayerExecutableService';
+import historyService from 'src/service/historyService';
+import queueService from 'src/service/queueService';
+import socketService from 'src/service/socketService';
+import { IplayarrParameter } from 'src/types/IplayarrParameters';
+import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
+import { Synonym } from 'src/types/Synonym';
 
-import configService from '../../src/service/configService';
-import { GetIplayerExecutableService } from '../../src/service/getIplayerExecutableService';
-import historyService from '../../src/service/historyService';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import loggingService from '../../src/service/loggingService';
-import queueService from '../../src/service/queueService';
-import socketService from '../../src/service/socketService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';
-import { Synonym } from '../../src/types/Synonym';
-
-jest.mock('../../src/service/configService');
-jest.mock('../../src/service/queueService');
-jest.mock('../../src/service/socketService');
-jest.mock('../../src/service/historyService');
-jest.mock('../../src/service/loggingService');
+jest.mock('src/service/configService');
+jest.mock('src/service/queueService');
+jest.mock('src/service/socketService');
+jest.mock('src/service/historyService');
+jest.mock('src/service/loggingService');
 jest.mock('fs');
 jest.mock('path');
 

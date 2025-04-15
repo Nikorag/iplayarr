@@ -2,13 +2,13 @@ import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-import { episodeRegex, nativeSeriesRegex, timestampFile } from '../constants/iPlayarrConstants';
+import { timestampFile } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { Synonym } from '../types/Synonym';
-import { calculateSeasonAndEpisode, getPotentialRoman, getQualityProfile } from '../utils/Utils';
+import { calculateSeasonAndEpisode, getQualityProfile } from '../utils/Utils';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';
 import getIplayerExecutableService from './getIplayerExecutableService';

@@ -4,11 +4,14 @@ module.exports = {
     transform: {
         '^.+\\.tsx?$': ['ts-jest', {}],
     },
+    testPathIgnorePatterns: ['/node_modules/', '/dist/'],
     reporters: [
         'default',
-        ['jest-junit', { 
+        ['jest-junit', {
             outputDirectory: './test-results',
             outputName: 'junit.xml'
         }]
-    ]
+    ],
+    collectCoverage: true,
+    coverageReporters: ['lcov', 'text'],
 };

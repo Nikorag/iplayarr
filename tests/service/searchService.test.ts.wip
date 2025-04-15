@@ -3,8 +3,8 @@ import axios from 'axios';
 import configService from '../../src/service/configService';
 import episodeCacheService from '../../src/service/episodeCacheService';
 import iplayerService from '../../src/service/iplayerService';
-import RedisCacheService from '../../src/service/redisCacheService';
-import { SearchService } from '../../src/service/searchService'
+import { RedisCacheService } from '../../src/service/redisCacheService';
+import { SearchService } from '../../src/service/searchService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 import { IPlayerDetails } from '../../src/types/IPlayerDetails';
 import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';
@@ -12,27 +12,26 @@ import { IPlayerNewSearchResponse } from '../../src/types/responses/iplayer/IPla
 
 const mockCache: Record<string, any> = {};
 
-jest.mock('../../src/service/redisCacheService', () => {
-    const mockRedisCacheService = {
-        get: jest.fn((key: string) => Promise.resolve(mockCache[key])),
-        set: jest.fn((key: string, value: any) => {
-            mockCache[key] = value;
-            return Promise.resolve();
-        }),
-        del: jest.fn((key: string) => {
-            delete mockCache[key];
-            return Promise.resolve();
-        }),
-    };
+let mockRedisCacheService : any;
 
+jest.mock('../../src/service/redisCacheService', () => {
     return {
         __esModule: true,
-        default: jest.fn(() => mockRedisCacheService),
+        RedisCacheService: jest.fn().mockImplementation(() => {
+            return {
+                get: jest.fn((key: string) => Promise.resolve(mockCache[key])),
+                set: jest.fn((key: string, value: any) => {
+                    mockCache[key] = value;
+                    return Promise.resolve();
+                }),
+                del: jest.fn((key: string) => {
+                    delete mockCache[key];
+                    return Promise.resolve();
+                }),
+            };
+        }),
     };
 });
-
-
-const mockCacheService = (RedisCacheService as jest.Mock).mock.results[0].value;
 
 jest.mock('../../src/service/configService', () => ({
     __esModule: true,
@@ -65,7 +64,9 @@ describe('SearchService', () => {
     let searchService: SearchService;
 
     beforeEach(() => {
+        // Initialize the mock RedisCacheService
         searchService = new SearchService();
+        mockRedisCacheService = new RedisCacheService<IPlayerSearchResult[]>('test', 3600); //
         Object.keys(mockCache).forEach(k => delete mockCache[k]);
         jest.clearAllMocks();
     });
@@ -95,7 +96,7 @@ describe('SearchService', () => {
             const results = await searchService.search(term);
 
             expect(results).toEqual(cachedResults);
-            expect(mockCacheService.get).toHaveBeenCalledWith(term);
+            expect(mockRedisCacheService.get).toHaveBeenCalledWith(term);  // Should be RedisCacheService.get here
             expect(iplayerService.performSearch).not.toHaveBeenCalled();
         });
 
@@ -123,9 +124,9 @@ describe('SearchService', () => {
             const results = await searchService.search(term);
 
             expect(results).toEqual(searchResults);
-            expect(mockCacheService.get).toHaveBeenCalledWith(term);
+            expect(mockRedisCacheService.get).toHaveBeenCalledWith(term); // Replace with RedisCacheService.get() if needed
             expect(mockedIPlayerService.performSearch).toHaveBeenCalledWith(term, undefined);
-            expect(mockCacheService.set).toHaveBeenCalledWith(term, searchResults);
+            expect(mockRedisCacheService.set).toHaveBeenCalledWith(term, searchResults);
         });
     });
 
@@ -177,7 +178,7 @@ describe('SearchService', () => {
 
             expect(results).toEqual([{
                 ...searchResult,
-                request: { term : title, line: title },
+                request: { term: title, line: title },
                 size: 3660,
                 nzbName: 'TV - Test.Title - 720p'
             }]);

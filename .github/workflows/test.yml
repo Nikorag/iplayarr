@@ -25,6 +25,12 @@ jobs:
     - name: Run Jest Tests
       run: |
         npm test
+     
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v5
+      if: success() || failure()
+      with:
+        report_paths: ./test-results/junit.xml    
   
   coverage_report:
     name: Generate Coverage Report
@@ -44,5 +50,4 @@ jobs:
         minimum-coverage: 90
         artifact-name: code-coverage-report
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: apps/my-first-app
         update-comment: true

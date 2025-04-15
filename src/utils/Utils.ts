@@ -1,7 +1,9 @@
 import * as crypto from 'crypto';
 import { Request } from 'express';
 import Handlebars from 'handlebars';
+import { deromanize } from 'romans';
 
+import { getIplayerSeriesRegex } from '../constants/iPlayarrConstants';
 import configService from '../service/configService';
 import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
 import { IplayarrParameter } from '../types/IplayarrParameters';
@@ -55,3 +57,26 @@ export function splitArrayIntoChunks(arr: any[], chunkSize: number) {
     }
     return chunks;
 } 
+
+export function removeLastFourDigitNumber(str: string) {
+    return str.replace(/\d{4}(?!.*\d{4})/, '').trim();
+}
+
+export function extractSeriesNumber(title: string, series: string): any[] {
+    const match = getIplayerSeriesRegex.exec(title);
+    if (match) {
+        return [title.replace(getIplayerSeriesRegex, ''), parseInt(match[1])];
+    } else {
+        return [title, parseInt(series)];
+    }
+}
+
+export function getPotentialRoman(str: string): number {
+    return (() => {
+        try {
+            return deromanize(str);
+        } catch {
+            return parseInt(str);
+        }
+    })()
+}

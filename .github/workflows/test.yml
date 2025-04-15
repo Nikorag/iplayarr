@@ -1,5 +1,9 @@
 name: Run Jest Tests
 
+permissions:
+  checks: write
+  pull-requests: write
+
 on:
   push:
     branches:
@@ -9,6 +13,7 @@ on:
       - main
 jobs:
   test:
+    name: Run Tests and publish Reports
     runs-on: ubuntu-latest
 
     steps:

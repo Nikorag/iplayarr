@@ -39,6 +39,20 @@ export class SearchService {
 
         const filteredResults = await this.#filterForSeasonAndEpisode(results as IPlayerSearchResult[], season, episode);
 
+        if (nativeSearchEnabled == 'false') {
+            const episodeCache: IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
+            for (const cachedEpisode of episodeCache) {
+                if (cachedEpisode) {
+                    const exists = filteredResults.some(({ pid }) => pid == cachedEpisode.pid);
+                    const validSeason = season ? cachedEpisode.series == season : true;
+                    const validEpisode = episode ? cachedEpisode.episode == episode : true;
+                    if (!exists && validSeason && validEpisode) {
+                        filteredResults.push({ ...cachedEpisode, pubDate: cachedEpisode.pubDate ? new Date(cachedEpisode.pubDate) : undefined });
+                    }
+                }
+            }
+        }
+
         return filteredResults.filter(({ pubDate }) => !pubDate || pubDate < new Date());
     }
 

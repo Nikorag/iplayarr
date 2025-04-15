@@ -151,6 +151,7 @@ const iplayerService = {
             searchProcess.on('close', async (code) => {
                 if (code === 0) {
                     const processedResults : IPlayerSearchResult[] = await getIplayerExecutableService.processCompletedSearch(results, synonym);
+                    
                     resolve(processedResults);
                 } else {
                     reject(new Error(`Process exited with code ${code}`));

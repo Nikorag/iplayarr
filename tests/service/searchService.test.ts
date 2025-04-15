@@ -170,7 +170,7 @@ describe('SearchService', () => {
                 episode: 1,
                 series: 1,
                 runtime: 100,
-                firstBroadcast: new Date().toISOString()
+                firstBroadcast: pubDate.toISOString()
             } as IPlayerDetails]);
 
             const results = await searchService.performSearch(term);

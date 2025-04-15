@@ -6,7 +6,9 @@ import configService from '../../src/service/configService';
 import episodeCacheService from '../../src/service/episodeCacheService';
 import getIplayerExecutableService from '../../src/service/getIplayerExecutableService';
 import iplayerService from '../../src/service/iplayerService';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import loggingService from '../../src/service/loggingService';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import queueService from '../../src/service/queueService';
 
 jest.mock('fs');

@@ -13,8 +13,5 @@ module.exports = {
         }]
     ],
     collectCoverage: true,
-    collectCoverageFrom: [
-        'src/**/*.{js,ts}',  // adjust this to your file structure
-    ],
     coverageReporters: ['lcov', 'text'],
 };

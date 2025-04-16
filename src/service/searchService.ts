@@ -65,7 +65,7 @@ export class SearchService {
             const brandPids: Set<string> = new Set();
             let infos: IPlayerDetails[] = [];
 
-            //Only get the first brand from iplayer, if we 
+            //Only get the first brand from iplayer
             if (results.length > 0) {
                 const { id } = results[0];
                 const brandPid = await episodeCacheService.findBrandForPid(id);
@@ -127,9 +127,10 @@ export class SearchService {
             episode: details.episode,
             pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
             series: details.series,
-            type: details.episode && details.series ? VideoType.TV : VideoType.MOVIE,
+            type: details.type,
             size: details.runtime ? (details.runtime * 60) * sizeFactor : undefined,
-            nzbName: await createNZBName(details, synonym)
+            nzbName: await createNZBName(details, synonym),
+            episodeTitle: details.episodeTitle
         }
     }
 

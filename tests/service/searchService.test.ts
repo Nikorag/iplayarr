@@ -63,12 +63,12 @@ describe('searchService', () => {
         const term = 'testTerm';
         const pubDate: Date = new Date(Date.now() - 3 * 60 * 60 * 1000);
         const cachedResults: SearchResponse = {...emptySearchResult, results : [{ title: 'Cached Result', pubDate } as any, { title: 'Without Date' } as any]};
-        mockCacheData[`${term}_1`] = cachedResults;
+        mockCacheData[`${term}_1_{}`] = cachedResults;
 
         const results = await searchService.search(term);
 
         expect(results).toEqual(cachedResults);
-        expect(mockRedisCacheService.get).toHaveBeenCalledWith(`${term}_1`);
+        expect(mockRedisCacheService.get).toHaveBeenCalledWith(`${term}_1_{}`);
         expect(iplayerService.performSearch).not.toHaveBeenCalled();
     });
 
@@ -83,9 +83,9 @@ describe('searchService', () => {
         const results = await searchService.search(term);
 
         expect(results).toEqual(searchResults);
-        expect(mockRedisCacheService.get).toHaveBeenCalledWith(`${term}_1`);
-        expect(iplayerService.performSearch).toHaveBeenCalledWith(term, undefined, 1);
-        expect(mockRedisCacheService.set).toHaveBeenCalledWith(`${term}_1`, searchResults);
+        expect(mockRedisCacheService.get).toHaveBeenCalledWith(`${term}_1_{}`);
+        expect(iplayerService.performSearch).toHaveBeenCalledWith(term, undefined, 1, {});
+        expect(mockRedisCacheService.set).toHaveBeenCalledWith(`${term}_1_{}`, searchResults);
     });
 
     it('should filter results by season and episode', async () => {
@@ -98,7 +98,7 @@ describe('searchService', () => {
             { title: 'Result 2', series: 1, episode: 2, pubDate } as any,
             { title: 'Result 3', series: 2, episode: 1, pubDate } as any,
         ]};
-        mockCacheData[`${term}_1`] = searchResults;
+        mockCacheData[`${term}_1_{}`] = searchResults;
 
         const results = await searchService.search(term, season, episode, 1);
 
@@ -118,7 +118,7 @@ describe('searchService', () => {
 
         await searchService.search(term);
 
-        expect(mockPerformSearch).toHaveBeenCalledWith(term, undefined, 1);
+        expect(mockPerformSearch).toHaveBeenCalledWith(term, undefined, 1, {});
         mockPerformSearch.mockRestore();
     });
 
@@ -135,7 +135,7 @@ describe('searchService', () => {
         await searchService.search(term);
 
         expect(synonymService.getSynonym).toHaveBeenCalledWith(term);
-        expect(iplayerService.performSearch).toHaveBeenCalledWith('targetTerm', synonym, 1);
+        expect(iplayerService.performSearch).toHaveBeenCalledWith('targetTerm', synonym, 1, {});
     });
 
     it('should fallback to iPlayer search if there\'s an error', async () => {
@@ -162,7 +162,7 @@ describe('searchService', () => {
         const synonym: Synonym = { from: term, target: 'targetTerm' } as any;
         (synonymService.getSynonym as jest.Mock).mockResolvedValue(synonym);
 
-        mockCacheData['targetTerm'] = ['mock_pid'];
+        mockCacheData['targetTerm_{}'] = { allPids : ['mock_pid']};
 
         (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
             if (key === IplayarrParameter.NATIVE_SEARCH) return 'true';

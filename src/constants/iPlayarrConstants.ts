@@ -13,5 +13,6 @@ export const emptySearchResult : SearchResponse = {
         totalPages: 1,
         totalResults: 0
     },
-    results: []
+    results: [],
+    facets: []
 };

@@ -2,7 +2,7 @@ import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-import { nativeSeriesRegex, timestampFile } from '../constants/iPlayarrConstants';
+import { emptySearchResult, nativeSeriesRegex, timestampFile } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
@@ -155,6 +155,7 @@ const iplayerService = {
                 if (code === 0) {
                     const processedResults : IPlayerSearchResult[] = await getIplayerExecutableService.processCompletedSearch(results, synonym);
                     const searchResposne : SearchResponse = {
+                        ...emptySearchResult,
                         pagination: {
                             page,
                             totalPages : 1,

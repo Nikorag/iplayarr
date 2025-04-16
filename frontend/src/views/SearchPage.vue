@@ -1,56 +1,56 @@
 <template>
-  <SettingsPageToolbar :icons="['custom_filter', 'download']" :filter-enabled="filtersApplied" @download="multipleImmediateDownload" @show-filter="showFilter" />
-  <div v-if="!loading" class="inner-content scroll-x">
-    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
-    <table class="resultsTable">
-      <thead>
-        <tr>
-          <th>
-            <CheckInput v-model="allChecked" />
-          </th>
-          <th>Type</th>
-          <th>Title</th>
-          <th>Calculated Filename</th>
-          <th>Est. Size</th>
-          <th>Channel</th>
-          <th>PID</th>
-          <th>
-            <font-awesome-icon :icon="['fas', 'gears']" />
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="result of filteredResults" :key="result.pid">
-          <td>
-            <CheckInput v-model="result.checked" />
-          </td>
-          <td>
-            <span :class="['pill', result.type]">
-              {{ result.type }}
-            </span>
-          </td>
-          <td class="clickable" @click="download(result)">
-            {{ result.title }}
-          </td>
-          <td class="clickable" @click="download(result)">
-            {{ result.nzbName }}
-          </td>
-          <td>{{ formatStorageSize(result.size) }}</td>
-          <td>
-            <span :class="['pill', result.channel.replaceAll(' ', '')]">
-              {{ result.channel }}
-            </span>
-          </td>
-          <td>{{ result.pid }}</td>
-          <td>
-            <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" @click="immediateDownload(result)" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
-  </div>
-  <LoadingIndicator v-if="loading" />
+    <SettingsPageToolbar :icons="['custom_filter', 'download']" :filter-enabled="filtersApplied" @download="multipleImmediateDownload" @show-filter="showFilter" />
+    <div v-if="!loading" class="inner-content scroll-x">
+        <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
+        <table class="resultsTable">
+            <thead>
+                <tr>
+                    <th>
+                        <CheckInput v-model="allChecked" />
+                    </th>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Calculated Filename</th>
+                    <th>Est. Size</th>
+                    <th>Channel</th>
+                    <th>PID</th>
+                    <th>
+                        <font-awesome-icon :icon="['fas', 'gears']" />
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="result of filteredResults" :key="result.pid">
+                    <td>
+                        <CheckInput v-model="result.checked" />
+                    </td>
+                    <td>
+                        <span :class="['pill', result.type]">
+                            {{ result.type }}
+                        </span>
+                    </td>
+                    <td class="clickable" @click="download(result)">
+                        {{ result.title }}
+                    </td>
+                    <td class="clickable" @click="download(result)">
+                        {{ result.nzbName }}
+                    </td>
+                    <td>{{ formatStorageSize(result.size) }}</td>
+                    <td>
+                        <span :class="['pill', result.channel.replaceAll(' ', '')]">
+                            {{ result.channel }}
+                        </span>
+                    </td>
+                    <td>{{ result.pid }}</td>
+                    <td>
+                        <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" @click="immediateDownload(result)" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
+    </div>
+    <LoadingIndicator v-if="loading" />
 </template>
 
 <script setup>
@@ -82,35 +82,13 @@ const emptySearchResponse = {
 const searchResults = ref(emptySearchResponse);
 const searchTerm = ref('');
 const loading = ref(true);
-// const availableFilters = ref(['All', 'TV', 'Movie']);
 const filter = ref('All');
 const allChecked = ref(false);
-
 const currentPage = ref(1);
 
-const appliedFacets = ref({
-    categories : {},
-    channels : {},
-    types : {}
-});
-
 const filteredResults = computed(() => {
-    const categoryFilters = Object.keys(appliedFacets.value.categories).filter((key) => appliedFacets.value.categories[key] == true);
-    const channelFilters = Object.keys(appliedFacets.value.channels).filter((key) => appliedFacets.value.channels[key] == true);
-    const typeFilters = Object.keys(appliedFacets.value.types).filter((key) => appliedFacets.value.types[key] == true);
-    return searchResults.value.results.filter((result) => {
-        return (channelFilters.length == 0 || channelFilters.includes(result.channel)) && (typeFilters.length == 0 || typeFilters.includes(result.type)) && (categoryFilters.length == 0 || result.allCategories.some((cat) => categoryFilters.includes(cat)));
-    });
+    return searchResults.value.results;
 });
-
-const filtersApplied = computed(() => {
-    const categoryFilters = Object.keys(appliedFacets.value.categories).filter((key) => appliedFacets.value.categories[key] == true);
-    const channelFilters = Object.keys(appliedFacets.value.channels).filter((key) => appliedFacets.value.channels[key] == true);
-    const typeFilters = Object.keys(appliedFacets.value.types).filter((key) => appliedFacets.value.types[key] == true);
-
-
-    return categoryFilters.length > 0 || channelFilters.length > 0 || typeFilters > 0;
-})
 
 watch(() => route.query.searchTerm, async (newSearchTerm) => {
     if (newSearchTerm) {
@@ -135,6 +113,23 @@ const changePage = async (newPage) => {
     loading.value = false;
 }
 
+const applyFacets = async (facets) => {
+    const appliedFacets = facets.reduce((acc, { title, values }) => {
+        const applied = values.filter(v => v.applied).map(v => v.label);
+        if (applied.length) {
+            acc[title + (title.endsWith('s') ? '' : 's')] = applied;
+        }
+        return acc;
+    }, {});
+
+
+    loading.value = true;
+    searchResults.value = emptySearchResponse;
+    searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}&facets=${JSON.stringify(appliedFacets)}`)).data;
+    searchResults.value.facets = facets;
+    loading.value = false;
+}
+
 const download = async (searchResult) => {
     router.push({ name: 'download', query: { json: JSON.stringify(searchResult) } });
 }
@@ -146,21 +141,17 @@ const immediateDownload = async ({ pid, nzbName, type }) => {
     }
 }
 
-const multipleImmediateDownload = async() => {
+const multipleImmediateDownload = async () => {
     const selectedResults = filteredResults.value.filter((result) => result.checked);
     if (selectedResults.length > 0) {
-        if (await dialogService.confirm('Download', `Do you want to download ${selectedResults.length} items?`)){
+        if (await dialogService.confirm('Download', `Do you want to download ${selectedResults.length} items?`)) {
             loading.value = true;
-            for (const item of selectedResults){
+            for (const item of selectedResults) {
                 await immediateDownload(item);
             }
         }
     }
 }
-
-// const selectFilter = (option) => {
-//     filter.value = option;
-// }
 
 watch(allChecked, (newValue) => {
     filteredResults.value.forEach((result) => {
@@ -172,51 +163,15 @@ const showFilter = () => {
     const formModal = useModal({
         component: SearchFiltersDialog,
         attrs: {
-            allFacets,
-            initiallyApplied : appliedFacets,
-            onApplyFacets : (allFacets) => {
+            allFacets: searchResults.value.facets,
+            onApplyFacets: (facets) => {
+                applyFacets(facets);
                 formModal.close();
-                appliedFacets.value = allFacets;
             }
         }
     });
     formModal.open();
 }
-
-const allFacets = computed(() => {
-    const categories = Array.from(new Set(searchResults.value.results.flatMap(result => result.allCategories)));
-    const channels = Array.from(new Set(searchResults.value.results.map(result => result.channel)));
-    const types = Array.from(new Set(searchResults.value.results.map(result => result.type)));
-
-    const { minSize, maxSize, minPubDate, maxPubDate } = searchResults.value.results.reduce(
-        (acc, result) => ({
-            minSize: Math.min(acc.minSize, result.size),
-            maxSize: Math.max(acc.maxSize, result.size),
-            minPubDate: acc.minPubDate < result.pubDate ? acc.minPubDate : result.pubDate,
-            maxPubDate: acc.maxPubDate > result.pubDate ? acc.maxPubDate : result.pubDate,
-        }),
-        {
-            minSize: Infinity,
-            maxSize: -Infinity,
-            minPubDate: new Date(Infinity),
-            maxPubDate: new Date(-Infinity),
-        }
-    );
-
-    return {
-        categories,
-        channels,
-        types,
-        size: {
-            min: minSize,
-            max: maxSize,
-        },
-        pubDate: {
-            min: minPubDate,
-            max: maxPubDate,
-        },
-    };
-});
 </script>
 
 <style lang="less" scoped>

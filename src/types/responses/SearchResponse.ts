@@ -6,5 +6,16 @@ export interface SearchResponse {
         totalPages : number,
         totalResults : number
     },
-    results : IPlayerSearchResult[]
+    results : IPlayerSearchResult[],
+    facets : Facet[]
+}
+
+export interface Facet {
+    title: string,
+    values : FacetValue[]
+}
+
+export interface FacetValue {
+    label : string,
+    total : number
 }

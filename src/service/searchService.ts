@@ -1,12 +1,13 @@
 import axios, { AxiosResponse } from 'axios';
+import lunr from 'lunr';
 
 import { emptySearchResult, pageSize } from '../constants/iPlayarrConstants';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
-import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
+import { IPlayerNewSearchResponse, IPlayerNewSearchResult } from '../types/responses/iplayer/IPlayerNewSearchResponse';
 import { IPlayerChilrenResponse } from '../types/responses/IPlayerMetadataResponse';
-import { SearchResponse } from '../types/responses/SearchResponse';
+import { Facet, FacetValue, SearchResponse } from '../types/responses/SearchResponse';
 import { Synonym } from '../types/Synonym';
 import { createNZBName, getQualityProfile, removeLastFourDigitNumber, splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
@@ -20,9 +21,14 @@ interface SearchTerm {
     synonym?: Synonym
 }
 
+interface iPlayerCachedResponse {
+    allPids : string[],
+    facets : Facet[]
+}
+
 export class SearchService {
     searchCache: RedisCacheService<SearchResponse> = new RedisCacheService('search_cache', 300);
-    allPidsCache: RedisCacheService<string[]> = new RedisCacheService('pid_cache', 300);
+    iPlayerResponseCache: RedisCacheService<iPlayerCachedResponse> = new RedisCacheService('ipr_cache', 300);
 
     async search(inputTerm: string, season?: number, episode?: number, page: number = 1): Promise<SearchResponse> {
         const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
@@ -66,9 +72,12 @@ export class SearchService {
     async performSearch(term: string, synonym?: Synonym, page: number = 1): Promise<SearchResponse> {
         const { sizeFactor } = await getQualityProfile();
 
-        let allPids: string[] | undefined = await this.allPidsCache.get(term);
-        if (!allPids) {
-            allPids = [];
+        let ipr: iPlayerCachedResponse | undefined = await this.iPlayerResponseCache.get(term);
+        if (!ipr) {
+            ipr = {
+                facets : [],
+                allPids : []
+            }
             const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(term)}`;
             try {
                 const response: AxiosResponse<IPlayerNewSearchResponse> = await axios.get(url, {
@@ -78,39 +87,41 @@ export class SearchService {
                 });
                 if (response.status == 200) {
                     const { new_search: { results } } = response.data;
-                    const brandPids: string[] = [];
 
-                    for (const { id } of results) {
-                        const brandPid = await episodeCacheService.findBrandForPid(id);
+                    //Index them each and search again, iPlayer's search is WAY to fuzzy
+                    const lunrIndex: lunr.Index = lunr(function (this: lunr.Builder) {
+                        this.ref('pid');
+                        this.field('pid');
+                        this.field('title');
+
+                        results.forEach(({ id: pid, title }) => this.add({ pid, title }))
+                    });
+                    const lunrResults = lunrIndex.search(term);
+
+                    // Split out any series which are returned into individual results
+                    const brandPids: string[] = [];
+                    for (const { ref } of lunrResults) {
+                        const brandPid = await episodeCacheService.findBrandForPid(ref);
                         if (brandPid) {
-                            if (brandPids.includes(brandPid)){
+                            if (!brandPids.includes(brandPid)) {
                                 const { data: { children: seriesList } }: { data: IPlayerChilrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`, {
                                     headers: {
                                         'Origin': 'https://www.bbc.co.uk'
                                     }
                                 });
                                 const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
-        
-                                allPids = [...allPids, ...episodes];
+
+                                ipr.allPids = [...ipr.allPids, ...episodes];
                                 brandPids.push(brandPid);
                             }
                         } else {
-                            allPids.push(id);
+                            ipr.allPids.push(ref);
                         }
                     }
 
-                    for (const brandPid of brandPids) {
-                        const { data: { children: seriesList } }: { data: IPlayerChilrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`, {
-                            headers: {
-                                'Origin': 'https://www.bbc.co.uk'
-                            }
-                        });
-                        const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+                    ipr.facets = this.#buildFacets(results);
 
-                        allPids = [...allPids, ...episodes];
-                    }
-
-                    await this.allPidsCache.set(term, allPids);
+                    await this.iPlayerResponseCache.set(term, ipr);
                 }
             } catch {
                 return await iplayerService.performSearch(term, synonym, page);
@@ -118,7 +129,7 @@ export class SearchService {
         }
 
         const start = (page - 1) * pageSize;
-        const pagedPids = allPids.slice(start, start + pageSize);
+        const pagedPids = ipr.allPids.slice(start, start + pageSize);
 
         const chunks = splitArrayIntoChunks(pagedPids, 5);
         const infos = await chunks.reduce(async (accPromise, chunk) => {
@@ -130,13 +141,45 @@ export class SearchService {
         const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
         const detailedResults: IPlayerSearchResult[] = await Promise.all(infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonymName)));
         return {
+            facets : ipr.facets,
             pagination: {
                 page,
-                totalPages: Math.ceil(allPids.length / pageSize),
-                totalResults: allPids.length
+                totalPages: Math.ceil(ipr.allPids.length / pageSize),
+                totalResults: ipr.allPids.length
             },
             results: detailedResults
         }
+    }
+
+    #buildFacets(results : IPlayerNewSearchResult[]): Facet[] {
+        const facets: Facet[] = [];
+
+        facets.push(this.#buildFacet('Category', (result : IPlayerNewSearchResult) => result.categories, results));
+        facets.push(this.#buildFacet('Channel', (result) => result.master_brand?.titles?.large ? [result.master_brand?.titles?.large] : [] , results));
+        facets.push(this.#buildFacet('Type', (result) => result.count ? [VideoType.TV.toString()] : [VideoType.MOVIE.toString()], results));
+
+        return facets;
+    }
+
+    #buildFacet(title : string, getValuesCallback : (result : IPlayerNewSearchResult) => string[], results : IPlayerNewSearchResult[]) : Facet {
+        const facet : Facet = {
+            title,
+            values : []
+        }
+        const countMap: Record<string, number> = {};
+
+        results.forEach(result => {
+            const values = getValuesCallback(result);
+            values.forEach(element => {
+                countMap[element] = (countMap[element] || 0) + (result.count ?? 1);
+            });
+        });
+
+        facet.values = Object.entries(countMap).map(([label, total]) => ({
+            label, total
+        }));
+
+        return facet;
     }
 
     async #getTerm(inputTerm: string, season?: number): Promise<SearchTerm> {

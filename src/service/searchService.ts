@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
+import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
 import { IPlayerChildrenResponse } from '../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../types/Synonym';

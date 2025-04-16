@@ -22,8 +22,9 @@ interface SearchTerm {
 
 export class SearchService {
     searchCache: RedisCacheService<SearchResponse> = new RedisCacheService('search_cache', 300);
+    allPidsCache: RedisCacheService<string[]> = new RedisCacheService('pid_cache', 300);
 
-    async search(inputTerm: string, season?: number, episode?: number, page : number = 1): Promise<SearchResponse> {
+    async search(inputTerm: string, season?: number, episode?: number, page: number = 1): Promise<SearchResponse> {
         const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
         const { term, synonym } = await this.#getTerm(inputTerm, season);
 
@@ -39,7 +40,7 @@ export class SearchService {
             });
         }
 
-        if (results){
+        if (results) {
             results.results = await this.#filterForSeasonAndEpisode(results.results, season, episode);
 
             if (nativeSearchEnabled == 'false') {
@@ -62,57 +63,79 @@ export class SearchService {
         return emptySearchResult;
     }
 
-    async performSearch(term: string, synonym?: Synonym, page : number = 1): Promise<SearchResponse> {
+    async performSearch(term: string, synonym?: Synonym, page: number = 1): Promise<SearchResponse> {
         const { sizeFactor } = await getQualityProfile();
-        const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(term)}`;
-        const response: AxiosResponse<IPlayerNewSearchResponse> = await axios.get(url, {headers : {
-            'Origin' : 'https://www.bbc.co.uk'
-        }});
-        if (response.status == 200) {
-            const { new_search: { results } } = response.data;
-            const brandPids: Set<string> = new Set();
 
-            let allPids = [];
-            for (const {id} of results){
-                const brandPid = await episodeCacheService.findBrandForPid(id);
-                if (brandPid) {
-                    brandPids.add(brandPid);
-                } else {
-                    allPids.push(id);
+        let allPids: string[] | undefined = await this.allPidsCache.get(term);
+        if (!allPids) {
+            allPids = [];
+            const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(term)}`;
+            try {
+                const response: AxiosResponse<IPlayerNewSearchResponse> = await axios.get(url, {
+                    headers: {
+                        'Origin': 'https://www.bbc.co.uk'
+                    }
+                });
+                if (response.status == 200) {
+                    const { new_search: { results } } = response.data;
+                    const brandPids: string[] = [];
+
+                    for (const { id } of results) {
+                        const brandPid = await episodeCacheService.findBrandForPid(id);
+                        if (brandPid) {
+                            if (brandPids.includes(brandPid)){
+                                const { data: { children: seriesList } }: { data: IPlayerChilrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`, {
+                                    headers: {
+                                        'Origin': 'https://www.bbc.co.uk'
+                                    }
+                                });
+                                const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+        
+                                allPids = [...allPids, ...episodes];
+                                brandPids.push(brandPid);
+                            }
+                        } else {
+                            allPids.push(id);
+                        }
+                    }
+
+                    for (const brandPid of brandPids) {
+                        const { data: { children: seriesList } }: { data: IPlayerChilrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`, {
+                            headers: {
+                                'Origin': 'https://www.bbc.co.uk'
+                            }
+                        });
+                        const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+
+                        allPids = [...allPids, ...episodes];
+                    }
+
+                    await this.allPidsCache.set(term, allPids);
                 }
+            } catch {
+                return await iplayerService.performSearch(term, synonym, page);
             }
+        }
 
-            for (const brandPid of brandPids) {
-                const { data: { children: seriesList } }: { data: IPlayerChilrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`, {headers : {
-                    'Origin' : 'https://www.bbc.co.uk'
-                }});
-                const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+        const start = (page - 1) * pageSize;
+        const pagedPids = allPids.slice(start, start + pageSize);
 
-                allPids = [...allPids, ...episodes];
-            }
+        const chunks = splitArrayIntoChunks(pagedPids, 5);
+        const infos = await chunks.reduce(async (accPromise, chunk) => {
+            const acc = await accPromise; // Ensure previous results are awaited
+            const results: IPlayerDetails[] = await iplayerService.details(chunk);
+            return [...acc, ...results];
+        }, Promise.resolve([]));
 
-            const start = (page - 1) * pageSize;
-            const pagedPids = allPids.slice(start, start + pageSize);
-
-            const chunks = splitArrayIntoChunks(pagedPids, 5);
-            const infos = await chunks.reduce(async (accPromise, chunk) => {
-                const acc = await accPromise; // Ensure previous results are awaited
-                const results: IPlayerDetails[] = await iplayerService.details(chunk);
-                return [...acc, ...results];
-            }, Promise.resolve([]));
-
-            const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
-            const detailedResults : IPlayerSearchResult[] = await Promise.all(infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonymName)));
-            return {
-                pagination : {
-                    page,
-                    totalPages : Math.ceil(allPids.length / pageSize),
-                    totalResults : allPids.length
-                },
-                results : detailedResults
-            }
-        } else {
-            return emptySearchResult;
+        const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
+        const detailedResults: IPlayerSearchResult[] = await Promise.all(infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonymName)));
+        return {
+            pagination: {
+                page,
+                totalPages: Math.ceil(allPids.length / pageSize),
+                totalResults: allPids.length
+            },
+            results: detailedResults
         }
     }
 
@@ -157,7 +180,7 @@ export class SearchService {
             type,
             size,
             nzbName,
-            allCategories : details.allCategories
+            allCategories: details.allCategories
         }
     }
 

@@ -15,7 +15,8 @@ export interface IPlayerSearchResult {
     series? : number,
     episode? : number,
     size? : number,
-    pubDate? : Date
+    pubDate? : Date,
+    allCategories? : string[]
 }
 
 export interface IplayerSearchResultRequest {

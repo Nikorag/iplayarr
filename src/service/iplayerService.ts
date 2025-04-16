@@ -107,6 +107,7 @@ const iplayerService = {
         const { programme } = await episodeCacheService.getMetadata(pid);
         const runtime = programme.versions ? (programme.versions[0].duration / 60) : 0;
         const category = programme.categories ? programme.categories[0].title : '';
+        const allCategories = programme.categories ? programme.categories.map(({title}) => title) : []
 
         //Get the series number, we'll override with a series name "Series X" to avoid christmas specials
         const seriesName: string | undefined = programme.parent?.programme?.type == 'series' ? programme.parent?.programme?.title : undefined;
@@ -125,7 +126,8 @@ const iplayerService = {
             runtime,
             firstBroadcast: programme.first_broadcast_date,
             link: `https://www.bbc.co.uk/programmes/${pid}`,
-            thumbnail: programme.image ? `https://ichef.bbci.co.uk/images/ic/1920x1080/${programme.image.pid}.jpg` : undefined
+            thumbnail: programme.image ? `https://ichef.bbci.co.uk/images/ic/1920x1080/${programme.image.pid}.jpg` : undefined,
+            allCategories
         }
     },
 

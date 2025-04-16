@@ -139,7 +139,8 @@ export class SearchService {
             series: details.series,
             type,
             size,
-            nzbName
+            nzbName,
+            allCategories : details.allCategories
         }
     }
 

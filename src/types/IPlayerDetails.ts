@@ -9,5 +9,6 @@ export interface IPlayerDetails {
     runtime? : number,
     firstBroadcast? : string,
     link? : string
-    thumbnail? : string
+    thumbnail? : string,
+    allCategories : string[]
 }

@@ -59,6 +59,14 @@
           </ul>
         </div>
       </template>
+      <template v-if="icons.some((i) => i == 'custom_filter')">
+        <button :class="['SettingsPageToolbar-button clickable', filterEnabled ? 'enabled' : '']" @click="emit('showFilter')">
+          <font-awesome-icon :icon="['fas', 'filter']" />
+          <div class="SettingsPageToolbar-label">
+            Filter
+          </div>
+        </button>
+      </template>
     </div>
   </div>
 </template>
@@ -73,7 +81,8 @@ const emit = defineEmits([
     'toggleFollow',
     'selectFilter',
     'deleteQueueItem',
-    'arrImport'
+    'arrImport',
+    'showFilter'
 ]);
 const showFilterDropdown = ref(false);
 const dropdownDiv = ref(null);

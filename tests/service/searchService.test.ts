@@ -63,7 +63,7 @@ describe('searchService', () => {
         const term = 'testTerm';
         const pubDate: Date = new Date(Date.now() - 3 * 60 * 60 * 1000);
         const cachedResults: SearchResponse = {...emptySearchResult, results : [{ title: 'Cached Result', pubDate } as any]};
-        mockCacheData[`${term}_1`] = JSON.stringify(cachedResults);
+        mockCacheData[`${term}_1`] = cachedResults;
 
         const results = await searchService.search(term);
 
@@ -98,7 +98,7 @@ describe('searchService', () => {
             { title: 'Result 2', series: 1, episode: 2, pubDate } as any,
             { title: 'Result 3', series: 2, episode: 1, pubDate } as any,
         ]};
-        mockCacheData[`${term}_1`] = JSON.stringify(searchResults);
+        mockCacheData[`${term}_1`] = searchResults;
 
         const results = await searchService.search(term, season, episode, 1);
 

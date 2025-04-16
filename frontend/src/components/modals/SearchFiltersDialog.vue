@@ -4,7 +4,7 @@
       <h2>{{ facet.title }}</h2>
       <ul class="facetList">
         <li v-for="(value, valueIndex) of facet.values" :key="value" class="facet">
-          <CheckInput v-model="facets[facetIndex].values[valueIndex].applied"/>
+          <CheckInput v-model="facets[facetIndex].values[valueIndex].applied" />
           <span>{{ value.label }} ({{ value.total }})</span>
         </li>
       </ul>

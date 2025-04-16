@@ -47,3 +47,8 @@ export function getCleanSceneTitle(title) {
     cleanTitle = cleanTitle.replace(/^\++|\++$/, '');
     return cleanTitle.trim().replaceAll('+', ' ');
 }
+
+export function formatDate(dateString, dateStyle, timeStyle) {
+    const date = dateString != null ? new Date(dateString) : undefined;
+    return isNaN(date?.getTime()) ? undefined : new Intl.DateTimeFormat('en-GB', { dateStyle: dateStyle ?? 'medium', timeStyle: timeStyle ?? 'short', hour12: true }).format(date);
+}

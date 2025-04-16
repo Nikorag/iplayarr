@@ -1,11 +1,10 @@
+import searchService from 'src/service/searchService';
+import synonymService from 'src/service/synonymService'
+import { Synonym } from 'src/types/Synonym';
 import { v4 as uuidv4 } from 'uuid';
 
-import searchService from '../../src/service/searchService';
-import synonymService from '../../src/service/synonymService'
-import { Synonym } from '../../src/types/Synonym';
-
 const mockStorageData: Record<string, any> = {};
-jest.mock('../../src/types/QueuedStorage', () => {
+jest.mock('src/types/QueuedStorage', () => {
     const mockStorageInstance = {
         getItem: jest.fn((key: string) => {
             return Promise.resolve(mockStorageData[key])
@@ -21,7 +20,7 @@ jest.mock('../../src/types/QueuedStorage', () => {
     };
 });
 
-jest.mock('../../src/service/searchService', () => ({
+jest.mock('src/service/searchService', () => ({
     __esModule: true,
     default: {
         removeFromSearchCache: jest.fn()

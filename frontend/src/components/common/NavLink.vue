@@ -2,7 +2,7 @@
   <component :is="noLink ? 'span' : 'RouterLink'" :to="path">
     <li :class="[route.path === path ? 'active' : '', 'clickable']" @click="optionClicked">
       <span>
-        <font-awesome-icon :icon="['fas', icon]" />
+        <font-awesome-icon :icon="['fas', icon]" fixed-width />
         <span class="menuText">{{ label }}</span>
       </span>
     </li>

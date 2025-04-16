@@ -1,7 +1,10 @@
+import { VideoType } from './IPlayerSearchResult'
+
 export interface IPlayerDetails {
     pid: string,
     title: string,
     episode? : number,
+    episodeTitle?: string,
     series? : number,
     channel? : string,
     category? : string,
@@ -10,5 +13,6 @@ export interface IPlayerDetails {
     firstBroadcast? : string,
     link? : string
     thumbnail? : string,
-    allCategories : string[]
+    allCategories : string[],
+    type: VideoType
 }

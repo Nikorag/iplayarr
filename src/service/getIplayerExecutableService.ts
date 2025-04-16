@@ -1,15 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
 
 import { listFormat, progressRegex } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
 import { GetIPlayerExecutable } from '../types/GetIplayer/GetIPlayerExecutable';
 import { IplayarrParameter } from '../types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
+import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
 import { Synonym } from '../types/Synonym';
-import { createNZBName, extractSeriesNumber } from '../utils/Utils';
+import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from '../utils/Utils';
 import configService from './configService';
 import historyService from './historyService';
 import loggingService from './loggingService';
@@ -19,9 +20,12 @@ import socketService from './socketService';
 export class GetIplayerExecutableService {
     async getIPlayerExec(): Promise<GetIPlayerExecutable> {
         const fullExec: string = await configService.getParameter(IplayarrParameter.GET_IPLAYER_EXEC) as string;
-        const args: RegExpMatchArray = fullExec.match(/(?:[^\s"]+|"[^"]*")+/g) as RegExpMatchArray;
+        const args: RegExpMatchArray = fullExec?.match(/(?:[^\s"]+|"[^"]*")+/g) ?? ['get_iplayer'];
 
         const exec: string = args.shift() as string;
+
+        args.push('--encoding-console-out');
+        args.push('UTF-8')
 
         const cacheLocation = process.env.CACHE_LOCATION;
         if (cacheLocation) {
@@ -151,11 +155,25 @@ export class GetIplayerExecutableService {
         for (const line of lines) {
             if (line.startsWith('RESULT|:|')) {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom] = line.split('|:|');
-                const episode: number | undefined = (episodeStr == '' ? undefined : parseInt(episodeStr));
-                const [title, series] = (seriesStr == '' ? [rawTitle, undefined] : extractSeriesNumber(rawTitle, seriesStr))
-                const type: VideoType = episode && series ? VideoType.TV : VideoType.MOVIE;
-                const size: number | undefined = durationStr ? parseInt(durationStr) * sizeFactor : undefined;
+                const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom, epTitle] = line.split('|:|');
+                const [ title, episodeNum, seriesNum ] = parseEpisodeDetailStrings(rawTitle, episodeStr, seriesStr)
+                const [ type, allCategories, episode, episodeTitle, series ] = calculateSeasonAndEpisode({
+                    type: 'episode',
+                    pid,
+                    title: episodeNum != null || epTitle != '' ? epTitle : title,
+                    position: episodeNum,
+                    display_title: {
+                        title,
+                        subtitle: epTitle,
+                    },
+                    parent: episodeNum != null || epTitle != '' ? {
+                        programme: {
+                            type: 'series',
+                            position: seriesNum
+                        }
+                    } : undefined
+                } as IPlayerProgramMetadata);
+
                 results.push({
                     pid,
                     title,
@@ -165,8 +183,10 @@ export class GetIplayerExecutableService {
                     episode,
                     series,
                     type,
-                    size,
-                    pubDate: onlineFrom ? new Date(onlineFrom) : undefined
+                    size: durationStr ? parseInt(durationStr) * sizeFactor : undefined,
+                    pubDate: onlineFrom ? new Date(onlineFrom) : undefined,
+                    episodeTitle,
+                    allCategories
                 });
             }
         }
@@ -175,15 +195,7 @@ export class GetIplayerExecutableService {
 
     async processCompletedSearch(results : IPlayerSearchResult[], synonym? : Synonym) : Promise<IPlayerSearchResult[]> {
         for (const result of results) {
-            const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
-
-            const nzbName = await createNZBName(result.type, {
-                title: result.title.replaceAll(' ', '.'),
-                season: result.series ? result.series.toString().padStart(2, '0') : undefined,
-                episode: result.episode ? result.episode.toString().padStart(2, '0') : undefined,
-                synonym: synonymName
-            });
-            result.nzbName = nzbName;
+            result.nzbName = await createNZBName(result, synonym);
         }
         return results;
     }

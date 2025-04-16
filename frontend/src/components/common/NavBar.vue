@@ -56,6 +56,13 @@ defineExpose({ clearSearch });
   padding: 0px 20px;
   background-color: @nav-background-color;
   height: 60px;
+  z-index: 2;
+  position: relative;
+
+  @media (min-width: @mobile-breakpoint) {
+    position: sticky;
+    top: 0;
+  }
 
   >div {
     @media (max-width: @mobile-breakpoint) {

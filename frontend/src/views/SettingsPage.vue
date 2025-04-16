@@ -12,7 +12,7 @@
     <template v-if="showAdvanced">
       <TextInput v-model="config.REFRESH_SCHEDULE" :advanced="true" name="Refresh Schedule" tooltip="Cron Expression for schedule refresh." :error="validationErrors.config?.REFRESH_SCHEDULE" />
       <TextInput v-model="config.RSS_FEED_HOURS" :advanced="true" type-override="number" name="Hours in RSS Feed" tooltip="RSS feed includes content from the past N hours." :error="validationErrors.config?.RSS_FEED_HOURS" />
-      <TextInput v-model="config.TV_FILENAME_TEMPLATE" :advanced="true" name="TV Filename Template" tooltip="Template for TV Filenames, {title, synonym, season, episode, quality}." :error="validationErrors.config?.TV_FILENAME_TEMPLATE" />
+      <TextInput v-model="config.TV_FILENAME_TEMPLATE" :advanced="true" name="TV Filename Template" tooltip="Template for TV Filenames, {title, synonym, season, episode, episodeTitle, quality}." :error="validationErrors.config?.TV_FILENAME_TEMPLATE" />
       <TextInput v-model="config.MOVIE_FILENAME_TEMPLATE" :advanced="true" name="Movie Filename Template" tooltip="Template for Movie Filenames, {title, synonym, quality}." :error="validationErrors.config?.MOVIE_FILENAME_TEMPLATE" />
       <TextInput v-model="config.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS" :advanced="true" name="Additional Download Parameters" tooltip="Extra parameters to pass to get_iplayer for download" :error="validationErrors.config?.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS" />
       <SelectInput v-model="config.ARCHIVE_ENABLED" :advanced="true" name="Archive Downloads?" tooltip="Archive Downloads for record-keeping" :error="validationErrors.config?.ARCHIVE_ENABLED" :options="trueOrFalse" />

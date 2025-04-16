@@ -28,7 +28,7 @@
     <h2 v-if="isAppleDevice">
       Tools
     </h2>
-    <p>
+    <p v-if="isAppleDevice">
       <a href="shortcuts/Download%20With%20iPlayarr.shortcut" target="_blank">
         Add to iPlayarr iOS Shortcut
       </a>

@@ -1,5 +1,6 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} **/
 module.exports = {
+    preset: 'ts-jest',
     testEnvironment: 'node',
     transform: {
         '^.+\\.tsx?$': ['ts-jest', {}],
@@ -12,6 +13,9 @@ module.exports = {
             outputName: 'junit.xml'
         }]
     ],
+    roots: ['<rootDir>'],
+    modulePaths: ['<rootDir>'],
+    setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
     collectCoverage: true,
     coverageReporters: ['lcov', 'text'],
     testTimeout: 30000,

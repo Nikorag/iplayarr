@@ -1,56 +1,64 @@
 <template>
-    <SettingsPageToolbar :icons="['custom_filter', 'download']" :filter-enabled="filtersApplied" @download="multipleImmediateDownload" @show-filter="showFilter" />
-    <div v-if="!loading" class="inner-content scroll-x">
-        <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
-        <table class="resultsTable">
-            <thead>
-                <tr>
-                    <th>
-                        <CheckInput v-model="allChecked" />
-                    </th>
-                    <th>Type</th>
-                    <th>Title</th>
-                    <th>Calculated Filename</th>
-                    <th>Est. Size</th>
-                    <th>Channel</th>
-                    <th>PID</th>
-                    <th>
-                        <font-awesome-icon :icon="['fas', 'gears']" />
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="result of filteredResults" :key="result.pid">
-                    <td>
-                        <CheckInput v-model="result.checked" />
-                    </td>
-                    <td>
-                        <span :class="['pill', result.type]">
-                            {{ result.type }}
-                        </span>
-                    </td>
-                    <td class="clickable" @click="download(result)">
-                        {{ result.title }}
-                    </td>
-                    <td class="clickable" @click="download(result)">
-                        {{ result.nzbName }}
-                    </td>
-                    <td>{{ formatStorageSize(result.size) }}</td>
-                    <td>
-                        <span :class="['pill', result.channel.replaceAll(' ', '')]">
-                            {{ result.channel }}
-                        </span>
-                    </td>
-                    <td>{{ result.pid }}</td>
-                    <td>
-                        <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" @click="immediateDownload(result)" />
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
-    </div>
-    <LoadingIndicator v-if="loading" />
+  <SettingsPageToolbar :icons="['custom_filter', 'download']" :filter-enabled="filtersApplied" @download="multipleImmediateDownload" @show-filter="showFilter" />
+  <div v-if="!loading" class="inner-content scroll-x">
+    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
+    <table class="resultsTable">
+      <thead>
+        <tr>
+          <th>
+            <CheckInput v-model="allChecked" />
+          </th>
+          <th>Type</th>
+          <th>Title</th>
+          <th>Episode</th>
+          <th>Filename</th>
+          <th>Est. Size</th>
+          <th>Channel</th>
+          <th>First Broadcast</th>
+          <th>
+            <font-awesome-icon :icon="['fas', 'gears']" />
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="result of filteredResults" :key="result.pid" class="clickable">
+          <td>
+            <CheckInput v-model="result.checked" />
+          </td>
+          <td @click="download(result)">
+            <span :class="['pill', result.type]">
+              {{ result.type }}
+            </span>
+          </td>
+          <td @click="download(result)">
+            {{ result.title }}
+          </td>
+          <td @click="download(result)">
+            {{ result.episode ? `Series ${result.series}, Episode ${result.episode}` : result.episodeTitle }}
+          </td>
+          <td class="wrap" @click="download(result)">
+            {{ result.nzbName }}
+          </td>
+          <td @click="download(result)">
+            {{ formatStorageSize(result.size) }}
+          </td>
+          <td @click="download(result)">
+            <span :class="['pill', result.channel.replaceAll(' ', '')]">
+              {{ result.channel }}
+            </span>
+          </td>
+          <td @click="download(result)">
+            {{ formatDate(result.pubDate) }}
+          </td>
+          <td @click="immediateDownload(result)">
+            <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
+  </div>
+  <LoadingIndicator v-if="loading" />
 </template>
 
 <script setup>
@@ -65,7 +73,7 @@ import SearchFiltersDialog from '@/components/modals/SearchFiltersDialog.vue';
 import SearchPagination from '@/components/search/SearchPagination.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
-import { formatStorageSize } from '@/lib/utils';
+import { formatDate, formatStorageSize } from '@/lib/utils';
 
 const route = useRoute();
 const router = useRouter();
@@ -203,6 +211,10 @@ const showFilter = () => {
                 padding: 8px;
                 border-top: 1px solid @table-border-color;
                 line-height: 1.52857143;
+                
+                &.wrap {
+                  word-break: break-word;
+                }
             }
         }
     }

@@ -18,20 +18,20 @@ jest.mock('../../src/service/iplayerService', () => ({
     performSearch: jest.fn()
 }));
 
-jest.mock('../../src/service/configService', () => ({
+jest.mock('src/service/configService', () => ({
     getParameter: jest.fn()
 }));
 
-jest.mock('../../src/service/synonymService', () => ({
+jest.mock('src/service/synonymService', () => ({
     getSynonym: jest.fn()
 }));
 
-jest.mock('../../src/service/episodeCacheService', () => ({
+jest.mock('src/service/episodeCacheService', () => ({
     searchEpisodeCache: jest.fn(() => [])
 }));
 
 const mockCacheData: Record<string, any> = {};
-jest.mock('../../src/service/redisCacheService', () => {
+jest.mock('src/service/redisCacheService', () => {
     const mockCacheInstance = {
         get: jest.fn((key: string) => {
             return Promise.resolve(mockCacheData[key] ? mockCacheData[key] : undefined);
@@ -62,7 +62,7 @@ describe('searchService', () => {
     it('should return cached results if available', async () => {
         const term = 'testTerm';
         const pubDate: Date = new Date(Date.now() - 3 * 60 * 60 * 1000);
-        const cachedResults: SearchResponse = {...emptySearchResult, results : [{ title: 'Cached Result', pubDate } as any]};
+        const cachedResults: SearchResponse = {...emptySearchResult, results : [{ title: 'Cached Result', pubDate } as any, { title: 'Without Date' } as any]};
         mockCacheData[`${term}_1`] = cachedResults;
 
         const results = await searchService.search(term);

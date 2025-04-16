@@ -53,17 +53,16 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import { useModal } from 'vue-final-modal'
-
+import { useRoute, useRouter } from 'vue-router';
 
 import CheckInput from '@/components/common/form/CheckInput.vue';
 import LoadingIndicator from '@/components/common/LoadingIndicator.vue';
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
+import SearchFiltersDialog from '@/components/modals/SearchFiltersDialog.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { formatStorageSize } from '@/lib/utils';
-import SearchFiltersDialog from '@/components/modals/SearchFiltersDialog.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -86,17 +85,17 @@ const filteredResults = computed(() => {
     const channelFilters = Object.keys(appliedFacets.value.channels).filter((key) => appliedFacets.value.channels[key] == true);
     const typeFilters = Object.keys(appliedFacets.value.types).filter((key) => appliedFacets.value.types[key] == true);
     return searchResults.value.filter((result) => {
-      return (channelFilters.length == 0 || channelFilters.includes(result.channel)) && (typeFilters.length == 0 || typeFilters.includes(result.type)) && (categoryFilters.length == 0 || result.allCategories.some((cat) => categoryFilters.includes(cat)));
+        return (channelFilters.length == 0 || channelFilters.includes(result.channel)) && (typeFilters.length == 0 || typeFilters.includes(result.type)) && (categoryFilters.length == 0 || result.allCategories.some((cat) => categoryFilters.includes(cat)));
     });
 });
 
 const filtersApplied = computed(() => {
-  const categoryFilters = Object.keys(appliedFacets.value.categories).filter((key) => appliedFacets.value.categories[key] == true);
-  const channelFilters = Object.keys(appliedFacets.value.channels).filter((key) => appliedFacets.value.channels[key] == true);
-  const typeFilters = Object.keys(appliedFacets.value.types).filter((key) => appliedFacets.value.types[key] == true);
+    const categoryFilters = Object.keys(appliedFacets.value.categories).filter((key) => appliedFacets.value.categories[key] == true);
+    const channelFilters = Object.keys(appliedFacets.value.channels).filter((key) => appliedFacets.value.channels[key] == true);
+    const typeFilters = Object.keys(appliedFacets.value.types).filter((key) => appliedFacets.value.types[key] == true);
 
 
-  return categoryFilters.length > 0 || channelFilters.length > 0 || typeFilters > 0;
+    return categoryFilters.length > 0 || channelFilters.length > 0 || typeFilters > 0;
 })
 
 watch(() => route.query.searchTerm, async (newSearchTerm) => {
@@ -144,53 +143,53 @@ watch(allChecked, (newValue) => {
 }, { immediate: true });
 
 const showFilter = () => {
-  const formModal = useModal({
+    const formModal = useModal({
         component: SearchFiltersDialog,
         attrs: {
-          allFacets,
-          initiallyApplied : appliedFacets,
-          onApplyFacets : (allFacets) => {
-            formModal.close();
-            appliedFacets.value = allFacets;
-          }
+            allFacets,
+            initiallyApplied : appliedFacets,
+            onApplyFacets : (allFacets) => {
+                formModal.close();
+                appliedFacets.value = allFacets;
+            }
         }
     });
     formModal.open();
 }
 
 const allFacets = computed(() => {
-  const categories = Array.from(new Set(searchResults.value.flatMap(result => result.allCategories)));
-  const channels = Array.from(new Set(searchResults.value.map(result => result.channel)));
-  const types = Array.from(new Set(searchResults.value.map(result => result.type)));
+    const categories = Array.from(new Set(searchResults.value.flatMap(result => result.allCategories)));
+    const channels = Array.from(new Set(searchResults.value.map(result => result.channel)));
+    const types = Array.from(new Set(searchResults.value.map(result => result.type)));
 
-  const { minSize, maxSize, minPubDate, maxPubDate } = searchResults.value.reduce(
-    (acc, result) => ({
-      minSize: Math.min(acc.minSize, result.size),
-      maxSize: Math.max(acc.maxSize, result.size),
-      minPubDate: acc.minPubDate < result.pubDate ? acc.minPubDate : result.pubDate,
-      maxPubDate: acc.maxPubDate > result.pubDate ? acc.maxPubDate : result.pubDate,
-    }),
-    {
-      minSize: Infinity,
-      maxSize: -Infinity,
-      minPubDate: new Date(Infinity),
-      maxPubDate: new Date(-Infinity),
-    }
-  );
+    const { minSize, maxSize, minPubDate, maxPubDate } = searchResults.value.reduce(
+        (acc, result) => ({
+            minSize: Math.min(acc.minSize, result.size),
+            maxSize: Math.max(acc.maxSize, result.size),
+            minPubDate: acc.minPubDate < result.pubDate ? acc.minPubDate : result.pubDate,
+            maxPubDate: acc.maxPubDate > result.pubDate ? acc.maxPubDate : result.pubDate,
+        }),
+        {
+            minSize: Infinity,
+            maxSize: -Infinity,
+            minPubDate: new Date(Infinity),
+            maxPubDate: new Date(-Infinity),
+        }
+    );
 
-  return {
-    categories,
-    channels,
-    types,
-    size: {
-      min: minSize,
-      max: maxSize,
-    },
-    pubDate: {
-      min: minPubDate,
-      max: maxPubDate,
-    },
-  };
+    return {
+        categories,
+        channels,
+        types,
+        size: {
+            min: minSize,
+            max: maxSize,
+        },
+        pubDate: {
+            min: minPubDate,
+            max: maxPubDate,
+        },
+    };
 });
 </script>
 

@@ -1,50 +1,51 @@
 <template>
-    <IPlayarrModal title="Apply Filters" :show-close="true" close-label="Close" :show-confirm="true" confirm-label="Filter" @confirm="applyFacets">
-        <h2>Categories</h2>
-        <ul class="facetList">
-            <li class="facet" v-for="category of allFacets.categories" v-bind:key="category">
-                <CheckInput v-model="appliedFacets.categories[category]"/>
-                <span>{{ category }}</span>
-            </li>
-        </ul>
+  <IPlayarrModal title="Apply Filters" :show-close="true" close-label="Close" :show-confirm="true" confirm-label="Filter" @confirm="applyFacets">
+    <h2>Categories</h2>
+    <ul class="facetList">
+      <li v-for="category of allFacets.categories" :key="category" class="facet">
+        <CheckInput v-model="appliedFacets.categories[category]" />
+        <span>{{ category }}</span>
+      </li>
+    </ul>
 
-        <h2>Channels</h2>
-        <ul class="facetList">
-            <li class="facet" v-for="channel of allFacets.channels" v-bind:key="channel">
-                <CheckInput v-model="appliedFacets.channels[channel]"/>
-                <span>{{ channel }}</span>
-            </li>
-        </ul>
+    <h2>Channels</h2>
+    <ul class="facetList">
+      <li v-for="channel of allFacets.channels" :key="channel" class="facet">
+        <CheckInput v-model="appliedFacets.channels[channel]" />
+        <span>{{ channel }}</span>
+      </li>
+    </ul>
 
-        <h2>Type</h2>
-        <ul class="facetList">
-            <li class="facet" v-for="type of allFacets.types" v-bind:key="type">
-                <CheckInput v-model="appliedFacets.types[type]"/>
-                <span>{{ type }}</span>
-            </li>
-        </ul>
-    </IPlayarrModal>
-  </template>
+    <h2>Type</h2>
+    <ul class="facetList">
+      <li v-for="type of allFacets.types" :key="type" class="facet">
+        <CheckInput v-model="appliedFacets.types[type]" />
+        <span>{{ type }}</span>
+      </li>
+    </ul>
+  </IPlayarrModal>
+</template>
 
-  <script setup>
-    import CheckInput from '../common/form/CheckInput.vue';
-    import IPlayarrModal from './IPlayarrModal.vue';
-    import { deepCopy } from '@/lib/utils';
+<script setup>
+import { defineEmits,defineProps, ref } from 'vue';
 
-    import { defineProps, ref, defineEmits } from 'vue';
+import { deepCopy } from '@/lib/utils';
 
-    const emit = defineEmits(['applyFacets']);
+import CheckInput from '../common/form/CheckInput.vue';
+import IPlayarrModal from './IPlayarrModal.vue';
 
-    const props = defineProps({
-        allFacets : Object,
-        initiallyApplied : Object
-    });
+const emit = defineEmits(['applyFacets']);
 
-    const appliedFacets = ref(deepCopy(props.initiallyApplied));
+const props = defineProps({
+    allFacets : Object,
+    initiallyApplied : Object
+});
 
-    const applyFacets = () => {
-        emit('applyFacets', appliedFacets.value);
-    }
+const appliedFacets = ref(deepCopy(props.initiallyApplied));
+
+const applyFacets = () => {
+    emit('applyFacets', appliedFacets.value);
+}
 </script>
 
 <style lang="less" scoped>

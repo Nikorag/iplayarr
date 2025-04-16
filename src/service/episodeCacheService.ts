@@ -6,7 +6,7 @@ import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QueuedStorage } from '../types/QueuedStorage'
 import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
-import { IPlayerChilrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
+import { IPlayerChildrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerService from './iplayerService';
 
@@ -117,8 +117,9 @@ const episodeCacheService = {
 
         const brandPid = await episodeCacheService.findBrandForUrl(inputUrl);
         if (brandPid){
-            const {data : {children : seriesList}} : {data : IPlayerChilrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
+            const {data : {children : seriesList}} : {data : IPlayerChildrenResponse} = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
             const episodes = (await Promise.all(seriesList.programmes.filter(({type}) => type == 'series').map(({pid}) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+            episodes.push(...seriesList.programmes.filter(({ type, first_broadcast_date }) => type == 'episode' && first_broadcast_date != null).map(({ pid }) => pid));
 
             const chunks = splitArrayIntoChunks(episodes, 20);
             const infos : IPlayerDetails[] = await chunks.reduce(async (accPromise, chunk) => {
@@ -141,7 +142,7 @@ const episodeCacheService = {
 
     getSeriesEpisodes : async (pid : string) : Promise<string[]> => {
         try {
-            const response : AxiosResponse<IPlayerChilrenResponse> = await axios.get(`https://www.bbc.co.uk/programmes/${pid}/children.json?limit=100`);
+            const response : AxiosResponse<IPlayerChildrenResponse> = await axios.get(`https://www.bbc.co.uk/programmes/${pid}/children.json?limit=100`);
             return response.data.children.programmes.map(({pid}) => pid);
         } catch {
             return [];
@@ -176,13 +177,7 @@ const episodeCacheService = {
 
 async function createResult(term : string, details : IPlayerDetails, sizeFactor : number) : Promise<IPlayerSearchResult> {
     const size : number | undefined = details.runtime ? ((details.runtime * 60) * sizeFactor) / 100 : undefined;
-
-    const nzbName = await createNZBName(VideoType.TV, {
-        title: details.title.replaceAll(' ', '.'),
-        season: details.series ? details.series.toString().padStart(2, '0') : undefined,
-        episode: details.episode ? details.episode.toString().padStart(2, '0') : undefined,
-    });
-
+    const nzbName = await createNZBName(details);
     return {
         number: 0,
         title: details.title,
@@ -193,6 +188,7 @@ async function createResult(term : string, details : IPlayerDetails, sizeFactor 
             line: term
         },
         episode: details.episode,
+        episodeTitle: details.episodeTitle,
         pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
         series: details.series,
         type: VideoType.TV,

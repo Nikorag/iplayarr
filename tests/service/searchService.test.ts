@@ -1,31 +1,31 @@
-import configService from '../../src/service/configService';
-import iplayerService from '../../src/service/iplayerService';
-import RedisCacheService from '../../src/service/redisCacheService';
-import searchService from '../../src/service/searchService';
-import synonymService from '../../src/service/synonymService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
-import { IPlayerSearchResult } from '../../src/types/IPlayerSearchResult';
-import { Synonym } from '../../src/types/Synonym';
+import configService from 'src/service/configService';
+import iplayerService from 'src/service/iplayerService';
+import RedisCacheService from 'src/service/redisCacheService';
+import searchService from 'src/service/searchService';
+import synonymService from 'src/service/synonymService';
+import { IplayarrParameter } from 'src/types/IplayarrParameters';
+import { IPlayerSearchResult } from 'src/types/IPlayerSearchResult';
+import { Synonym } from 'src/types/Synonym';
 
-jest.mock('../../src/service/iplayerService', () => ({
+jest.mock('src/service/iplayerService', () => ({
     details: jest.fn(),
     performSearch: jest.fn()
 }));
 
-jest.mock('../../src/service/configService', () => ({
+jest.mock('src/service/configService', () => ({
     getParameter: jest.fn()
 }));
 
-jest.mock('../../src/service/synonymService', () => ({
+jest.mock('src/service/synonymService', () => ({
     getSynonym: jest.fn()
 }));
 
-jest.mock('../../src/service/episodeCacheService', () => ({
+jest.mock('src/service/episodeCacheService', () => ({
     searchEpisodeCache: jest.fn(() => [])
 }));
 
 const mockCacheData: Record<string, any> = {};
-jest.mock('../../src/service/redisCacheService', () => {
+jest.mock('src/service/redisCacheService', () => {
     const mockCacheInstance = {
         get: jest.fn((key: string) => {
             return Promise.resolve(mockCacheData[key] ? JSON.parse(mockCacheData[key]) : undefined);
@@ -56,7 +56,7 @@ describe('searchService', () => {
     it('should return cached results if available', async () => {
         const term = 'testTerm';
         const pubDate: Date = new Date(Date.now() - 3 * 60 * 60 * 1000);
-        const cachedResults: IPlayerSearchResult[] = [{ title: 'Cached Result', pubDate } as any];
+        const cachedResults: IPlayerSearchResult[] = [{ title: 'Cached Result', pubDate }, { title: 'Without Date' } as any];
         mockCacheData[term] = JSON.stringify(cachedResults);
 
         const results = await searchService.search(term);

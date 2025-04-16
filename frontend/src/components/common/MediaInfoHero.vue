@@ -2,10 +2,13 @@
   <div class="infoBanner" :style="{ 'background-image': `url(${details.thumbnail})` }">
     <div class="infoContainer">
       <h1>{{ title }}</h1>
+      <h2 v-if="details.episodeTitle || subtitle">
+        {{ details.episodeTitle ?? subtitle }}
+      </h2>
       <div v-if="details.category" class="seriesDetails">
         <span>{{ details.runtime }} Minutes</span>
         <span>{{ details.category }}</span>
-        <span>{{ details.firstBroadcast }}</span>
+        <span>{{ formatDate(details.firstBroadcast, 'full', 'long') }}</span>
       </div>
       <div v-if="details.category" class="seriesDetails">
         <span :class="['pill', 'grey']">
@@ -39,6 +42,7 @@
 import { computed, defineProps, inject, ref, watch } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
+import { formatDate } from '@/lib/utils';
 
 import LoadingIndicator from './LoadingIndicator.vue';
 
@@ -58,6 +62,10 @@ const props = defineProps({
     type: {
         type: String,
         required: true
+    },
+    subtitle: {
+        type: String,
+        required: false,
     }
 });
 
@@ -79,7 +87,7 @@ watch(() => props.pid, async (newPid) => {
 const fixCasing = (str) => {
     return str
         .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map(word => word == 'TV' ? 'TV' : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 }
 </script>
@@ -88,22 +96,19 @@ const fixCasing = (str) => {
 .infoBanner {
   position: relative;
   width: 100%;
-  height: 325px;
   background-size: cover;
   background-position: center;
 
   .infoContainer {
-    position: absolute;
     width: 100%;
-    height: 325px;
     background-color: rgba(0, 0, 0, 0.6);
     padding: 2rem;
     box-sizing: border-box;
 
     .seriesDetails {
-      margin-bottom: 8px;
+      margin-bottom: 16px;
       font-weight: 300;
-      font-size: 20px;
+      font-size: 18px;
 
       span {
         margin-right: 15px;

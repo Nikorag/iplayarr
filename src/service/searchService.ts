@@ -2,9 +2,9 @@ import axios, { AxiosResponse } from 'axios';
 
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
+import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
-import { IPlayerChilrenResponse } from '../types/responses/IPlayerMetadataResponse';
+import { IPlayerChildrenResponse } from '../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../types/Synonym';
 import { createNZBName, getQualityProfile, removeLastFourDigitNumber, splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
@@ -33,7 +33,7 @@ export class SearchService {
         } else {
             //Fix the results which are stored as string
             results.forEach(result => {
-                result.pubDate = new Date((result.pubDate as unknown as string));
+                result.pubDate = result.pubDate ? new Date((result.pubDate as unknown as string)) : undefined;
             });
         }
 
@@ -65,7 +65,7 @@ export class SearchService {
             const brandPids: Set<string> = new Set();
             let infos: IPlayerDetails[] = [];
 
-            //Only get the first brand from iplayer, if we 
+            //Only get the first brand from iplayer
             if (results.length > 0) {
                 const { id } = results[0];
                 const brandPid = await episodeCacheService.findBrandForPid(id);
@@ -78,8 +78,9 @@ export class SearchService {
             }
 
             for (const brandPid of brandPids) {
-                const { data: { children: seriesList } }: { data: IPlayerChilrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
-                const episodes = (await Promise.all(seriesList.programmes.filter(({ type, title }) => type == 'series' && !title.toLocaleLowerCase().includes('special')).map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+                const { data: { children: seriesList } }: { data: IPlayerChildrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
+                const episodes = (await Promise.all(seriesList.programmes.filter(({ type }) => type == 'series').map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
+                episodes.push(...seriesList.programmes.filter(({ type, first_broadcast_date }) => type == 'episode' && first_broadcast_date != null).map(({ pid }) => pid));
 
                 const chunks = splitArrayIntoChunks(episodes, 5);
                 const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
@@ -91,8 +92,7 @@ export class SearchService {
                 infos = [...infos, ...chunkInfos];
             }
 
-            const synonymName = synonym ? (synonym.filenameOverride || synonym.from).replaceAll(/[^a-zA-Z0-9\s.]/g, '').replaceAll(' ', '.') : undefined;
-            return await Promise.all(infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonymName)));
+            return await Promise.all(infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonym)));
 
         } else {
             return [];
@@ -114,17 +114,7 @@ export class SearchService {
         })
     }
 
-    async #createSearchResult(term: string, details: IPlayerDetails, sizeFactor: number, synonymName: string | undefined): Promise<IPlayerSearchResult> {
-        const size: number | undefined = details.runtime ? (details.runtime * 60) * sizeFactor : undefined;
-
-        const type: VideoType = details.episode && details.series ? VideoType.TV : VideoType.MOVIE;
-        const nzbName = await createNZBName(type, {
-            title: details.title.replaceAll(' ', '.'),
-            season: details.series ? details.series.toString().padStart(2, '0') : undefined,
-            episode: details.episode ? details.episode.toString().padStart(2, '0') : undefined,
-            synonym: synonymName
-        });
-
+    async #createSearchResult(term: string, details: IPlayerDetails, sizeFactor: number, synonym?: Synonym): Promise<IPlayerSearchResult> {
         return {
             number: 0,
             title: details.title,
@@ -137,9 +127,10 @@ export class SearchService {
             episode: details.episode,
             pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
             series: details.series,
-            type,
-            size,
-            nzbName
+            type: details.type,
+            size: details.runtime ? (details.runtime * 60) * sizeFactor : undefined,
+            nzbName: await createNZBName(details, synonym),
+            episodeTitle: details.episodeTitle
         }
     }
 

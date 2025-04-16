@@ -1,17 +1,25 @@
 import { Request } from 'express';
+import configService from 'src/service/configService';
+import { IplayarrParameter } from 'src/types/IplayarrParameters';
+import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
+import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';
+import { Synonym } from 'src/types/Synonym';
+import * as Utils from 'src/utils/Utils';
+import b008m7xk from 'tests/data/b008m7xk';
+import b0211hsl from 'tests/data/b0211hsl';
+import m000jbtq from 'tests/data/m000jbtq';
+import m001kscd from 'tests/data/m001kscd';
+import m001zh3r from 'tests/data/m001zh3r';
+import m001zh50 from 'tests/data/m001zh50';
+import m001zr9t from 'tests/data/m001zr9t';
+import m002b3cb from 'tests/data/m002b3cb';
+import m0026fkl from 'tests/data/m0026fkl';
+import m0029c0g from 'tests/data/m0029c0g';
+import p00bp2rm from 'tests/data/p00bp2rm';
+import p0fq3s31 from 'tests/data/p0fq3s31';
 
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';
-import * as Utils from '../../src/utils/Utils';
-
-jest.mock('../../src/service/configService', () => ({
-    __esModule: true,
-    default: {
-        getParameter: jest.fn()
-    }
-}));
-
-import configService from '../../src/service/configService';
+jest.mock('src/service/configService');
+const mockedConfigService = jest.mocked(configService);
 
 describe('Utils', () => {
     describe('formatBytes', () => {
@@ -77,23 +85,163 @@ describe('Utils', () => {
 
     describe('getQualityProfile', () => {
         it('returns the matching quality profile', async () => {
-            (configService.getParameter as jest.Mock).mockResolvedValue('hd');
+            mockedConfigService.getParameter.mockResolvedValue('hd');
             const result = await Utils.getQualityProfile();
             expect(result.id).toBe('hd');
         });
     });
 
     describe('createNZBName', () => {
-        it('renders the template using Handlebars', async () => {
-            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE) return 'TV - {{title}} - {{quality}}';
-                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE) return 'Movie - {{title}} - {{quality}}';
-                if (key === IplayarrParameter.VIDEO_QUALITY) return 'hd';
+        describe('TV', () => {
+            it('title only', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 1,
+                    episode: 2
+                })).resolves.toBe('Thats.a.Title.S01E02.WEBDL.720p-BBC');
             });
-
-            const name = await Utils.createNZBName(VideoType.TV, { title: 'Doctor Who', quality: '' });
-            expect(name).toBe('TV - Doctor Who - 720p');
+    
+            it('synonym replaces title', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 1,
+                    episode: 2
+                }, synonym)).resolves.toBe('Syno-Nym.Bus.S01E02.WEBDL.720p-BBC');
+            });
+    
+            it('synonym override replaces title', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 1,
+                    episode: 2
+                }, synonymWithOverride)).resolves.toBe('O.Ver_Ride.2.S01E02.WEBDL.720p-BBC');
+            });
+    
+            it('double digits', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 12,
+                    episode: 34
+                })).resolves.toBe('Thats.a.Title.S12E34.WEBDL.720p-BBC');
+            });
+    
+            it('yearly', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 2025,
+                    episode: 365
+                })).resolves.toBe('Thats.a.Title.S2025E365.WEBDL.720p-BBC');
+            });
+    
+            it('specials', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 0,
+                    episode: 0
+                })).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
+            });
+    
+            it('episode title', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 1,
+                    episode: 2,
+                    episodeTitle: '14/04/2025: We Call That... an Episode.'
+                })).resolves.toBe('Thats.a.Title.S01E02.14.04.2025.We.Call.That.an.Episode.WEBDL.720p-BBC');
+            });
+    
+            it('quality', async () => {
+                mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) => 
+                    Promise.resolve(parameter == IplayarrParameter.VIDEO_QUALITY ? 'fhd' : configService.defaultConfigMap[parameter]));
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 1,
+                    episode: 2
+                })).resolves.toBe('Thats.a.Title.S01E02.WEBDL.1080p-BBC');
+            });
+    
+            it('missing series', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    episode: 2
+                })).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
+            });
+    
+            it('missing episode', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.TV,
+                    series: 1
+                })).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
+            });
         });
+    
+        describe('MOVIE', () => {
+            it('title only', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.MOVIE
+                })).resolves.toBe('Thats.a.Title.WEBDL.720p-BBC');
+            });
+    
+            it('synonym replaces title', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.MOVIE
+                }, synonym)).resolves.toBe('Syno-Nym.Bus.WEBDL.720p-BBC');
+            });
+    
+            it('synonym override replaces title', async () => {
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.MOVIE
+                }, synonymWithOverride)).resolves.toBe('O.Ver_Ride.2.WEBDL.720p-BBC');
+            });
+    
+            it('quality', async () => {
+                mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) => 
+                    Promise.resolve(parameter == IplayarrParameter.VIDEO_QUALITY ? 'fhd' : configService.defaultConfigMap[parameter]));
+                await expect(Utils.createNZBName({
+                    title: synonym.target,
+                    pid: '',
+                    type: VideoType.MOVIE
+                })).resolves.toBe('Thats.a.Title.WEBDL.1080p-BBC');
+            });
+        });
+        
+        const synonym: Synonym = {
+            id: '',
+            from: 'Syno-Nym Bus?',
+            target: 'That\'s a Title!',
+            exemptions: ''
+        };
+        
+        const synonymWithOverride: Synonym = {
+            ...synonym,
+            filenameOverride: 'O.Ver_Ride: 2'
+        }
     });
 
     describe('removeLastFourDigitNumber', () => {
@@ -104,18 +252,27 @@ describe('Utils', () => {
         });
     });
     
-    describe('extractSeriesNumber', () => {
+    describe('parseEpisodeDetailStrings', () => {
         it('extracts number from title using regex', () => {
-            const [title, number] = Utils.extractSeriesNumber('Doctor Who: Series 3', '1');
+            const [title, episode, series] = Utils.parseEpisodeDetailStrings('Doctor Who: Series 3', '4', '1');
             expect(title.trim()).toBe('Doctor Who');
-            expect(number).toBe(3);
+            expect(episode).toBe(4);
+            expect(series).toBe(3);
         });
     
         it('falls back to default series number if no match', () => {
-            const [title, number] = Utils.extractSeriesNumber('Doctor Who', '7');
+            const [title, episode, series] = Utils.parseEpisodeDetailStrings('Doctor Who', '4', '2');
             expect(title).toBe('Doctor Who');
-            expect(number).toBe(7);
+            expect(episode).toBe(4);
+            expect(series).toBe(2);
         });
+
+        it('returns undefined for invalid series and episode values', () => {
+            const [title, episode, series] = Utils.parseEpisodeDetailStrings('Doctor Who', 'SEVEN', 'TWO');
+            expect(title).toBe('Doctor Who');
+            expect(episode).toBeUndefined();
+            expect(series).toBeUndefined();
+        })
     });
     
     describe('getPotentialRoman', () => {
@@ -128,5 +285,36 @@ describe('Utils', () => {
             expect(Utils.getPotentialRoman('12')).toBe(12);
             expect(Utils.getPotentialRoman('not-a-number')).toBeNaN();
         });
-    });    
+    });
+
+    describe('calculateSeasonAndEpisode', () => {
+        describe('episodes', () => {
+            it('series episode', async () => assertSeasonAndEpisode(m0029c0g, [ VideoType.TV, 1, 'Episode 1', 3]));        
+            it('roman numerals series', async () => assertSeasonAndEpisode(p00bp2rm, [ VideoType.TV, 5, 'Dimension Jump', 4 ]));        
+            it('yearly series', async () => assertSeasonAndEpisode(m001zh50, [ VideoType.TV, 1, 'Episode 1', 2024]));        
+            it('no series', async () => assertSeasonAndEpisode(m002b3cb, [ VideoType.TV, 0, '13/04/2025', 0]));
+        
+            describe('specials', () => {
+                it('with no series', async () => assertSeasonAndEpisode(m0026fkl, [ VideoType.TV, 0, 'Christmas Special 2024', 0]));
+                it('only one in series', async () => assertSeasonAndEpisode(p0fq3s31, [ VideoType.TV, 0, 'The Promised Land', 13]));
+                it('episode before series', async () => assertSeasonAndEpisode(m001zh3r, [ VideoType.TV, 0, 'RHS: Countdown to Chelsea', 2024]));
+                it('episode within series', async () => assertSeasonAndEpisode(m001zr9t, [ VideoType.TV, 0, 'Highlights', 2024]));
+                it('episode after series', async () => assertSeasonAndEpisode(b0211hsl, [ VideoType.TV, 0, 'Red Button Special', 0]));
+                it('from series of specials', async () => assertSeasonAndEpisode(m000jbtq, [ VideoType.TV, 0, 'Your Chelsea Flower Show, Making the Most of Your Time', 0]));
+            });
+        });
+        
+        describe('movies', () => {
+            it('standalone', async () => assertSeasonAndEpisode(m001kscd, [ VideoType.MOVIE, undefined, undefined, undefined]));        
+            it('sequel', async () => assertSeasonAndEpisode(b008m7xk, [ VideoType.MOVIE, undefined, undefined, undefined]));
+        });
+
+        const assertSeasonAndEpisode = (metadata: IPlayerMetadataResponse, expected: [ VideoType, number | undefined, string | undefined, number | undefined ]) => {
+            expect(Utils.calculateSeasonAndEpisode(metadata.programme)).toEqual(expected);
+        }
+    });
+    
+    beforeEach(() => {
+        mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) => Promise.resolve(configService.defaultConfigMap[parameter]));
+    })
 });

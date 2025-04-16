@@ -1,12 +1,11 @@
 import { Server, Socket } from 'socket.io';
-
-import historyService from '../../src/service/historyService';
-import queueService from '../../src/service/queueService';
-import socketService from '../../src/service/socketService';
+import historyService from 'src/service/historyService';
+import queueService from 'src/service/queueService';
+import socketService from 'src/service/socketService';
 
 // Mock dependencies
-jest.mock('../../src/service/historyService');
-jest.mock('../../src/service/queueService');
+jest.mock('src/service/historyService');
+jest.mock('src/service/queueService');
 
 describe('socketService', () => {
     let mockIo: jest.Mocked<Server>;

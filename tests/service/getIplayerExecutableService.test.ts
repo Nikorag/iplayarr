@@ -1,23 +1,18 @@
 import fs from 'fs';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import path from 'path';
+import configService from 'src/service/configService';
+import { GetIplayerExecutableService } from 'src/service/getIplayerExecutableService';
+import historyService from 'src/service/historyService';
+import queueService from 'src/service/queueService';
+import socketService from 'src/service/socketService';
+import { IplayarrParameter } from 'src/types/IplayarrParameters';
+import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
+import { Synonym } from 'src/types/Synonym';
 
-import configService from '../../src/service/configService';
-import { GetIplayerExecutableService } from '../../src/service/getIplayerExecutableService';
-import historyService from '../../src/service/historyService';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import loggingService from '../../src/service/loggingService';
-import queueService from '../../src/service/queueService';
-import socketService from '../../src/service/socketService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';
-import { Synonym } from '../../src/types/Synonym';
-
-jest.mock('../../src/service/configService');
-jest.mock('../../src/service/queueService');
-jest.mock('../../src/service/socketService');
-jest.mock('../../src/service/historyService');
-jest.mock('../../src/service/loggingService');
+jest.mock('src/service/configService');
+jest.mock('src/service/queueService');
+jest.mock('src/service/socketService');
+jest.mock('src/service/historyService');
+jest.mock('src/service/loggingService');
 jest.mock('fs');
 jest.mock('path');
 
@@ -43,6 +38,8 @@ describe('GetIplayerExecutableService', () => {
             const result = await service.getIPlayerExec();
 
             expect(result.exec).toBe(mockExec);
+            expect(result.args).toContain('--encoding-console-out');
+            expect(result.args).toContain('UTF-8');
             expect(result.args).toContain('--profile-dir');
             expect(result.args).toContain('"/mock/cache"');
             mockArgs.forEach((arg) => {
@@ -62,7 +59,19 @@ describe('GetIplayerExecutableService', () => {
             const result = await service.getIPlayerExec();
 
             expect(result.exec).toBe(mockExec);
+            expect(result.args).toContain('--encoding-console-out');
+            expect(result.args).toContain('UTF-8');
             expect(result.args).not.toContain('--profile-dir');
+        });
+
+        it('should fallback to get_iplayer exec if GET_IPLAYER_EXEC is not set', async () => {
+            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return undefined;
+            });
+
+            const result = await service.getIPlayerExec();
+
+            expect(result.exec).toBe('get_iplayer');
         });
     });
 
@@ -220,7 +229,7 @@ describe('GetIplayerExecutableService', () => {
     describe('parseResults', () => {
         it('should correctly parse search results and return structured data', () => {
             const mockTerm = 'test';
-            const mockData = 'RESULT|:|12345|:|test title|:| |:| |:|1|:|BBC|:|120|:|2021-01-01';
+            const mockData = 'RESULT|:|12345|:|test title|:| |:| |:|1|:|BBC|:|120|:|2021-01-01|:|episode title';
             const mockSizeFactor = 1;
 
             const results = service.parseResults(mockTerm, mockData, mockSizeFactor);
@@ -253,13 +262,13 @@ describe('GetIplayerExecutableService', () => {
 
             (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
                 if (key === IplayarrParameter.VIDEO_QUALITY) return 'hd';
-                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE) return 'TV - {{title}} - {{quality}}';
-                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE) return 'Movie - {{title}} - {{quality}}';
+                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE) return 'TV-{{title}}-{{quality}}';
+                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE) return 'Movie-{{title}}-{{quality}}';
             });
 
             const results = await service.processCompletedSearch(mockResults, mockSynonym);
 
-            expect(results[0]).toHaveProperty('nzbName', 'TV - Test.Title - 720p');
+            expect(results[0]).toHaveProperty('nzbName', 'TV-Test.Title-720p');
         });
     });
 });

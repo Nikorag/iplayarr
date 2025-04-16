@@ -1,7 +1,7 @@
 <template>
   <SettingsPageToolbar :icons="['custom_filter', 'download']" :filter-enabled="filtersApplied" @download="multipleImmediateDownload" @show-filter="showFilter" />
   <div v-if="!loading" class="inner-content scroll-x">
-    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage"/>
+    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
     <table class="resultsTable">
       <thead>
         <tr>
@@ -48,7 +48,7 @@
         </tr>
       </tbody>
     </table>
-    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage"/>
+    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage" />
   </div>
   <LoadingIndicator v-if="loading" />
 </template>
@@ -125,14 +125,14 @@ watch(() => route.query.searchTerm, async (newSearchTerm) => {
 }, { immediate: true });
 
 const changePage = async (newPage) => {
-  if (newPage > searchResults.value.pagination.totalPages) newPage = searchResults.value.pagination.totalPages;
-  if (newPage < 1) newPage = 1;
+    if (newPage > searchResults.value.pagination.totalPages) newPage = searchResults.value.pagination.totalPages;
+    if (newPage < 1) newPage = 1;
 
-  currentPage.value = newPage;
-  loading.value = true;
-  searchResults.value = emptySearchResponse;
-  searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}`)).data;
-  loading.value = false;
+    currentPage.value = newPage;
+    loading.value = true;
+    searchResults.value = emptySearchResponse;
+    searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}`)).data;
+    loading.value = false;
 }
 
 const download = async (searchResult) => {

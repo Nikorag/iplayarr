@@ -5,7 +5,6 @@ import RedisCacheService from '../../src/service/redisCacheService';
 import searchService from '../../src/service/searchService';
 import synonymService from '../../src/service/synonymService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
-import { IPlayerSearchResult } from '../../src/types/IPlayerSearchResult';
 import { SearchResponse } from '../../src/types/responses/SearchResponse';
 import { Synonym } from '../../src/types/Synonym';
 

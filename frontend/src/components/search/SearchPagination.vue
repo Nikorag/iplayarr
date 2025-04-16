@@ -1,15 +1,15 @@
 <template>
   <div class="pagination">
-    <span @click="emit('changePage', 1)" class="clickable">&lt;&lt;</span>
-    <span @click="emit('changePage', currentPage - 1)" class="clickable">&lt;</span>
+    <span class="clickable" @click="emit('changePage', 1)">&lt;&lt;</span>
+    <span class="clickable" @click="emit('changePage', currentPage - 1)">&lt;</span>
     <span>Page {{ currentPage }} of {{ totalPages }}</span>
-    <span @click="emit('changePage', currentPage + 1)" class="clickable">></span>
-    <span @click="emit('changePage', totalPages)" class="clickable">>></span>
+    <span class="clickable" @click="emit('changePage', currentPage + 1)">></span>
+    <span class="clickable" @click="emit('changePage', totalPages)">>></span>
   </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { defineEmits,defineProps } from 'vue';
 
 defineProps({
     currentPage : Number,

@@ -1,6 +1,7 @@
 <template>
   <SettingsPageToolbar :icons="['custom_filter', 'download']" :filter-enabled="filtersApplied" @download="multipleImmediateDownload" @show-filter="showFilter" />
   <div v-if="!loading" class="inner-content scroll-x">
+    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage"/>
     <table class="resultsTable">
       <thead>
         <tr>
@@ -47,6 +48,7 @@
         </tr>
       </tbody>
     </table>
+    <SearchPagination :current-page="currentPage" :total-pages="searchResults.pagination.totalPages" @change-page="changePage"/>
   </div>
   <LoadingIndicator v-if="loading" />
 </template>
@@ -60,6 +62,7 @@ import CheckInput from '@/components/common/form/CheckInput.vue';
 import LoadingIndicator from '@/components/common/LoadingIndicator.vue';
 import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 import SearchFiltersDialog from '@/components/modals/SearchFiltersDialog.vue';
+import SearchPagination from '@/components/search/SearchPagination.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { formatStorageSize } from '@/lib/utils';
@@ -67,12 +70,23 @@ import { formatStorageSize } from '@/lib/utils';
 const route = useRoute();
 const router = useRouter();
 
-const searchResults = ref([]);
+const emptySearchResponse = {
+    pagination: {
+        page: 1,
+        totalPages: 1,
+        totalResults: 0
+    },
+    results: []
+};
+
+const searchResults = ref(emptySearchResponse);
 const searchTerm = ref('');
 const loading = ref(true);
 // const availableFilters = ref(['All', 'TV', 'Movie']);
 const filter = ref('All');
 const allChecked = ref(false);
+
+const currentPage = ref(1);
 
 const appliedFacets = ref({
     categories : {},
@@ -84,7 +98,7 @@ const filteredResults = computed(() => {
     const categoryFilters = Object.keys(appliedFacets.value.categories).filter((key) => appliedFacets.value.categories[key] == true);
     const channelFilters = Object.keys(appliedFacets.value.channels).filter((key) => appliedFacets.value.channels[key] == true);
     const typeFilters = Object.keys(appliedFacets.value.types).filter((key) => appliedFacets.value.types[key] == true);
-    return searchResults.value.filter((result) => {
+    return searchResults.value.results.filter((result) => {
         return (channelFilters.length == 0 || channelFilters.includes(result.channel)) && (typeFilters.length == 0 || typeFilters.includes(result.type)) && (categoryFilters.length == 0 || result.allCategories.some((cat) => categoryFilters.includes(cat)));
     });
 });
@@ -100,14 +114,26 @@ const filtersApplied = computed(() => {
 
 watch(() => route.query.searchTerm, async (newSearchTerm) => {
     if (newSearchTerm) {
+        currentPage.value = 1;
         filter.value = 'All';
         loading.value = true;
-        searchResults.value = [];
+        searchResults.value = emptySearchResponse;
         searchTerm.value = newSearchTerm;
-        searchResults.value = (await ipFetch(`json-api/search?q=${searchTerm.value}`)).data;
+        searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}`)).data;
         loading.value = false;
     }
 }, { immediate: true });
+
+const changePage = async (newPage) => {
+  if (newPage > searchResults.value.pagination.totalPages) newPage = searchResults.value.pagination.totalPages;
+  if (newPage < 1) newPage = 1;
+
+  currentPage.value = newPage;
+  loading.value = true;
+  searchResults.value = emptySearchResponse;
+  searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}`)).data;
+  loading.value = false;
+}
 
 const download = async (searchResult) => {
     router.push({ name: 'download', query: { json: JSON.stringify(searchResult) } });
@@ -158,11 +184,11 @@ const showFilter = () => {
 }
 
 const allFacets = computed(() => {
-    const categories = Array.from(new Set(searchResults.value.flatMap(result => result.allCategories)));
-    const channels = Array.from(new Set(searchResults.value.map(result => result.channel)));
-    const types = Array.from(new Set(searchResults.value.map(result => result.type)));
+    const categories = Array.from(new Set(searchResults.value.results.flatMap(result => result.allCategories)));
+    const channels = Array.from(new Set(searchResults.value.results.map(result => result.channel)));
+    const types = Array.from(new Set(searchResults.value.results.map(result => result.type)));
 
-    const { minSize, maxSize, minPubDate, maxPubDate } = searchResults.value.reduce(
+    const { minSize, maxSize, minPubDate, maxPubDate } = searchResults.value.results.reduce(
         (acc, result) => ({
             minSize: Math.min(acc.minSize, result.size),
             maxSize: Math.max(acc.maxSize, result.size),

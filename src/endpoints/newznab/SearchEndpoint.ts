@@ -3,8 +3,9 @@ import { Builder } from 'xml2js'
 
 import searchHistoryService from '../../service/searchHistoryService';
 import searchService from '../../service/searchService';
-import { IPlayerSearchResult, VideoType } from '../../types/IPlayerSearchResult';
+import { VideoType } from '../../types/IPlayerSearchResult';
 import { NewzNabAttr,NewzNabSearchResponse } from '../../types/responses/newznab/NewzNabSearchResponse';
+import { SearchResponse } from '../../types/responses/SearchResponse';
 import { SearchHistoryEntry } from '../../types/SearchHistoryEntry';
 import { createNZBDownloadLink, getBaseUrl } from '../../utils/Utils';
 
@@ -20,7 +21,7 @@ export default async (req : Request, res : Response) => {
     const {q, season, ep, cat : catList, app} = req.query as any as SearchRequest;
     const cat : string[] | undefined = catList ? catList.split(',') : undefined;
     const searchTerm = q ?? '*';
-    let results : IPlayerSearchResult[] = await searchService.search(searchTerm, season, ep);
+    let {results} : SearchResponse = await searchService.search(searchTerm, season, ep);
     
     if (cat){
         results = results.filter(({type}) => categoriesForType(type).some(category => cat.includes(category)));

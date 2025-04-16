@@ -1,3 +1,4 @@
+import { emptySearchResult } from '../../src/constants/iPlayarrConstants';
 import configService from '../../src/service/configService';
 import iplayerService from '../../src/service/iplayerService';
 import RedisCacheService from '../../src/service/redisCacheService';
@@ -5,6 +6,7 @@ import searchService from '../../src/service/searchService';
 import synonymService from '../../src/service/synonymService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 import { IPlayerSearchResult } from '../../src/types/IPlayerSearchResult';
+import { SearchResponse } from '../../src/types/responses/SearchResponse';
 import { Synonym } from '../../src/types/Synonym';
 
 jest.mock('../../src/service/iplayerService', () => ({
@@ -56,19 +58,19 @@ describe('searchService', () => {
     it('should return cached results if available', async () => {
         const term = 'testTerm';
         const pubDate: Date = new Date(Date.now() - 3 * 60 * 60 * 1000);
-        const cachedResults: IPlayerSearchResult[] = [{ title: 'Cached Result', pubDate } as any];
-        mockCacheData[term] = JSON.stringify(cachedResults);
+        const cachedResults: SearchResponse = {...emptySearchResult, results : [{ title: 'Cached Result', pubDate } as any]};
+        mockCacheData[`${term}_1`] = JSON.stringify(cachedResults);
 
         const results = await searchService.search(term);
 
         expect(results).toEqual(cachedResults);
-        expect(mockRedisCacheService.get).toHaveBeenCalledWith(term);
+        expect(mockRedisCacheService.get).toHaveBeenCalledWith(`${term}_1`);
         expect(iplayerService.performSearch).not.toHaveBeenCalled();
     });
 
     it('should perform a search if no cached results are available', async () => {
         const term = 'testTerm';
-        const searchResults: IPlayerSearchResult[] = [{ title: 'Search Result' } as any];
+        const searchResults: SearchResponse = {...emptySearchResult, results : [{ title: 'Search Result' } as any]};
         (iplayerService.performSearch as jest.Mock).mockResolvedValue(searchResults);
         (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
             if (key === IplayarrParameter.NATIVE_SEARCH) return 'false';
@@ -77,9 +79,9 @@ describe('searchService', () => {
         const results = await searchService.search(term);
 
         expect(results).toEqual(searchResults);
-        expect(mockRedisCacheService.get).toHaveBeenCalledWith(term);
-        expect(iplayerService.performSearch).toHaveBeenCalledWith(term, undefined);
-        expect(mockRedisCacheService.set).toHaveBeenCalledWith(term, searchResults);
+        expect(mockRedisCacheService.get).toHaveBeenCalledWith(`${term}_1`);
+        expect(iplayerService.performSearch).toHaveBeenCalledWith(term, undefined, 1);
+        expect(mockRedisCacheService.set).toHaveBeenCalledWith(`${term}_1`, searchResults);
     });
 
     it('should filter results by season and episode', async () => {
@@ -87,21 +89,24 @@ describe('searchService', () => {
         const term = 'testTerm';
         const season = 1;
         const episode = 1;
-        const searchResults: IPlayerSearchResult[] = [
+        const searchResults: SearchResponse = {...emptySearchResult, results : [
             { title: 'Result 1', series: 1, episode: 1, pubDate } as any,
             { title: 'Result 2', series: 1, episode: 2, pubDate } as any,
             { title: 'Result 3', series: 2, episode: 1, pubDate } as any,
-        ];
-        mockCacheData[term] = JSON.stringify(searchResults);
+        ]};
+        mockCacheData[`${term}_1`] = JSON.stringify(searchResults);
 
-        const results = await searchService.search(term, season, episode);
+        const results = await searchService.search(term, season, episode, 1);
 
-        expect(results).toEqual([searchResults[0]]);
+        expect(results.results).toEqual([searchResults.results[0]]);
     });
 
     it('should use native search when enabled', async () => {
         const term = 'testTerm';
-        const searchResults: IPlayerSearchResult[] = [{ title: 'Search Result' } as any];
+        const searchResults: SearchResponse = {
+            ...emptySearchResult,
+            results : [{ title: 'Search Result' } as any]
+        };
         const mockPerformSearch = jest.spyOn(searchService, 'performSearch').mockResolvedValue(searchResults);
         (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
             if (key === IplayarrParameter.NATIVE_SEARCH) return 'true';
@@ -109,7 +114,7 @@ describe('searchService', () => {
 
         await searchService.search(term);
 
-        expect(mockPerformSearch).toHaveBeenCalledWith(term, undefined);
+        expect(mockPerformSearch).toHaveBeenCalledWith(term, undefined, 1);
         mockPerformSearch.mockRestore();
     });
 
@@ -117,7 +122,7 @@ describe('searchService', () => {
         const term = 'testTerm';
         const synonym: Synonym = { from: term, target: 'targetTerm' } as any;
         (synonymService.getSynonym as jest.Mock).mockResolvedValue(synonym);
-        const searchResults: IPlayerSearchResult[] = [{ title: 'Search Result' } as any];
+        const searchResults: SearchResponse = {...emptySearchResult, results : [{ title: 'Search Result' } as any]};
         (iplayerService.performSearch as jest.Mock).mockResolvedValue(searchResults);
         (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
             if (key === IplayarrParameter.NATIVE_SEARCH) return 'false';
@@ -126,6 +131,6 @@ describe('searchService', () => {
         await searchService.search(term);
 
         expect(synonymService.getSynonym).toHaveBeenCalledWith(term);
-        expect(iplayerService.performSearch).toHaveBeenCalledWith('targetTerm', synonym);
+        expect(iplayerService.performSearch).toHaveBeenCalledWith('targetTerm', synonym, 1);
     });
 });

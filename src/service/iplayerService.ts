@@ -7,6 +7,7 @@ import { DownloadDetails } from '../types/DownloadDetails';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
+import { SearchResponse } from '../types/responses/SearchResponse';
 import { Synonym } from '../types/Synonym';
 import { getPotentialRoman, getQualityProfile } from '../utils/Utils';
 import configService from './configService';
@@ -131,7 +132,7 @@ const iplayerService = {
         }
     },
 
-    performSearch: async (term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> => {
+    performSearch: async (term: string, synonym?: Synonym, page : number = 1): Promise<SearchResponse> => {
         const { sizeFactor } = await getQualityProfile();
         return new Promise(async (resolve, reject) => {
             const results: IPlayerSearchResult[] = []
@@ -153,8 +154,16 @@ const iplayerService = {
             searchProcess.on('close', async (code) => {
                 if (code === 0) {
                     const processedResults : IPlayerSearchResult[] = await getIplayerExecutableService.processCompletedSearch(results, synonym);
-                    
-                    resolve(processedResults);
+                    const searchResposne : SearchResponse = {
+                        pagination: {
+                            page,
+                            totalPages : 1,
+                            totalResults : processedResults.length
+                        },
+                        results : processedResults
+                    }
+
+                    resolve(searchResposne);
                 } else {
                     reject(new Error(`Process exited with code ${code}`));
                 }

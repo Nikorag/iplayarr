@@ -303,27 +303,27 @@ describe('Utils', () => {
 
     describe('calculateSeasonAndEpisode', () => {
         describe('episodes', () => {
-            it('series episode', async () => assertSeasonAndEpisode(m0029c0g, [ VideoType.TV, 1, 'Episode 1', 3]));        
-            it('roman numerals series', async () => assertSeasonAndEpisode(p00bp2rm, [ VideoType.TV, 5, 'Dimension Jump', 4 ]));        
-            it('yearly series', async () => assertSeasonAndEpisode(m001zh50, [ VideoType.TV, 1, 'Episode 1', 2024]));        
-            it('no series', async () => assertSeasonAndEpisode(m002b3cb, [ VideoType.TV, 0, '13/04/2025', 0]));
+            it('series episode', async () => assertSeasonAndEpisode(m0029c0g, [ VideoType.TV, expect.any(Array), 1, 'Episode 1', 3]));        
+            it('roman numerals series', async () => assertSeasonAndEpisode(p00bp2rm, [ VideoType.TV, expect.any(Array), 5, 'Dimension Jump', 4 ]));        
+            it('yearly series', async () => assertSeasonAndEpisode(m001zh50, [ VideoType.TV, expect.any(Array), 1, 'Episode 1', 2024]));        
+            it('no series', async () => assertSeasonAndEpisode(m002b3cb, [ VideoType.TV, expect.any(Array), 0, '13/04/2025', 0]));
         
             describe('specials', () => {
-                it('with no series', async () => assertSeasonAndEpisode(m0026fkl, [ VideoType.TV, 0, 'Christmas Special 2024', 0]));
-                it('only one in series', async () => assertSeasonAndEpisode(p0fq3s31, [ VideoType.TV, 0, 'The Promised Land', 13]));
-                it('episode before series', async () => assertSeasonAndEpisode(m001zh3r, [ VideoType.TV, 0, 'RHS: Countdown to Chelsea', 2024]));
-                it('episode within series', async () => assertSeasonAndEpisode(m001zr9t, [ VideoType.TV, 0, 'Highlights', 2024]));
-                it('episode after series', async () => assertSeasonAndEpisode(b0211hsl, [ VideoType.TV, 0, 'Red Button Special', 0]));
-                it('from series of specials', async () => assertSeasonAndEpisode(m000jbtq, [ VideoType.TV, 0, 'Your Chelsea Flower Show, Making the Most of Your Time', 0]));
+                it('with no series', async () => assertSeasonAndEpisode(m0026fkl, [ VideoType.TV, expect.any(Array), 0, 'Christmas Special 2024', 0]));
+                it('only one in series', async () => assertSeasonAndEpisode(p0fq3s31, [ VideoType.TV, expect.any(Array), 0, 'The Promised Land', 13]));
+                it('episode before series', async () => assertSeasonAndEpisode(m001zh3r, [ VideoType.TV, expect.any(Array), 0, 'RHS: Countdown to Chelsea', 2024]));
+                it('episode within series', async () => assertSeasonAndEpisode(m001zr9t, [ VideoType.TV, expect.any(Array), 0, 'Highlights', 2024]));
+                it('episode after series', async () => assertSeasonAndEpisode(b0211hsl, [ VideoType.TV, expect.any(Array), 0, 'Red Button Special', 0]));
+                it('from series of specials', async () => assertSeasonAndEpisode(m000jbtq, [ VideoType.TV, expect.any(Array), 0, 'Your Chelsea Flower Show, Making the Most of Your Time', 0]));
             });
         });
         
         describe('movies', () => {
-            it('standalone', async () => assertSeasonAndEpisode(m001kscd, [ VideoType.MOVIE, undefined, undefined, undefined]));        
-            it('sequel', async () => assertSeasonAndEpisode(b008m7xk, [ VideoType.MOVIE, undefined, undefined, undefined]));
+            it('standalone', async () => assertSeasonAndEpisode(m001kscd, [ VideoType.MOVIE, expect.any(Array), undefined, undefined, undefined]));        
+            it('sequel', async () => assertSeasonAndEpisode(b008m7xk, [ VideoType.MOVIE, expect.any(Array), undefined, undefined, undefined]));
         });
 
-        const assertSeasonAndEpisode = (metadata: IPlayerMetadataResponse, expected: [ VideoType, number | undefined, string | undefined, number | undefined ]) => {
+        const assertSeasonAndEpisode = (metadata: IPlayerMetadataResponse, expected: [ VideoType, string[], number | undefined, string | undefined, number | undefined ]) => {
             expect(Utils.calculateSeasonAndEpisode(metadata.programme)).toEqual(expected);
         }
     });

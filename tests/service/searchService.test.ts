@@ -56,7 +56,7 @@ describe('searchService', () => {
     it('should return cached results if available', async () => {
         const term = 'testTerm';
         const pubDate: Date = new Date(Date.now() - 3 * 60 * 60 * 1000);
-        const cachedResults: IPlayerSearchResult[] = [{ title: 'Cached Result', pubDate } as any];
+        const cachedResults: IPlayerSearchResult[] = [{ title: 'Cached Result', pubDate }, { title: 'Without Date' } as any];
         mockCacheData[term] = JSON.stringify(cachedResults);
 
         const results = await searchService.search(term);

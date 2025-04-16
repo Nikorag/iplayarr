@@ -33,7 +33,7 @@ export class SearchService {
         } else {
             //Fix the results which are stored as string
             results.forEach(result => {
-                result.pubDate = new Date((result.pubDate as unknown as string));
+                result.pubDate = result.pubDate ? new Date((result.pubDate as unknown as string)) : undefined;
             });
         }
 

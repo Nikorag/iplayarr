@@ -19,3 +19,7 @@ export interface FacetValue {
     label : string,
     total : number
 }
+
+export interface SearchFacets {
+    [key : string] : string[]
+}

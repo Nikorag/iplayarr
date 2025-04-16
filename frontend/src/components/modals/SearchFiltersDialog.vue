@@ -5,7 +5,7 @@
       <ul class="facetList">
         <li v-for="(value, valueIndex) of facet.values" :key="value" class="facet">
           <CheckInput v-model="facets[facetIndex].values[valueIndex].applied" />
-          <span>{{ value.label }} ({{ value.total }})</span>
+          <span>{{ capitalizeFacetName(value.label) }}</span>
         </li>
       </ul>
     </template>
@@ -17,6 +17,7 @@ import { defineEmits,defineProps, ref } from 'vue';
 
 import { deepCopy } from '@/lib/utils';
 
+import {capitalizeFacetName} from '../../lib/utils'
 import CheckInput from '../common/form/CheckInput.vue';
 import IPlayarrModal from './IPlayarrModal.vue';
 
@@ -39,15 +40,18 @@ const applyFacets = () => {
 
         .facet {
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
             align-items: center;
+            padding-right: 3rem;
+            margin: 0.7rem 0;
 
             div {
-                flex: 1
+                flex: 1;
             }
 
             span {
-                flex: 2
+                flex: 1;
+                text-align: right;
             }
         }
     }

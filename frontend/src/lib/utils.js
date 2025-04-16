@@ -22,6 +22,13 @@ export function capitalize(word) {
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
+export function capitalizeFacetName(str) {
+    return str
+        .split('-') // Replace hyphens with space by splitting
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+        .join(' '); // Join back with space
+}
+
 export function deepCopy(input) {
     return input ? JSON.parse(JSON.stringify(input)) : undefined;
 }

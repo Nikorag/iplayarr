@@ -98,6 +98,16 @@ const filteredResults = computed(() => {
     return searchResults.value.results;
 });
 
+const getAppliedFacets = (facets) => {
+    return facets.reduce((acc, { title, values }) => {
+        const applied = values.filter(v => v.applied).map(v => v.label);
+        if (applied.length) {
+            acc[title] = applied;
+        }
+        return acc;
+    }, {});
+}
+
 watch(() => route.query.searchTerm, async (newSearchTerm) => {
     if (newSearchTerm) {
         currentPage.value = 1;
@@ -116,24 +126,17 @@ const changePage = async (newPage) => {
 
     currentPage.value = newPage;
     loading.value = true;
+    const facets = searchResults.value.facets;
     searchResults.value = emptySearchResponse;
-    searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}`)).data;
+    searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}&facets=${JSON.stringify(getAppliedFacets(facets))}`)).data;
+    searchResults.value.facets = facets;
     loading.value = false;
 }
 
 const applyFacets = async (facets) => {
-    const appliedFacets = facets.reduce((acc, { title, values }) => {
-        const applied = values.filter(v => v.applied).map(v => v.label);
-        if (applied.length) {
-            acc[title + (title.endsWith('s') ? '' : 's')] = applied;
-        }
-        return acc;
-    }, {});
-
-
     loading.value = true;
     searchResults.value = emptySearchResponse;
-    searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}&facets=${JSON.stringify(appliedFacets)}`)).data;
+    searchResults.value = (await ipFetch(`json-api/search?page=${currentPage.value}&q=${searchTerm.value}&facets=${JSON.stringify(getAppliedFacets(facets))}`)).data;
     searchResults.value.facets = facets;
     loading.value = false;
 }

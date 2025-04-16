@@ -13,8 +13,7 @@
     "test": "jest --collectCoverageFrom 'src/**/*.{js,ts}'",
     "test:watch": "jest --watch",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "npm run lint -- --fix",
-    "jamie": "ts-node src/jamieTest.ts"
+    "lint:fix": "npm run lint -- --fix"
   },
   "author": "",
   "license": "ISC",

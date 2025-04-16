@@ -31,8 +31,10 @@ router.post('/nzb/test', async (req : Request, res : Response) => {
 });
 
 router.get('/search', async (req : Request, res : Response) => {
-    const {q, page} = req.query as any;
-    const result : SearchResponse = await searchService.search(q, undefined, undefined, page ?? 1);
+    const {q, page, facets : facetStr} = req.query as any;
+    const facets = facetStr ? JSON.parse(facetStr) : [];
+    console.log(facets);
+    const result : SearchResponse = await searchService.search(q, undefined, undefined, page ?? 1, facets);
     res.json(result);
 });
 

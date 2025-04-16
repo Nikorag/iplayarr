@@ -1,17 +1,18 @@
 import axios, { AxiosResponse } from 'axios';
 import lunr from 'lunr';
-import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
 import { IPlayerNewSearchResponse, IPlayerNewSearchResult } from 'src/types/responses/iplayer/IPlayerNewSearchResponse';
 import { IPlayerChildrenResponse } from 'src/types/responses/IPlayerMetadataResponse';
 
 import { emptySearchResult, pageSize } from '../constants/iPlayarrConstants';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
-import { Facet, SearchResponse } from '../types/responses/SearchResponse';
+import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
+import { Facet, SearchFacets, SearchResponse } from '../types/responses/SearchResponse';
 import { Synonym } from '../types/Synonym';
 import { createNZBName, getQualityProfile, removeLastFourDigitNumber, splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';
+import facetService from './facetService';
 import iplayerService from './iplayerService';
 import RedisCacheService from './redisCacheService';
 import synonymService from './synonymService';
@@ -21,7 +22,7 @@ interface SearchTerm {
     synonym?: Synonym
 }
 
-interface iPlayerCachedResponse {
+interface iPlayerCachedResponse { 
     allPids : string[],
     facets : Facet[]
 }
@@ -30,15 +31,15 @@ export class SearchService {
     searchCache: RedisCacheService<SearchResponse> = new RedisCacheService('search_cache', 300);
     iPlayerResponseCache: RedisCacheService<iPlayerCachedResponse> = new RedisCacheService('ipr_cache', 300);
 
-    async search(inputTerm: string, season?: number, episode?: number, page: number = 1): Promise<SearchResponse> {
+    async search(inputTerm: string, season?: number, episode?: number, page: number = 1, facets : SearchFacets = {}): Promise<SearchResponse> {
         const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
         const { term, synonym } = await this.#getTerm(inputTerm, season);
 
-        let results: SearchResponse | undefined = await this.searchCache.get(`${term}_${page}`);
+        let results: SearchResponse | undefined = await this.searchCache.get(`${term}_${page}_${JSON.stringify(facets)}`);
         if (!results) {
             const service = (term == '*' || nativeSearchEnabled != 'true') ? iplayerService : this;
-            results = await service.performSearch(term, synonym, page);
-            this.searchCache.set(`${term}_${page}`, results as SearchResponse);
+            results = await service.performSearch(term, synonym, page, facets);
+            this.searchCache.set(`${term}_${page}_${JSON.stringify(facets)}`, results as SearchResponse);
         } else {
             //Fix the results which are stored as string
             results.results.forEach(result => {
@@ -69,9 +70,9 @@ export class SearchService {
         return emptySearchResult;
     }
 
-    async performSearch(term: string, synonym?: Synonym, page: number = 1): Promise<SearchResponse> {
+    async performSearch(term: string, synonym?: Synonym, page: number = 1, facets : SearchFacets = {}): Promise<SearchResponse> {
         const { sizeFactor } = await getQualityProfile();
-        let ipr: iPlayerCachedResponse | undefined = await this.iPlayerResponseCache.get(term);
+        let ipr: iPlayerCachedResponse | undefined = await this.iPlayerResponseCache.get(this.getIprCacheKey(term, facets));
         if (!ipr) {
             ipr = {
                 facets : [],
@@ -93,7 +94,10 @@ export class SearchService {
                         this.field('pid');
                         this.field('title');
 
-                        results.forEach(({ id: pid, title }) => this.add({ pid, title }))
+                        //Filter the results
+                        const facetedResults = facetService.facetResults(results, facets);
+
+                        facetedResults.forEach(({ id: pid, title }) => this.add({ pid, title }))
                     });
                     const lunrResults = lunrIndex.search(term);
 
@@ -120,7 +124,7 @@ export class SearchService {
 
                     ipr.facets = this.#buildFacets(results);
 
-                    await this.iPlayerResponseCache.set(term, ipr);
+                    await this.iPlayerResponseCache.set(this.getIprCacheKey(term, facets), ipr);
                 }
             } catch {
                 return await iplayerService.performSearch(term, synonym, page);
@@ -218,6 +222,10 @@ export class SearchService {
 
     removeFromSearchCache(term: string) {
         this.searchCache.del(`${term}_*`);
+    }
+
+    getIprCacheKey(term : string, facets : SearchFacets){
+        return `${term}_${JSON.stringify(facets)}`;
     }
 }
 

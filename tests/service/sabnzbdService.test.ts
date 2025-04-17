@@ -1,7 +1,7 @@
 import axios from 'axios';
 import FormData from 'form-data';
 import sabzbdService from 'src/service/sabnzbdService';
-import { App } from 'src/types/App';
+import { App } from 'src/types/models/App';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;

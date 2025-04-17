@@ -1,21 +1,20 @@
 import fs from 'fs';
 import path from 'path';
+import { listFormat, progressRegex } from 'src/constants/iPlayarrConstants';
+import configService from 'src/service/configService';
+import historyService from 'src/service/entity/historyService';
+import loggingService from 'src/service/loggingService';
+import queueService from 'src/service/queueService';
+import socketService from 'src/service/socketService';
+import { DownloadDetails } from 'src/types/data/DownloadDetails';
+import { IPlayerSearchResult } from 'src/types/data/IPlayerSearchResult';
+import { LogLine, LogLineLevel } from 'src/types/data/LogLine';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { GetIPlayerExecutable } from 'src/types/getIplayer/GetIPlayerExecutable';
+import { QueueEntry } from 'src/types/models/QueueEntry';
+import { Synonym } from 'src/types/models/Synonym';
 import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
-
-import { listFormat, progressRegex } from '../constants/iPlayarrConstants';
-import { DownloadDetails } from '../types/DownloadDetails';
-import { GetIPlayerExecutable } from '../types/GetIplayer/GetIPlayerExecutable';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
-import { LogLine, LogLineLevel } from '../types/LogLine';
-import { QueueEntry } from '../types/QueueEntry';
-import { Synonym } from '../types/Synonym';
-import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from '../utils/Utils';
-import configService from './configService';
-import historyService from './historyService';
-import loggingService from './loggingService';
-import queueService from './queueService';
-import socketService from './socketService';
+import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from 'src/utils/Utils';
 
 export class GetIplayerExecutableService {
     async getIPlayerExec(): Promise<GetIPlayerExecutable> {

@@ -1,4 +1,4 @@
-import { FixedFIFOQueue } from 'src/types/FixedFIFOQueue';
+import { FixedFIFOQueue } from 'src/helpers/FixedFIFOQueue';
 
 describe('FixedFIFOQueue', () => {
     it('should enqueue and dequeue in FIFO order', () => {

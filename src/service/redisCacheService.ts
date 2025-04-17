@@ -1,4 +1,4 @@
-import {redis} from './redisService';
+import {redis} from 'src/service/redisService';
 
 export default class RedisCacheService<T> {
     prefix : string

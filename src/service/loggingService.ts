@@ -1,7 +1,7 @@
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { LogLine, LogLineLevel } from '../types/LogLine';
-import configService from './configService';
-import socketService from './socketService';
+import configService from 'src/service/configService';
+import socketService from 'src/service/socketService';
+import { LogLine, LogLineLevel } from 'src/types/data/LogLine';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
 
 const loggingService = {
     log: (...params : any[]) => {

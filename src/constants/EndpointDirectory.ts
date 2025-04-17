@@ -1,14 +1,13 @@
 import { RequestHandler } from 'express'
-
-import DownloadEndpoint from './generic/DownloadEndpoint'
-import CapsEndpoint from './newznab/CapsEndpoint'
-import SearchEndpoint from './newznab/SearchEndpoint'
-import AddFileEndpoint from './sabnzbd/AddFileEndpoint'
-import ConfigEndpoint from './sabnzbd/ConfigEndpoint'
-import DownloadNZBEndpoint from './sabnzbd/DownloadNZBEndpoint'
-import HistoryEndpoint from './sabnzbd/HistoryEndpoint'
-import QueueEndpoint from './sabnzbd/QueueEndpoint'
-import VersionEndpoint from './sabnzbd/VersionEndpoint'
+import DownloadEndpoint from 'src/endpoints/generic/DownloadEndpoint'
+import CapsEndpoint from 'src/endpoints/newznab/CapsEndpoint'
+import SearchEndpoint from 'src/endpoints/newznab/SearchEndpoint'
+import AddFileEndpoint from 'src/endpoints/sabnzbd/AddFileEndpoint'
+import ConfigEndpoint from 'src/endpoints/sabnzbd/ConfigEndpoint'
+import DownloadNZBEndpoint from 'src/endpoints/sabnzbd/DownloadNZBEndpoint'
+import HistoryEndpoint from 'src/endpoints/sabnzbd/HistoryEndpoint'
+import QueueEndpoint from 'src/endpoints/sabnzbd/QueueEndpoint'
+import VersionEndpoint from 'src/endpoints/sabnzbd/VersionEndpoint'
 
 export interface EndpointDirectory {
     [key : string] : RequestHandler

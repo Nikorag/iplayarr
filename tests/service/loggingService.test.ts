@@ -1,7 +1,7 @@
 import configService from 'src/service/configService';
 import loggingService from 'src/service/loggingService';
 import socketService from 'src/service/socketService';
-import { LogLineLevel } from 'src/types/LogLine';
+import { LogLineLevel } from 'src/types/data/LogLine';
 
 jest.mock('src/service/socketService', () => ({
     emit: jest.fn(),

@@ -1,10 +1,9 @@
 import { Request, Response, Router } from 'express';
-
-import episodeCacheService from '../../service/episodeCacheService';
-import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
-import { EpisodeCacheDefinition } from '../../types/responses/EpisodeCacheTypes';
-import { OffScheduleFormValidator } from '../../validators/OffScheduleFormValidator';
-import { Validator } from '../../validators/Validator';
+import episodeCacheService from 'src/service/episodeCacheService';
+import { ApiError, ApiResponse } from 'src/types/responses/ApiResponse';
+import { EpisodeCacheDefinition } from 'src/types/responses/EpisodeCacheTypes';
+import { OffScheduleFormValidator } from 'src/validators/OffScheduleFormValidator';
+import { Validator } from 'src/validators/Validator';
 
 const router = Router();
 

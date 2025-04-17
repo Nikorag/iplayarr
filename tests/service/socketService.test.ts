@@ -1,10 +1,10 @@
 import { Server, Socket } from 'socket.io';
-import historyService from 'src/service/historyService';
+import historyService from 'src/service/entity/historyService';
 import queueService from 'src/service/queueService';
 import socketService from 'src/service/socketService';
 
 // Mock dependencies
-jest.mock('src/service/historyService');
+jest.mock('src/service/entity/historyService');
 jest.mock('src/service/queueService');
 
 describe('socketService', () => {
@@ -23,7 +23,7 @@ describe('socketService', () => {
             on: jest.fn().mockReturnThis(), // Ensure it returns the Socket object
         } as any;
 
-        (historyService.getHistory as jest.Mock).mockResolvedValue(['mockedHistory']);
+        (historyService.all as jest.Mock).mockResolvedValue(['mockedHistory']);
         (queueService.getQueue as jest.Mock).mockReturnValue(['mockedQueue']);
     });
 

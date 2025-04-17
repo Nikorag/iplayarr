@@ -1,4 +1,4 @@
-import { CreateIndexerRequestField } from './CreateIndexerRequest';
+import { CreateIndexerRequestField } from 'src/types/requests/arr/CreateIndexerRequest';
 
 export interface CreateProwlarrIndexerRequest {
     indexerUrls : string[],

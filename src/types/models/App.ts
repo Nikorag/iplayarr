@@ -1,7 +1,7 @@
-import { AppType } from './AppType';
+import { AppType } from 'src/types/enums/AppType'
+import { Entity } from 'src/types/models/Entity'
 
-export interface App {
-    id : string
+export interface App extends Entity {
     type : AppType,
     name : string,
     url : string,

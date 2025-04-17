@@ -1,9 +1,9 @@
 import { Request } from 'express';
 import configService from 'src/service/configService';
-import { IplayarrParameter } from 'src/types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
+import { IPlayerSearchResult, VideoType } from 'src/types/data/IPlayerSearchResult';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { Synonym } from 'src/types/models/Synonym';
 import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';
-import { Synonym } from 'src/types/Synonym';
 import * as Utils from 'src/utils/Utils';
 import b008m7xk from 'tests/data/b008m7xk';
 import b0211hsl from 'tests/data/b0211hsl';

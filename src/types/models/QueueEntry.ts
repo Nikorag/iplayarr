@@ -1,8 +1,8 @@
 import { ChildProcess } from 'child_process';
 
-import { DownloadDetails } from './DownloadDetails';
-import { VideoType } from './IPlayerSearchResult';
-import { QueueEntryStatus } from './responses/sabnzbd/QueueResponse';
+import { DownloadDetails } from '../data/DownloadDetails';
+import { VideoType } from '../data/IPlayerSearchResult';
+import { QueueEntryStatus } from '../responses/sabnzbd/QueueResponse';
 
 export interface QueueEntry {
     pid : string,

@@ -4,7 +4,7 @@ import nzbFacade from '../facade/nzbFacade';
 import iplayerService from '../service/iplayerService';
 import queueService from '../service/queueService';
 import searchService from '../service/searchService';
-import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
+import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import AppsRoute from './json-api/AppsRoute';
 import OffScheduleRoute from './json-api/OffScheduleRoute';

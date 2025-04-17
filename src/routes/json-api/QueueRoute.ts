@@ -3,7 +3,7 @@ import { Request, Response, Router } from 'express';
 import historyService from '../../service/historyService';
 import queueService from '../../service/queueService';
 import socketService from '../../service/socketService';
-import { QueueEntry } from '../../types/QueueEntry';
+import { QueueEntry } from '../../types/models/QueueEntry';
 
 const router = Router();
 

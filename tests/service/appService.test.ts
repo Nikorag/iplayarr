@@ -1,15 +1,15 @@
 import nzbFacade from 'src/facade/nzbFacade';
+import { QueuedStorage } from 'src/helpers/QueuedStorage';
 import appService from 'src/service/appService';
 import socketService from 'src/service/socketService';
-import { App } from 'src/types/App';
-import { AppType } from 'src/types/AppType';
-import { QueuedStorage } from 'src/types/QueuedStorage';
+import { AppType } from 'src/types/enums/AppType';
+import { App } from 'src/types/models/App';
 import { v4 as uuidv4 } from 'uuid';
 
 jest.mock('uuid', () => ({ v4: jest.fn() }));
 
 const mockStorageData: Record<string, any> = {};
-jest.mock('src/types/QueuedStorage', () => {
+jest.mock('src/helpers/QueuedStorage', () => {
     const mockStorageInstance = {
         getItem: jest.fn((key: string) => {
             return Promise.resolve(mockStorageData[key])

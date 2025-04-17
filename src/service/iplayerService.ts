@@ -3,11 +3,11 @@ import fs from 'fs';
 import path from 'path';
 
 import { timestampFile } from '../constants/iPlayarrConstants';
-import { DownloadDetails } from '../types/DownloadDetails';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
-import { Synonym } from '../types/Synonym';
+import { DownloadDetails } from '../types/data/DownloadDetails';
+import { IPlayerDetails } from '../types/data/IPlayerDetails';
+import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import { Synonym } from '../types/models/Synonym';
 import { calculateSeasonAndEpisode, getQualityProfile } from '../utils/Utils';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';

@@ -2,16 +2,16 @@ import * as crypto from 'crypto';
 import { Request } from 'express';
 import Handlebars from 'handlebars';
 import { deromanize } from 'romans';
-import { IPlayerDetails } from 'src/types/IPlayerDetails';
+import { IPlayerDetails } from 'src/types/data/IPlayerDetails';
+import { Synonym } from 'src/types/models/Synonym';
 import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
-import { Synonym } from 'src/types/Synonym';
 
 import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
+import { QualityProfile, qualityProfiles } from '../constants/QualityProfiles';
 import configService from '../service/configService';
-import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
-import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
+import { IPlayerSearchResult, VideoType } from '../types/data/IPlayerSearchResult';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import { FilenameTemplateContext } from '../types/templateContext/FilenameTemplateContext';
 
 const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\/._-]/g;
 

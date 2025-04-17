@@ -1,28 +1,30 @@
-import { NextFunction,Request, Response } from 'express'
+import { Request, Response } from 'express'
+import { EndpointDirectory } from 'src/constants/EndpointDirectory'
+import { sizeFactor } from 'src/constants/iPlayarrConstants'
+import configService from 'src/service/configService'
+import historyService from 'src/service/historyService'
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters'
+import { QueueEntry } from 'src/types/models/QueueEntry'
+import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, SabNZBDHistoryResponse } from 'src/types/responses/sabnzbd/HistoryResponse'
+import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse'
+import { TrueFalseResponse } from 'src/types/responses/sabnzbd/TrueFalseResponse'
+import { formatBytes } from 'src/utils/Utils'
 
-import configService from '../../service/configService'
-import historyService from '../../service/historyService'
-import { IplayarrParameter } from '../../types/IplayarrParameters'
-import { QueueEntry } from '../../types/QueueEntry'
-import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, SabNZBDHistoryResponse } from '../../types/responses/sabnzbd/HistoryResponse'
-import { QueueEntryStatus } from '../../types/responses/sabnzbd/QueueResponse'
-import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse'
-import { formatBytes } from '../../utils/Utils'
-import { EndpointDirectory } from '../EndpointDirectory'
+import { AbstractSabNZBDActionEndpoint, ActionQueryString } from './AbstractSabNZBDActionEndpoint'
 
-const sizeFactor : number = 1048576; 
+const actionDirectory : EndpointDirectory = {
+    delete : async (req : Request, res : Response) => {
+        const {value} = req.query as ActionQueryString;
+        if (value){
+            await historyService.removeHistory(value)
+            res.json({status:true} as TrueFalseResponse);
+        } else {
+            res.json({status:false} as TrueFalseResponse);
+        }
+	    return;
+    },
 
-interface HistoryQuery {
-    name? : string
-    value? : string
-}
-
-export default async (req : Request, res : Response, next : NextFunction) => {
-    const {name} = req.query as HistoryQuery;
-    if (name && actionDirectory[name]){
-        actionDirectory[name](req, res, next);
-        return
-    } else {
+    _default : async (req : Request, res : Response) => {
         let history : QueueEntry[] = await historyService.getHistory();
         history = history.filter(({status}) => status != QueueEntryStatus.FORWARDED && status != QueueEntryStatus.CANCELLED);
         const completeDir : string = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
@@ -52,15 +54,4 @@ function createHistoryEntry(completeDir : string, item : QueueEntry) : SABNZBDHi
     } as SABNZBDHistoryEntryResponse
 }
 
-const actionDirectory : EndpointDirectory = {
-    delete : async (req : Request, res : Response) => {
-        const {value} = req.query as HistoryQuery;
-        if (value){
-            await historyService.removeHistory(value)
-            res.json({status:true} as TrueFalseResponse);
-        } else {
-            res.json({status:false} as TrueFalseResponse);
-        }
-	    return;
-    }
-}
+export default new AbstractSabNZBDActionEndpoint(actionDirectory).handler;

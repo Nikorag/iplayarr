@@ -1,11 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
 
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
+import { IPlayerDetails } from '../types/data/IPlayerDetails';
+import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import { Synonym } from '../types/models/Synonym';
 import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
 import { IPlayerChildrenResponse } from '../types/responses/IPlayerMetadataResponse';
-import { Synonym } from '../types/Synonym';
 import { createNZBName, getQualityProfile, removeLastFourDigitNumber, splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';

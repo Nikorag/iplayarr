@@ -3,7 +3,7 @@ import configService from 'src/service/configService';
 import historyService from 'src/service/historyService';
 import iplayerService from 'src/service/iplayerService';
 import queueService from 'src/service/queueService';
-import { VideoType } from 'src/types/IPlayerSearchResult';
+import { VideoType } from 'src/types/data/IPlayerSearchResult';
 import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse';
 
 jest.mock('src/service/configService', () => ({

@@ -3,9 +3,9 @@ import session from 'express-session'
 import { v4 } from 'uuid';
 
 import configService from '../service/configService';
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import User from '../types/models/User'
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
-import User from '../types/User'
 import { md5 } from '../utils/Utils';
 
 declare module 'express-session' {

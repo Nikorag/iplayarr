@@ -3,9 +3,9 @@ import iplayerService from 'src/service/iplayerService';
 import RedisCacheService from 'src/service/redisCacheService';
 import searchService from 'src/service/searchService';
 import synonymService from 'src/service/synonymService';
-import { IplayarrParameter } from 'src/types/IplayarrParameters';
-import { IPlayerSearchResult } from 'src/types/IPlayerSearchResult';
-import { Synonym } from 'src/types/Synonym';
+import { IPlayerSearchResult } from 'src/types/data/IPlayerSearchResult';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { Synonym } from 'src/types/models/Synonym';
 
 jest.mock('src/service/iplayerService', () => ({
     details: jest.fn(),

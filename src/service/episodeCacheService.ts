@@ -2,9 +2,9 @@ import axios, { AxiosResponse } from 'axios';
 import lunr from 'lunr';
 import { v4 } from 'uuid';
 
-import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
-import { QueuedStorage } from '../types/QueuedStorage'
+import { QueuedStorage } from '../helpers/QueuedStorage'
+import { IPlayerDetails } from '../types/data/IPlayerDetails';
+import { IPlayerSearchResult, VideoType } from '../types/data/IPlayerSearchResult';
 import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
 import { IPlayerChildrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';

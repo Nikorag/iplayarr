@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { v4 } from 'uuid';
 
-import { App } from '../types/App';
+import { App } from '../types/models/App';
 import { NZBGetAppendRequest } from '../types/requests/nzbget/NZBGetAppendRequest';
 
 const nzbGetService = {

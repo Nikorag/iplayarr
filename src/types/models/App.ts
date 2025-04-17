@@ -1,4 +1,4 @@
-import { AppType } from './AppType';
+import { AppType } from 'src/types/enums/AppType'
 
 export interface App {
     id : string

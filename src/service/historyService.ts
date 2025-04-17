@@ -1,5 +1,5 @@
-import { QueuedStorage } from '../types/QueuedStorage'
-import { QueueEntry } from '../types/QueueEntry';
+import { QueuedStorage } from '../helpers/QueuedStorage'
+import { QueueEntry } from '../types/models/QueueEntry';
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import socketService from './socketService';
 const storage : QueuedStorage = new QueuedStorage();

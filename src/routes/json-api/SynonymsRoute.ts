@@ -4,10 +4,10 @@ import appService from '../../service/appService';
 import arrService from '../../service/arrService';
 import searchHistoryService from '../../service/searchHistoryService';
 import synonymService from '../../service/synonymService';
-import { App } from '../../types/App';
+import { App } from '../../types/models/App';
+import { Synonym } from '../../types/models/Synonym';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
 import { ArrLookupResponse } from '../../types/responses/arr/ArrLookupResponse';
-import { Synonym } from '../../types/Synonym';
 
 const router = Router();
 

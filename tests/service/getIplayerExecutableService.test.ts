@@ -4,9 +4,9 @@ import { GetIplayerExecutableService } from 'src/service/getIplayerExecutableSer
 import historyService from 'src/service/historyService';
 import queueService from 'src/service/queueService';
 import socketService from 'src/service/socketService';
-import { IplayarrParameter } from 'src/types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
-import { Synonym } from 'src/types/Synonym';
+import { IPlayerSearchResult, VideoType } from 'src/types/data/IPlayerSearchResult';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { Synonym } from 'src/types/models/Synonym';
 
 jest.mock('src/service/configService');
 jest.mock('src/service/queueService');

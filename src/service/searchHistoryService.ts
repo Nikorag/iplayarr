@@ -1,5 +1,5 @@
-import { FixedFIFOQueue } from '../types/FixedFIFOQueue';
-import { SearchHistoryEntry } from '../types/SearchHistoryEntry';
+import { FixedFIFOQueue } from '../helpers/FixedFIFOQueue';
+import { SearchHistoryEntry } from '../types/data/SearchHistoryEntry';
 
 let history : FixedFIFOQueue<SearchHistoryEntry> = new FixedFIFOQueue(10);
 

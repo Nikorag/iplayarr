@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 
-import { QueuedStorage } from '../types/QueuedStorage'
-import { Synonym } from '../types/Synonym';
+import { QueuedStorage } from '../helpers/QueuedStorage'
+import { Synonym } from '../types/models/Synonym';
 import searchService from './searchService';
 
 const storage : QueuedStorage = new QueuedStorage();

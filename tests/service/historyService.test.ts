@@ -1,7 +1,7 @@
 const mockGetItem = jest.fn();
 const mockSetItem = jest.fn();
 
-jest.mock('src/types/QueuedStorage', () => {
+jest.mock('src/helpers/QueuedStorage', () => {
     return {
         QueuedStorage: jest.fn().mockImplementation(() => ({
             getItem: mockGetItem,
@@ -17,8 +17,8 @@ jest.mock('src/service/socketService', () => ({
 
 import historyService from 'src/service/historyService';
 import socketService from 'src/service/socketService';
-import { VideoType } from 'src/types/IPlayerSearchResult';
-import { QueueEntry } from 'src/types/QueueEntry';
+import { VideoType } from 'src/types/data/IPlayerSearchResult';
+import { QueueEntry } from 'src/types/models/QueueEntry';
 import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse';
 
 const sampleEntry: QueueEntry = {

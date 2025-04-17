@@ -1,15 +1,14 @@
 import { AxiosResponse } from 'axios';
+import historyService from 'src/service/historyService';
+import loggingService from 'src/service/loggingService';
+import nzbGetService from 'src/service/nzbgetService';
+import sabzbdService from 'src/service/sabnzbdService';
+import { VideoType } from 'src/types/data/IPlayerSearchResult';
+import { AppType } from 'src/types/enums/AppType';
+import { App } from 'src/types/models/App';
+import { QueueEntry } from 'src/types/models/QueueEntry';
+import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse';
 import { v4 } from 'uuid';
-
-import historyService from '../service/historyService';
-import loggingService from '../service/loggingService';
-import nzbGetService from '../service/nzbgetService';
-import sabzbdService from '../service/sabnzbdService';
-import { App } from '../types/App';
-import { AppType } from '../types/AppType';
-import { VideoType } from '../types/IPlayerSearchResult';
-import { QueueEntry } from '../types/QueueEntry';
-import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 
 const nzbFacade = {
     testConnection : async (type : string, url : string, apiKey? : string, username? : string, password? : string) : Promise<string | boolean> => {

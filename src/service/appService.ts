@@ -1,12 +1,12 @@
+import nzbFacade from 'src/facade/nzbFacade';
+import { QueuedStorage } from 'src/helpers/QueuedStorage'
+import { appCategories, AppFeature, appFeatures, AppType } from 'src/types/enums/AppType';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { App } from 'src/types/models/App';
+import { CreateDownloadClientForm } from 'src/types/requests/form/CreateDownloadClientForm';
+import { CreateIndexerForm } from 'src/types/requests/form/CreateIndexerForm';
 import { v4 } from 'uuid';
 
-import nzbFacade from '../facade/nzbFacade';
-import { App } from '../types/App';
-import { appCategories, AppFeature, appFeatures, AppType } from '../types/AppType';
-import { IplayarrParameter } from '../types/IplayarrParameters';
-import { QueuedStorage } from '../types/QueuedStorage'
-import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
-import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';
 import arrService, { ArrConfig } from './arrService';
 import configService from './configService';
 import socketService from './socketService';

@@ -1,4 +1,5 @@
 import cors from 'cors'
+import 'module-alias/register';
 import express, {Express, NextFunction, Request, Response} from 'express';
 import http, { Server } from 'http';
 import cron from 'node-cron';

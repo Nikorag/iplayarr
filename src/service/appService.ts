@@ -3,7 +3,7 @@ import { v4 } from 'uuid';
 import nzbFacade from '../facade/nzbFacade';
 import { App } from '../types/App';
 import { appCategories, AppFeature, appFeatures, AppType } from '../types/AppType';
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { QueuedStorage } from '../types/QueuedStorage'
 import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
 import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';

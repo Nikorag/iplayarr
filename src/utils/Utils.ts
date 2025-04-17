@@ -9,7 +9,7 @@ import { Synonym } from 'src/types/Synonym';
 import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
 import configService from '../service/configService';
 import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
 

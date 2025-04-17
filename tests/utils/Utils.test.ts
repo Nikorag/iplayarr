@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import configService from 'src/service/configService';
-import { IplayarrParameter } from 'src/types/IplayarrParameters';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
 import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';
 import { Synonym } from 'src/types/Synonym';

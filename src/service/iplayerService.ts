@@ -4,29 +4,30 @@ import path from 'path';
 
 import { emptySearchResult, timestampFile } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { SearchResponse } from '../types/responses/SearchResponse';
 import { Synonym } from '../types/Synonym';
 import { calculateSeasonAndEpisode, getQualityProfile } from '../utils/Utils';
+import { AbstractSearchService } from './abstractSearchService';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';
 import getIplayerExecutableService from './getIplayerExecutableService';
 import loggingService from './loggingService';
 import queueService from './queueService';
 
-const iplayerService = {
-    createPidDirectory: async (pid : string): Promise<void> => {
+class IPlayerService implements AbstractSearchService {
+    async createPidDirectory (pid : string): Promise<void> {
         const downloadDir : string = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
         fs.mkdirSync(`${downloadDir}/${pid}`, { recursive: true });
         fs.writeFileSync(`${downloadDir}/${pid}/${timestampFile}`, '');
-    },
+    }
 
-    download: async (pid: string): Promise<ChildProcess> => {
+    async download (pid: string): Promise<ChildProcess> {
         const {exec, args} = await getIplayerExecutableService.getAllDownloadParameters(pid);
 
-        await iplayerService.createPidDirectory(pid);
+        await this.createPidDirectory(pid);
         loggingService.debug(`Executing get_iplayer with args: ${args.join(' ')}`);
         const downloadProcess = spawn(exec, args);
 
@@ -43,9 +44,9 @@ const iplayerService = {
         downloadProcess.on('close', (code) => getIplayerExecutableService.processCompletedDownload(pid, code));
 
         return downloadProcess;
-    },
+    }
 
-    refreshCache: async () => {
+    async refreshCache() : Promise<void> {
         const {exec, args} = await getIplayerExecutableService.getIPlayerExec();
 
         //Refresh the cache
@@ -61,10 +62,10 @@ const iplayerService = {
         });
 
         //Delete failed jobs
-        iplayerService.cleanupFailedDownloads();
-    },
+        this.cleanupFailedDownloads();
+    }
 
-    cleanupFailedDownloads: async() : Promise<void> => {
+    async cleanupFailedDownloads() : Promise<void> {
         const downloadDir = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
         const threeHoursAgo: number = Date.now() - 3 * 60 * 60 * 1000;
         fs.readdir(downloadDir, { withFileTypes: true }, (err, entries) => {
@@ -98,13 +99,13 @@ const iplayerService = {
                 });
             });
         });
-    },
+    }
 
-    details: async (pids: string[]): Promise<IPlayerDetails[]> => {
-        return await Promise.all(pids.map((pid) => iplayerService.episodeDetails(pid)));
-    },
+    async details(pids: string[]): Promise<IPlayerDetails[]> {
+        return await Promise.all(pids.map((pid) => this.episodeDetails(pid)));
+    }
 
-    episodeDetails: async (pid: string): Promise<IPlayerDetails> => {
+    async episodeDetails(pid: string): Promise<IPlayerDetails> {
         const { programme } = await episodeCacheService.getMetadata(pid);
         const [ type, allCategories, episode, episodeTitle, series ] = calculateSeasonAndEpisode(programme);
         return {
@@ -123,9 +124,9 @@ const iplayerService = {
             allCategories,
             type
         };
-    },
+    }
 
-    performSearch: async (term: string, synonym?: Synonym, page : number = 1): Promise<SearchResponse> => {
+    async performSearch(term: string, synonym?: Synonym, page : number = 1): Promise<SearchResponse> {
         const { sizeFactor } = await getQualityProfile();
         return new Promise(async (resolve, reject) => {
             const results: IPlayerSearchResult[] = []
@@ -166,4 +167,4 @@ const iplayerService = {
     }
 }
 
-export default iplayerService;
+export default new IPlayerService();

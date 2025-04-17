@@ -3,7 +3,6 @@ import { Request, Response, Router } from 'express';
 import nzbFacade from '../facade/nzbFacade';
 import iplayerService from '../service/iplayerService';
 import queueService from '../service/queueService';
-import searchService from '../service/searchService';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import { SearchResponse } from '../types/responses/SearchResponse';
 import AppsRoute from './json-api/AppsRoute';
@@ -11,6 +10,7 @@ import OffScheduleRoute from './json-api/OffScheduleRoute';
 import QueueRoute from './json-api/QueueRoute';
 import SettingsRoute from './json-api/SettingsRoute';
 import SynonymsRoute from './json-api/SynonymsRoute';
+import searchFacade from 'src/facade/searchFacade';
 
 const router : Router = Router();
 
@@ -34,7 +34,7 @@ router.get('/search', async (req : Request, res : Response) => {
     const {q, page, facets : facetStr} = req.query as any;
     const facets = facetStr ? JSON.parse(facetStr) : [];
     console.log(facets);
-    const result : SearchResponse = await searchService.search(q, undefined, undefined, page ?? 1, facets);
+    const result : SearchResponse = await searchFacade.search(q, page ?? 1, facets);
     res.json(result);
 });
 

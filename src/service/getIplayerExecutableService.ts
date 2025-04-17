@@ -5,7 +5,7 @@ import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataRespo
 import { listFormat, progressRegex } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
 import { GetIPlayerExecutable } from '../types/GetIplayer/GetIPlayerExecutable';
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';

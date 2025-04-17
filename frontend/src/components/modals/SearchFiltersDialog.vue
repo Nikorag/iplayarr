@@ -43,7 +43,7 @@ const applyFacets = () => {
             justify-content: space-between;
             align-items: center;
             padding-right: 3rem;
-            margin: 0.7rem 0;
+            margin: 0.4rem 0;
 
             div {
                 flex: 1;
@@ -52,6 +52,10 @@ const applyFacets = () => {
             span {
                 flex: 1;
                 text-align: right;
+            }
+
+            &:hover {
+              color: @brand-color;
             }
         }
     }

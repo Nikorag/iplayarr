@@ -3,7 +3,7 @@ import multer, { Multer } from 'multer';
 
 import { EndpointDirectory, NewzNabEndpointDirectory, SabNZBDEndpointDirectory } from '../constants/EndpointDirectory';
 import configService from '../service/configService';
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 
 const router : Router = Router();

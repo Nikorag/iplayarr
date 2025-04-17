@@ -1,3 +1,4 @@
+import { FacetName } from '../enums/FacetName'
 import { IPlayerSearchResult } from '../IPlayerSearchResult'
 
 export interface SearchResponse {
@@ -20,6 +21,4 @@ export interface FacetValue {
     total : number
 }
 
-export interface SearchFacets {
-    [key : string] : string[]
-}
+export type SearchFacets = Partial<Record<FacetName, string[]>>;

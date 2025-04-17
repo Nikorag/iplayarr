@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { Builder } from 'xml2js'
 
+import searchFacade from '../../facade/searchFacade';
 import searchHistoryService from '../../service/searchHistoryService';
-import searchService from '../../service/searchService';
 import { IPlayerSearchResult, VideoType } from '../../types/IPlayerSearchResult';
 import { NewzNabAttr, NewzNabSearchResponse } from '../../types/responses/newznab/NewzNabSearchResponse';
-import { SearchResponse } from '../../types/responses/SearchResponse';
+import { SearchFacets, SearchResponse } from '../../types/responses/SearchResponse';
 import { SearchHistoryEntry } from '../../types/SearchHistoryEntry';
 import { createNZBDownloadLink, getBaseUrl } from '../../utils/Utils';
 
@@ -21,7 +21,13 @@ export default async (req: Request, res: Response) => {
     const { q, season, ep, cat, app }: SearchQueryString = req.query as any;
 
     const searchTerm = q ?? '*';
-    let { results }: SearchResponse = await searchService.search(searchTerm, season, ep);
+
+    // Create the facets object
+    const facets : SearchFacets = {}
+    if ( season ) facets.Series = [String(season)];
+    if ( ep ) facets.Episode = [String(ep)];
+
+    let { results }: SearchResponse = await searchFacade.search(searchTerm, 1, facets);
     results = filterResultsForCategory(results, cat);
 
     addSearchHistoryEntry(searchTerm, results, app, season, ep);

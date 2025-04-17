@@ -1,8 +1,8 @@
+import searchFacade from 'src/facade/searchFacade';
 import { v4 } from 'uuid';
 
 import { QueuedStorage } from '../types/QueuedStorage'
 import { Synonym } from '../types/Synonym';
-import searchService from './searchService';
 
 const storage : QueuedStorage = new QueuedStorage();
 
@@ -26,7 +26,7 @@ const synonymService = {
         const allSynonyms = await synonymService.getAllSynonyms();
         allSynonyms.push(synonym);
         await storage.setItem('synonyms', allSynonyms);
-        searchService.removeFromSearchCache(synonym.target);
+        searchFacade.removeFromSearchCache(synonym.target);
     },
 
     updateSynonym : async (synonym : Synonym) : Promise<void> => {
@@ -34,7 +34,7 @@ const synonymService = {
         const allSynonyms = await synonymService.getAllSynonyms();
         allSynonyms.push(synonym);
         await storage.setItem('synonyms', allSynonyms);
-        searchService.removeFromSearchCache(synonym.target);
+        searchFacade.removeFromSearchCache(synonym.target);
     },
 
     removeSynonym : async (id : string) : Promise<void> => {
@@ -43,7 +43,7 @@ const synonymService = {
         if (foundSynonym){
             allSynonyms = allSynonyms.filter(({id : savedId}) => savedId != id);
             await storage.setItem('synonyms', allSynonyms);
-            searchService.removeFromSearchCache(foundSynonym.target);
+            searchFacade.removeFromSearchCache(foundSynonym.target);
         }
     }
 }

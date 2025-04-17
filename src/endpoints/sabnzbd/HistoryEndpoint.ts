@@ -1,15 +1,15 @@
 import { Request, Response } from 'express'
 import { sizeFactor } from 'src/constants/iPlayarrConstants'
 
+import { EndpointDirectory } from '../../constants/EndpointDirectory'
 import configService from '../../service/configService'
 import historyService from '../../service/historyService'
-import { IplayarrParameter } from '../../types/IplayarrParameters'
+import { IplayarrParameter } from '../../types/enums/IplayarrParameters'
 import { QueueEntry } from '../../types/QueueEntry'
 import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, SabNZBDHistoryResponse } from '../../types/responses/sabnzbd/HistoryResponse'
 import { QueueEntryStatus } from '../../types/responses/sabnzbd/QueueResponse'
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse'
 import { formatBytes } from '../../utils/Utils'
-import { EndpointDirectory } from '../../constants/EndpointDirectory'
 import { AbstractSabNZBDActionEndpoint, ActionQueryString } from './AbstractSabNZBDActionEndpoint'
 
 const actionDirectory : EndpointDirectory = {

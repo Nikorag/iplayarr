@@ -11,8 +11,8 @@ import { VideoType } from '../types/IPlayerSearchResult';
 import { QueueEntry } from '../types/QueueEntry';
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 
-const nzbFacade = {
-    testConnection : async (type : string, url : string, apiKey? : string, username? : string, password? : string) : Promise<string | boolean> => {
+class NZBFacade {
+    async testConnection(type : string, url : string, apiKey? : string, username? : string, password? : string) : Promise<string | boolean> {
         switch (type){
         case 'sabnzbd':
         default:    
@@ -20,11 +20,11 @@ const nzbFacade = {
         case 'nzbget':
             return nzbGetService.testConnection(url, username as string, password as string);    
         }
-    },
+    }
 
-    addFile: async (app : App, files: Express.Multer.File[], nzbName? : string): Promise<AxiosResponse> => {
+    async addFile(app : App, files: Express.Multer.File[], nzbName? : string): Promise<AxiosResponse> {
         loggingService.log(`Received Real NZB, trying to add ${nzbName} to ${app.name}`);
-        nzbFacade.createRelayEntry(app, nzbName)
+        this.createRelayEntry(app, nzbName)
         switch (app.type){
         case AppType.SABNZBD:
         default:
@@ -32,9 +32,9 @@ const nzbFacade = {
         case AppType.NZBGET:
             return nzbGetService.addFile(app, files); 
         }
-    },
+    }
 
-    createRelayEntry: ({id : appId} : App, nzbName?: string) : void => {
+    createRelayEntry({id : appId} : App, nzbName?: string) : void {
         const relayEntry : QueueEntry = {
             pid: v4(),
             status: QueueEntryStatus.FORWARDED,
@@ -49,4 +49,4 @@ const nzbFacade = {
     }
 }
 
-export default nzbFacade;
+export default new NZBFacade();

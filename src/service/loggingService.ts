@@ -1,4 +1,4 @@
-import { IplayarrParameter } from '../types/IplayarrParameters';
+import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import configService from './configService';
 import socketService from './socketService';

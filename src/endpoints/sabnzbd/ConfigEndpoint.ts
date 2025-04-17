@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 import configService from '../../service/configService';
-import { IplayarrParameter } from '../../types/IplayarrParameters';
+import { IplayarrParameter } from '../../types/enums/IplayarrParameters';
 import { configSkeleton, SabNZBDConfigResponse } from '../../types/responses/sabnzbd/ConfigResponse';
 
 export default async (_ : Request, res : Response) => {

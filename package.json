@@ -9,7 +9,7 @@
     "build:both": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
     "serve:frontend": "cd frontend && npm run serve",
     "start": "node dist/src/server.js",
-    "dev": "cross-env DEBUG=true concurrently \"nodemon src/server.ts\" \"npm run serve:frontend\"",
+    "dev": "cross-env DEBUG=true concurrently \"nodemon -r tsconfig-paths/register src/server.ts\" \"npm run serve:frontend\"",
     "test": "jest --collectCoverageFrom 'src/**/*.{js,ts}'",
     "test:watch": "jest --watch",
     "lint": "eslint . --ext .ts",
@@ -67,6 +67,7 @@
     "nodemon": "^3.1.9",
     "ts-jest": "^29.2.6",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.26.1"
   }

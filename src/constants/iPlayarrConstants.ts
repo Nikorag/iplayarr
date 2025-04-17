@@ -15,6 +15,7 @@ export const timestampFile: string = 'iplayarr_timestamp';
 // Properties
 export const pageSize : number = 60;
 export const sizeFactor : number = 1048576; 
+export const maxFacets : number = 5;
 
 // Example Responses
 export const emptySearchResult : SearchResponse = {

@@ -14,7 +14,7 @@ export class AbstractSabNZBDActionEndpoint {
     }
 
     async handler(req : Request, res : Response, next : NextFunction) {
-        const name = (req.query as ActionQueryString).name ?? '_deault';
+        const name = (req.query as ActionQueryString).name ?? '_default';
         this.actionDirectory[name](req, res, next);
     }
 }

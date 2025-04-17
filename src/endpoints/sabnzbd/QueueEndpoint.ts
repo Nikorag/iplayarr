@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { EndpointDirectory } from 'src/constants/EndpointDirectory';
 import configService from 'src/service/configService';
-import historyService from 'src/service/historyService';
+import historyService from 'src/service/entity/historyService';
 import queueService from 'src/service/queueService';
 import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
 import { QueueEntry } from 'src/types/models/QueueEntry';
@@ -39,7 +39,7 @@ const actionDirectory : EndpointDirectory = {
     _default : async (req : Request, res : Response) => {
         const queue : QueueEntry[] = queueService.getQueue();
         const downloadQueue : QueueEntry[] = queue.filter(({status}) => status == QueueEntryStatus.DOWNLOADING);
-        const iplayerComplete = await historyService.getHistory();
+        const iplayerComplete = await historyService.all();
         const queueResponse : SabNZBDQueueResponse = {
             ...queueSkeleton,
             status : downloadQueue.length > 0 ? QueueStatus.DOWNLOADING : QueueStatus.IDLE,

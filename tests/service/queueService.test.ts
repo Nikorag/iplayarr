@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import configService from 'src/service/configService';
-import historyService from 'src/service/historyService';
+import historyService from 'src/service/entity/historyService';
 import iplayerService from 'src/service/iplayerService';
 import queueService from 'src/service/queueService';
 import { VideoType } from 'src/types/data/IPlayerSearchResult';
@@ -27,7 +27,7 @@ jest.mock('src/service/socketService', () => ({
     },
 }));
 
-jest.mock('src/service/historyService', () => ({
+jest.mock('src/service/entity/historyService', () => ({
     __esModule: true,
     default: {
         addArchive: jest.fn(),

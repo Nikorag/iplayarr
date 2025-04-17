@@ -12,7 +12,7 @@ import { QueueEntry } from '../types/models/QueueEntry';
 import { Synonym } from '../types/models/Synonym';
 import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from '../utils/Utils';
 import configService from './configService';
-import historyService from './historyService';
+import historyService from './entity/historyService';
 import loggingService from './loggingService';
 import queueService from './queueService';
 import socketService from './socketService';

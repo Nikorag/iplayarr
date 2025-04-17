@@ -15,13 +15,14 @@ jest.mock('src/service/socketService', () => ({
     default: { emit: jest.fn() }
 }));
 
-import historyService from 'src/service/historyService';
+import historyService from 'src/service/entity/historyService';
 import socketService from 'src/service/socketService';
 import { VideoType } from 'src/types/data/IPlayerSearchResult';
 import { QueueEntry } from 'src/types/models/QueueEntry';
 import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse';
 
 const sampleEntry: QueueEntry = {
+    id : '123',
     pid: '123',
     status: QueueEntryStatus.QUEUED,
     nzbName: 'Test NZB',
@@ -39,7 +40,7 @@ beforeEach(() => {
 describe('historyService', () => {
     it('getHistory returns empty array if none exists', async () => {
         mockGetItem.mockResolvedValue(undefined);
-        const result = await historyService.getHistory();
+        const result = await historyService.all();
         expect(result).toEqual([]);
     });
 
@@ -49,7 +50,7 @@ describe('historyService', () => {
             'history',
             expect.arrayContaining([
                 expect.objectContaining({
-                    pid: '123',
+                    id: '123',
                     status: QueueEntryStatus.COMPLETE
                 })
             ])
@@ -63,7 +64,7 @@ describe('historyService', () => {
             'history',
             expect.arrayContaining([
                 expect.objectContaining({
-                    pid: '123',
+                    id: '123',
                     status: QueueEntryStatus.QUEUED
                 })
             ])
@@ -76,7 +77,7 @@ describe('historyService', () => {
             'history',
             expect.arrayContaining([
                 expect.objectContaining({
-                    pid: '123',
+                    id: '123',
                     status: QueueEntryStatus.CANCELLED
                 })
             ])
@@ -85,13 +86,13 @@ describe('historyService', () => {
 
     it('removeHistory filters out entry by PID', async () => {
         mockGetItem.mockResolvedValue([
-            { ...sampleEntry, pid: '123' },
-            { ...sampleEntry, pid: '456' }
+            { ...sampleEntry, id: '123' },
+            { ...sampleEntry, id: '456' }
         ]);
-        await historyService.removeHistory('123');
+        await historyService.removeItem('123');
         expect(mockSetItem).toHaveBeenCalledWith(
             'history',
-            [expect.objectContaining({ pid: '456' })]
+            [expect.objectContaining({ id: '456' })]
         );
     });
 });

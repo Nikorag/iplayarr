@@ -6,7 +6,7 @@ import { IplayarrParameter } from '../types/enums/IplayarrParameters';
 import { QueueEntry } from '../types/models/QueueEntry'
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import configService from './configService';
-import historyService from './historyService';
+import historyService from './entity/historyService';
 import iplayerService from './iplayerService';
 import socketService from './socketService';
 
@@ -15,6 +15,7 @@ let queue : QueueEntry[] = [];
 const queueService = {
     addToQueue : (pid : string, nzbName : string, type : VideoType, appId? : string) : void => {
         const queueEntry : QueueEntry = {
+            id : pid,
             pid,
             status : QueueEntryStatus.QUEUED,
             nzbName,

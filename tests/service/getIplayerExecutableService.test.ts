@@ -1,7 +1,7 @@
 import fs from 'fs';
 import configService from 'src/service/configService';
+import historyService from 'src/service/entity/historyService';
 import { GetIplayerExecutableService } from 'src/service/getIplayerExecutableService';
-import historyService from 'src/service/historyService';
 import queueService from 'src/service/queueService';
 import socketService from 'src/service/socketService';
 import { IPlayerSearchResult, VideoType } from 'src/types/data/IPlayerSearchResult';
@@ -11,7 +11,7 @@ import { Synonym } from 'src/types/models/Synonym';
 jest.mock('src/service/configService');
 jest.mock('src/service/queueService');
 jest.mock('src/service/socketService');
-jest.mock('src/service/historyService');
+jest.mock('src/service/entity/historyService');
 jest.mock('src/service/loggingService');
 jest.mock('fs');
 jest.mock('path');

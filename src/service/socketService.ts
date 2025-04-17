@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 
-import historyService from './historyService';
+import historyService from './entity/historyService';
 import queueService from './queueService';
 
 const sockets : {
@@ -21,7 +21,7 @@ const socketService = {
         sockets[socket.id] = socket;
 
         const queue = queueService.getQueue();
-        const history = await historyService.getHistory();
+        const history = await historyService.all();
 
         socket.emit('queue', queue);
         socket.emit('history', history);

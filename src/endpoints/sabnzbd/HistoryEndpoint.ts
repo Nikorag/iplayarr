@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { EndpointDirectory } from 'src/constants/EndpointDirectory'
 import { sizeFactor } from 'src/constants/iPlayarrConstants'
 import configService from 'src/service/configService'
-import historyService from 'src/service/historyService'
+import historyService from 'src/service/entity/historyService'
 import { IplayarrParameter } from 'src/types/enums/IplayarrParameters'
 import { QueueEntry } from 'src/types/models/QueueEntry'
 import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, SabNZBDHistoryResponse } from 'src/types/responses/sabnzbd/HistoryResponse'
@@ -16,7 +16,7 @@ const actionDirectory : EndpointDirectory = {
     delete : async (req : Request, res : Response) => {
         const {value} = req.query as ActionQueryString;
         if (value){
-            await historyService.removeHistory(value)
+            await historyService.removeItem(value)
             res.json({status:true} as TrueFalseResponse);
         } else {
             res.json({status:false} as TrueFalseResponse);
@@ -25,7 +25,7 @@ const actionDirectory : EndpointDirectory = {
     },
 
     _default : async (req : Request, res : Response) => {
-        let history : QueueEntry[] = await historyService.getHistory();
+        let history : QueueEntry[] = await historyService.all();
         history = history.filter(({status}) => status != QueueEntryStatus.FORWARDED && status != QueueEntryStatus.CANCELLED);
         const completeDir : string = await configService.getParameter(IplayarrParameter.COMPLETE_DIR) as string;
 

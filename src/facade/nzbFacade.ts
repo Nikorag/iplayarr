@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import historyService from 'src/service/historyService';
+import historyService from 'src/service/entity/historyService';
 import loggingService from 'src/service/loggingService';
 import nzbGetService from 'src/service/nzbgetService';
 import sabzbdService from 'src/service/sabnzbdService';
@@ -34,8 +34,10 @@ const nzbFacade = {
     },
 
     createRelayEntry: ({id : appId} : App, nzbName?: string) : void => {
+        const pid = v4();
         const relayEntry : QueueEntry = {
-            pid: v4(),
+            pid,
+            id : pid,
             status: QueueEntryStatus.FORWARDED,
             nzbName : nzbName || 'Unknown',
             type: VideoType.UNKNOWN,

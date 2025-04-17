@@ -1,4 +1,6 @@
+import { AxiosResponse } from 'axios';
 import { Request, Response } from 'express';
+import { App } from 'src/types/App';
 import { Parser } from 'xml2js';
 
 import nzbFacade from '../../facade/nzbFacade';
@@ -12,88 +14,115 @@ import { NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
 const parser = new Parser();
 
 interface AddFileRequest {
-    files : Express.Multer.File[]
+    files: Express.Multer.File[]
 }
 
 interface NZBDetails {
-    pid : string,
-    nzbName : string,
-    type : VideoType,
-    appId? : string
+    pid: string,
+    nzbName: string,
+    type: VideoType,
+    appId?: string
 }
 
 interface DetailsRejection {
-    err : any,
-    nzbName : string,
+    err: any,
+    nzbName: string,
 }
 
-export default async (req : Request, res : Response) => {
+export default async (req: Request, res: Response) => {
     const { files } = req as any as AddFileRequest;
+
     try {
-        
-        const pids : string[] = [];
-        for (const file of files){
+        const details: NZBDetails[] = await Promise.all(files.map((file) => {
             const xmlString = file.buffer.toString('utf-8');
-            const {pid, nzbName, type, appId} = await getDetails(xmlString);
-            queueService.addToQueue(pid, nzbName, type, appId);
-            pids.push(pid);
-        }
+            return getDetails(xmlString);
+        }));
+
+        details.forEach(({ pid, nzbName, type, appId }) => queueService.addToQueue(pid, nzbName, type, appId));
 
         res.status(200).json({
             status: true,
-            nzo_ids: pids
+            nzo_ids: details.map(({ pid }) => pid)
         });
     } catch (err : any) {
-        const rejection = err as DetailsRejection;
-        let allApps = await appService.getAllApps();
-        allApps = allApps
-            .filter(({type}) => type == AppType.NZBGET || type == AppType.SABNZBD)
-            .sort((a, b) => a.priority as number - (b.priority as number));
-        for (const nzbApp of allApps){
-            const validApp = await nzbFacade.testConnection(
-                nzbApp.type.toString(),
-                nzbApp.url,
-                nzbApp.api_key,
-                nzbApp.username,
-                nzbApp.password
-            )
-            if (validApp){
-                try {
-                    const response = await nzbFacade.addFile(nzbApp, files, rejection.nzbName);
-                    res.status(response.status).send(response.data);
-                    return;
-                } catch (nzbErr) {
-                    loggingService.error(nzbErr);
-                }
-            }
+        const response = await nzbForward(err, files);
+        if (response){
+            res.status(response.status).send(response.data);
+            return;
+        } else {
+            const rejection : DetailsRejection = err;
+            res.status(500).json({
+                status: false,
+                error: rejection.err?.message || 'Unable to add NZB, Unknown Error'
+            });
         }
-        res.status(500).json({
-            status: false,
-            error: rejection.err?.message || 'Unable to add NZB, Unknown Error'
-        });
     }
 }
 
-async function getDetails(xml : string) : Promise<NZBDetails> {
+/**
+ * 
+ * Read the details from an NZB file
+ * 
+ * @param xml 
+ * @returns 
+ */
+async function getDetails(xml: string): Promise<NZBDetails> {
     return new Promise((resolve, reject) => {
         parser.parseString(xml, (err, result) => {
+
+            // Check for Errors
             if (err) {
-                return reject({err} as DetailsRejection);
-            } else if (!result?.nzb?.head?.[0]?.title?.[0]){
-                const title : NZBMetaEntry = result.nzb.head[0].meta.find(({$} : any) => $.type === 'name');
-                const nzbName : string | undefined = title ? title?._ : undefined;
-                return reject({ isError : true, err: new Error('Invalid iPlayarr NZB File'), nzbName} as DetailsRejection);
-	    }
-            const nzbName : NZBMetaEntry = result.nzb.head[0].meta.find(({$} : any) => $.type === 'nzbName');
-            const type : NZBMetaEntry = result.nzb.head[0].meta.find(({$} : any) => $.type === 'type');
-            const app : NZBMetaEntry = result.nzb.head[0].meta.find(({$} : any) => $.type === 'app');
-            const details : NZBDetails = {
-                'pid' : result.nzb.head[0].title[0],
-                'nzbName' : nzbName?.$?._,
-                'type' : (type?.$?._) as VideoType,
-                'appId' : app ? app?.$?._ : undefined
+                return reject({ err } as DetailsRejection);
+            } else if (!result?.nzb?.head?.[0]?.title?.[0]) {
+                const title: NZBMetaEntry = result.nzb.head[0].meta.find(({ $ }: any) => $.type === 'name');
+                const nzbName: string | undefined = title ? title?._ : undefined;
+                return reject({ isError: true, err: new Error('Invalid iPlayarr NZB File'), nzbName } as DetailsRejection);
+            }
+
+            const details: NZBDetails = {
+                'pid': result.nzb.head[0].title[0],
+                'nzbName': getMetaEntryValue(result, 'nzbName') as string,
+                'type': getMetaEntryValue(result, 'type') as VideoType,
+                'appId': getMetaEntryValue(result, 'app')
             }
             resolve(details);
         });
     });
+}
+
+function getMetaEntryValue(result: any, type: string): string | undefined {
+    const metaEntry: NZBMetaEntry = result.nzb.head[0].meta.find(({ $ }: any) => $.type === type);
+    return metaEntry ? metaEntry?.$?._ : undefined
+}
+
+async function nzbForward(rejection: DetailsRejection, files : Express.Multer.File[]) : Promise<AxiosResponse | undefined> {
+    let allApps = await appService.getAllApps();
+    allApps = allApps
+        .filter(({ type }) => type == AppType.NZBGET || type == AppType.SABNZBD)
+        .sort((a, b) => a.priority as number - (b.priority as number));
+
+    for (const nzbApp of allApps) {   
+        const response : AxiosResponse | undefined = await specificNzbForward(nzbApp, files, rejection);
+        if (response) return response;   
+    }
+
+    return;
+}
+
+async function specificNzbForward(app : App, files : Express.Multer.File[], {nzbName} : DetailsRejection) : Promise<AxiosResponse | undefined>{
+    const validApp = await nzbFacade.testConnection(
+        app.type.toString(),
+        app.url,
+        app.api_key,
+        app.username,
+        app.password
+    )
+    if (validApp) {
+        try {
+            return await nzbFacade.addFile(app, files, nzbName);
+        } catch (nzbErr) {
+            loggingService.error(nzbErr);
+            return;
+        }
+    }
 }

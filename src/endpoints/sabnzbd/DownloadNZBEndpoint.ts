@@ -4,7 +4,7 @@ import { Builder } from 'xml2js';
 import { VideoType } from '../../types/IPlayerSearchResult';
 import { NZBFileResponse, NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
 
-interface DownloadNZBRequest {
+interface DownloadNZBQueryString {
     pid : string,
     nzbName : string,
     type : VideoType,
@@ -12,10 +12,7 @@ interface DownloadNZBRequest {
 }
 
 export default async (req : Request, res : Response) => {
-    const { pid, nzbName, type, app } = req.query as any as DownloadNZBRequest;
-
-    const date : Date = new Date();
-    date.setMinutes(date.getMinutes() - 720);
+    const { pid, nzbName, type, app } = req.query as any as DownloadNZBQueryString;
 
     const builder : Builder = new Builder({
         headless: true,
@@ -57,7 +54,7 @@ export default async (req : Request, res : Response) => {
         file: {
             $: {
                 poster: 'iplayer@bbc.com',
-                date: date.getTime(),
+                date: getDefaultAge(),
                 subject: `${nzbName}.mp4`
             },
             groups: {
@@ -77,3 +74,10 @@ export default async (req : Request, res : Response) => {
     res.set('Content-Type', 'application/x-nzb');
     res.send(finalXml);
 };
+
+
+function getDefaultAge() : number {
+    const date : Date = new Date();
+    date.setMinutes(date.getMinutes() - 720);
+    return date.getTime();
+}

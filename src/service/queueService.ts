@@ -1,14 +1,13 @@
 import { ChildProcess, spawn } from 'child_process';
-
-import { DownloadDetails } from '../types/data/DownloadDetails';
-import { VideoType } from '../types/data/IPlayerSearchResult';
-import { IplayarrParameter } from '../types/enums/IplayarrParameters';
-import { QueueEntry } from '../types/models/QueueEntry'
-import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
-import configService from './configService';
-import historyService from './entity/historyService';
-import iplayerService from './iplayerService';
-import socketService from './socketService';
+import configService from 'src/service/configService';
+import historyService from 'src/service/entity/historyService';
+import iplayerService from 'src/service/iplayerService';
+import socketService from 'src/service/socketService';
+import { DownloadDetails } from 'src/types/data/DownloadDetails';
+import { VideoType } from 'src/types/data/IPlayerSearchResult';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { QueueEntry } from 'src/types/models/QueueEntry'
+import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse';
 
 let queue : QueueEntry[] = [];
 

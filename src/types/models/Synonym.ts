@@ -1,4 +1,4 @@
-import { Entity } from './Entity'
+import { Entity } from 'src/types/models/Entity'
 
 export interface Synonym extends Entity {
     from : string

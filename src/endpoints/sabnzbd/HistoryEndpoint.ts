@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { EndpointDirectory } from 'src/constants/EndpointDirectory'
 import { sizeFactor } from 'src/constants/iPlayarrConstants'
+import { AbstractSabNZBDActionEndpoint, ActionQueryString } from 'src/endpoints/sabnzbd/AbstractSabNZBDActionEndpoint'
 import configService from 'src/service/configService'
 import historyService from 'src/service/entity/historyService'
 import { IplayarrParameter } from 'src/types/enums/IplayarrParameters'
@@ -9,8 +10,6 @@ import { historyEntrySkeleton, historySkeleton, SABNZBDHistoryEntryResponse, Sab
 import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse'
 import { TrueFalseResponse } from 'src/types/responses/sabnzbd/TrueFalseResponse'
 import { formatBytes } from 'src/utils/Utils'
-
-import { AbstractSabNZBDActionEndpoint, ActionQueryString } from './AbstractSabNZBDActionEndpoint'
 
 const actionDirectory : EndpointDirectory = {
     delete : async (req : Request, res : Response) => {

@@ -1,7 +1,6 @@
 import dotenv from 'dotenv'
-
-import { QueuedStorage } from '../helpers/QueuedStorage'
-import { IplayarrParameter } from '../types/enums/IplayarrParameters';
+import { QueuedStorage } from 'src/helpers/QueuedStorage'
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
 
 
 dotenv.config();

@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { listFormat, progressRegex } from 'src/constants/iPlayarrConstants';
+import configService from 'src/service/configService';
+import historyService from 'src/service/entity/historyService';
+import loggingService from 'src/service/loggingService';
+import queueService from 'src/service/queueService';
+import socketService from 'src/service/socketService';
 import { DownloadDetails } from 'src/types/data/DownloadDetails';
 import { IPlayerSearchResult } from 'src/types/data/IPlayerSearchResult';
 import { LogLine, LogLineLevel } from 'src/types/data/LogLine';
@@ -10,12 +15,6 @@ import { QueueEntry } from 'src/types/models/QueueEntry';
 import { Synonym } from 'src/types/models/Synonym';
 import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
 import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from 'src/utils/Utils';
-
-import configService from './configService';
-import historyService from './entity/historyService';
-import loggingService from './loggingService';
-import queueService from './queueService';
-import socketService from './socketService';
 
 export class GetIplayerExecutableService {
     async getIPlayerExec(): Promise<GetIPlayerExecutable> {

@@ -1,12 +1,11 @@
 import { Request, Response, Router } from 'express';
-
-import { qualityProfiles } from '../../constants/QualityProfiles';
-import configService, { ConfigMap } from '../../service/configService';
-import { IplayarrParameter } from '../../types/enums/IplayarrParameters';
-import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
-import { md5 } from '../../utils/Utils';
-import { ConfigFormValidator } from '../../validators/ConfigFormValidator';
-import { Validator } from '../../validators/Validator';
+import { qualityProfiles } from 'src/constants/QualityProfiles';
+import configService, { ConfigMap } from 'src/service/configService';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { ApiError, ApiResponse } from 'src/types/responses/ApiResponse';
+import { md5 } from 'src/utils/Utils';
+import { ConfigFormValidator } from 'src/validators/ConfigFormValidator';
+import { Validator } from 'src/validators/Validator';
 
 const router = Router();
 

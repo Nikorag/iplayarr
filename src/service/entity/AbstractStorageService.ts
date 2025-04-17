@@ -1,9 +1,8 @@
 import { QueuedStorage } from 'src/helpers/QueuedStorage';
+import AbstractEntityService from 'src/service/entity/AbstractEntityService';
 import socketService from 'src/service/socketService';
 import { Entity } from 'src/types/models/Entity';
 import { v4 } from 'uuid';
-
-import AbstractEntityService from './AbstractEntityService';
 
 
 export default abstract class AbstractStorageService<T extends Entity> extends AbstractEntityService<string, T> {

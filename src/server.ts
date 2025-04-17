@@ -4,16 +4,15 @@ import http, { Server } from 'http';
 import cron from 'node-cron';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
-
-import ApiRoute from './routes/ApiRoute';
-import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
-import JsonApiRoute from './routes/JsonApiRoute';
-import configService from './service/configService';
-import episodeCacheService from './service/episodeCacheService';
-import iplayerService from './service/iplayerService';
-import loggingService from './service/loggingService';
-import socketService from './service/socketService';
-import { IplayarrParameter } from './types/enums/IplayarrParameters';
+import ApiRoute from 'src/routes/ApiRoute';
+import AuthRoute, { addAuthMiddleware } from 'src/routes/AuthRoute';
+import JsonApiRoute from 'src/routes/JsonApiRoute';
+import configService from 'src/service/configService';
+import episodeCacheService from 'src/service/episodeCacheService';
+import iplayerService from 'src/service/iplayerService';
+import loggingService from 'src/service/loggingService';
+import socketService from 'src/service/socketService';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
 
 const isDebug = process.env.DEBUG == 'true';
 

@@ -1,17 +1,16 @@
 import axios, { AxiosResponse } from 'axios';
-
-import { IPlayerDetails } from '../types/data/IPlayerDetails';
-import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
-import { IplayarrParameter } from '../types/enums/IplayarrParameters';
-import { Synonym } from '../types/models/Synonym';
-import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewSearchResponse';
-import { IPlayerChildrenResponse } from '../types/responses/IPlayerMetadataResponse';
-import { createNZBName, getQualityProfile, removeLastFourDigitNumber, splitArrayIntoChunks } from '../utils/Utils';
-import configService from './configService';
-import synonymService from './entity/synonymService';
-import episodeCacheService from './episodeCacheService';
-import iplayerService from './iplayerService';
-import RedisCacheService from './redisCacheService';
+import configService from 'src/service/configService';
+import synonymService from 'src/service/entity/synonymService';
+import episodeCacheService from 'src/service/episodeCacheService';
+import iplayerService from 'src/service/iplayerService';
+import RedisCacheService from 'src/service/redisCacheService';
+import { IPlayerDetails } from 'src/types/data/IPlayerDetails';
+import { IPlayerSearchResult } from 'src/types/data/IPlayerSearchResult';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { Synonym } from 'src/types/models/Synonym';
+import { IPlayerNewSearchResponse } from 'src/types/responses/iplayer/IPlayerNewSearchResponse';
+import { IPlayerChildrenResponse } from 'src/types/responses/IPlayerMetadataResponse';
+import { createNZBName, getQualityProfile, removeLastFourDigitNumber, splitArrayIntoChunks } from 'src/utils/Utils';
 
 interface SearchTerm {
     term: string,

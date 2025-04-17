@@ -1,10 +1,9 @@
 import {NextFunction,Request, Response, Router} from 'express';
 import multer, { Multer } from 'multer';
-
-import { EndpointDirectory, NewzNabEndpointDirectory, SabNZBDEndpointDirectory } from '../constants/EndpointDirectory';
-import configService from '../service/configService';
-import { IplayarrParameter } from '../types/enums/IplayarrParameters';
-import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
+import { EndpointDirectory, NewzNabEndpointDirectory, SabNZBDEndpointDirectory } from 'src/constants/EndpointDirectory';
+import configService from 'src/service/configService';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { ApiError, ApiResponse } from 'src/types/responses/ApiResponse';
 
 const router : Router = Router();
 const upload : Multer = multer();

@@ -1,16 +1,15 @@
 import { Request, Response, Router } from 'express';
-
-import nzbFacade from '../facade/nzbFacade';
-import iplayerService from '../service/iplayerService';
-import queueService from '../service/queueService';
-import searchService from '../service/searchService';
-import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
-import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
-import AppsRoute from './json-api/AppsRoute';
-import OffScheduleRoute from './json-api/OffScheduleRoute';
-import QueueRoute from './json-api/QueueRoute';
-import SettingsRoute from './json-api/SettingsRoute';
-import SynonymsRoute from './json-api/SynonymsRoute';
+import nzbFacade from 'src/facade/nzbFacade';
+import AppsRoute from 'src/routes/json-api/AppsRoute';
+import OffScheduleRoute from 'src/routes/json-api/OffScheduleRoute';
+import QueueRoute from 'src/routes/json-api/QueueRoute';
+import SettingsRoute from 'src/routes/json-api/SettingsRoute';
+import SynonymsRoute from 'src/routes/json-api/SynonymsRoute';
+import iplayerService from 'src/service/iplayerService';
+import queueService from 'src/service/queueService';
+import searchService from 'src/service/searchService';
+import { IPlayerSearchResult } from 'src/types/data/IPlayerSearchResult';
+import { ApiError, ApiResponse } from 'src/types/responses/ApiResponse';
 
 const router : Router = Router();
 

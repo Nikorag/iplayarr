@@ -1,6 +1,6 @@
-import { QueueEntry } from '../../types/models/QueueEntry';
-import { QueueEntryStatus } from '../../types/responses/sabnzbd/QueueResponse';
-import AbstractStorageService from './AbstractStorageService';
+import AbstractStorageService from 'src/service/entity/AbstractStorageService';
+import { QueueEntry } from 'src/types/models/QueueEntry';
+import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse';
 
 class historyService extends AbstractStorageService<QueueEntry> {
     async addHistory(item : QueueEntry) : Promise<void> {

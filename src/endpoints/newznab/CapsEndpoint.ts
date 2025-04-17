@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
+import { NewzNabServerConfig } from 'src/types/responses/newznab/CapsResponse';
 import { Builder } from 'xml2js';
-
-import { NewzNabServerConfig } from '../../types/responses/newznab/CapsResponse';
 
 export default async (_ : Request, res : Response) => {
     const serverConfig : NewzNabServerConfig = {

@@ -1,7 +1,6 @@
 import { Server, Socket } from 'socket.io';
-
-import historyService from './entity/historyService';
-import queueService from './queueService';
+import historyService from 'src/service/entity/historyService';
+import queueService from 'src/service/queueService';
 
 const sockets : {
     [key : string] : Socket

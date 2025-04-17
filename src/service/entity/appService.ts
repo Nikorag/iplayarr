@@ -1,14 +1,13 @@
 import nzbFacade from 'src/facade/nzbFacade';
+import arrService, { ArrConfig } from 'src/service/arrService';
+import configService from 'src/service/configService';
+import AbstractStorageService from 'src/service/entity/AbstractStorageService';
+import socketService from 'src/service/socketService';
 import { appCategories, AppFeature, appFeatures, AppType } from 'src/types/enums/AppType';
 import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
 import { App } from 'src/types/models/App';
 import { CreateDownloadClientForm } from 'src/types/requests/form/CreateDownloadClientForm';
 import { CreateIndexerForm } from 'src/types/requests/form/CreateIndexerForm';
-
-import arrService, { ArrConfig } from '../arrService';
-import configService from '../configService';
-import socketService from '../socketService';
-import AbstractStorageService from './AbstractStorageService';
 
 
 class AppService extends AbstractStorageService<App> {

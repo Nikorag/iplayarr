@@ -1,14 +1,13 @@
 import axios, { AxiosResponse } from 'axios';
 import lunr from 'lunr';
+import { QueuedStorage } from 'src/helpers/QueuedStorage'
+import iplayerService from 'src/service/iplayerService';
+import { IPlayerDetails } from 'src/types/data/IPlayerDetails';
+import { IPlayerSearchResult, VideoType } from 'src/types/data/IPlayerSearchResult';
+import { EpisodeCacheDefinition } from 'src/types/responses/EpisodeCacheTypes';
+import { IPlayerChildrenResponse, IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';
+import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from 'src/utils/Utils';
 import { v4 } from 'uuid';
-
-import { QueuedStorage } from '../helpers/QueuedStorage'
-import { IPlayerDetails } from '../types/data/IPlayerDetails';
-import { IPlayerSearchResult, VideoType } from '../types/data/IPlayerSearchResult';
-import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
-import { IPlayerChildrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
-import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
-import iplayerService from './iplayerService';
 
 
 const storage : QueuedStorage = new QueuedStorage();

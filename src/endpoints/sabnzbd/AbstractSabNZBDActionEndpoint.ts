@@ -1,6 +1,5 @@
 import { NextFunction,Request, Response } from 'express';
-
-import { EndpointDirectory } from '../../constants/EndpointDirectory';
+import { EndpointDirectory } from 'src/constants/EndpointDirectory';
 
 export interface ActionQueryString {
     name? : string

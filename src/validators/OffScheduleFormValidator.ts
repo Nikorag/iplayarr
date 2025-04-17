@@ -1,5 +1,5 @@
-import episodeCacheService from '../service/episodeCacheService';
-import { Validator } from './Validator';
+import episodeCacheService from 'src/service/episodeCacheService';
+import { Validator } from 'src/validators/Validator';
 
 export class OffScheduleFormValidator extends Validator {
 

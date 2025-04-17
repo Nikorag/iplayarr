@@ -1,4 +1,4 @@
-import {redis} from '../service/redisService';
+import {redis} from 'src/service/redisService';
 
 export class QueuedStorage {
     private current: Promise<void>;

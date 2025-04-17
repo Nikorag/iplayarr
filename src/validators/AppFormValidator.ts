@@ -1,5 +1,5 @@
-import appService from '../service/entity/appService';
-import { Validator } from './Validator';
+import appService from 'src/service/entity/appService';
+import { Validator } from 'src/validators/Validator';
 
 export class AppFormValidator extends Validator {
     async validate(input: any): Promise<{[key: string]: string}> {

@@ -1,10 +1,9 @@
 import { Request, Response,Router } from 'express';
-
-import appService from '../../service/entity/appService';
-import { appFeatures } from '../../types/enums/AppType';
-import { App } from '../../types/models/App';
-import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
-import { AppFormValidator } from '../../validators/AppFormValidator';
+import appService from 'src/service/entity/appService';
+import { appFeatures } from 'src/types/enums/AppType';
+import { App } from 'src/types/models/App';
+import { ApiError, ApiResponse } from 'src/types/responses/ApiResponse';
+import { AppFormValidator } from 'src/validators/AppFormValidator';
 
 const router = Router();
 

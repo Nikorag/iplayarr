@@ -1,6 +1,6 @@
-import { Synonym } from '../../types/models/Synonym';
-import searchService from '../searchService';
-import AbstractStorageService from './AbstractStorageService';
+import AbstractStorageService from 'src/service/entity/AbstractStorageService';
+import searchService from 'src/service/searchService';
+import { Synonym } from 'src/types/models/Synonym';
 
 
 class SynonymService extends AbstractStorageService<Synonym> {

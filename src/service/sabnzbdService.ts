@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
-
-import { App } from '../types/models/App';
+import { App } from 'src/types/models/App';
 
 const sabzbdService = {
     getAddFileUrl : async ({url, api_key} : App) : Promise<string> => {

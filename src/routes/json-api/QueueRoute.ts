@@ -1,9 +1,8 @@
 import { Request, Response, Router } from 'express';
-
-import historyService from '../../service/entity/historyService';
-import queueService from '../../service/queueService';
-import socketService from '../../service/socketService';
-import { QueueEntry } from '../../types/models/QueueEntry';
+import historyService from 'src/service/entity/historyService';
+import queueService from 'src/service/queueService';
+import socketService from 'src/service/socketService';
+import { QueueEntry } from 'src/types/models/QueueEntry';
 
 const router = Router();
 

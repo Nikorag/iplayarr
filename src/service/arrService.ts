@@ -1,15 +1,14 @@
 import axios, { AxiosInstance } from 'axios';
-
-import { AppType } from '../types/enums/AppType';
-import { App } from '../types/models/App';
-import { ArrCreateDownloadClientRequest, CreateDownloadClientRequestField,createDownloadClientRequestSkeleton } from '../types/requests/arr/CreateDownloadClientRequest';
-import { CreateIndexerRequest, createIndexerRequestSkeleton, createIndexRequestFieldsSkeleton } from '../types/requests/arr/CreateIndexerRequest';
-import { CreateProwlarrIndexerRequest, createProwlarrIndexerRequestSkeleton } from '../types/requests/arr/CreateProwlarrIndexerRequest';
-import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
-import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';
-import { ArrLookupResponse } from '../types/responses/arr/ArrLookupResponse';
-import { DownloadClientResponse } from '../types/responses/arr/DownloadClientResponse';
-import { IndexerResponse } from '../types/responses/arr/IndexerResponse';
+import { AppType } from 'src/types/enums/AppType';
+import { App } from 'src/types/models/App';
+import { ArrCreateDownloadClientRequest, CreateDownloadClientRequestField,createDownloadClientRequestSkeleton } from 'src/types/requests/arr/CreateDownloadClientRequest';
+import { CreateIndexerRequest, createIndexerRequestSkeleton, createIndexRequestFieldsSkeleton } from 'src/types/requests/arr/CreateIndexerRequest';
+import { CreateProwlarrIndexerRequest, createProwlarrIndexerRequestSkeleton } from 'src/types/requests/arr/CreateProwlarrIndexerRequest';
+import { CreateDownloadClientForm } from 'src/types/requests/form/CreateDownloadClientForm';
+import { CreateIndexerForm } from 'src/types/requests/form/CreateIndexerForm';
+import { ArrLookupResponse } from 'src/types/responses/arr/ArrLookupResponse';
+import { DownloadClientResponse } from 'src/types/responses/arr/DownloadClientResponse';
+import { IndexerResponse } from 'src/types/responses/arr/IndexerResponse';
 
 export interface ArrConfig {
     API_KEY : string,

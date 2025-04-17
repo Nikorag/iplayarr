@@ -1,4 +1,4 @@
-import { VideoType } from './IPlayerSearchResult'
+import { VideoType } from 'src/types/data/IPlayerSearchResult'
 
 export interface IPlayerDetails {
     pid: string,

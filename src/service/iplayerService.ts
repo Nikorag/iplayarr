@@ -1,19 +1,18 @@
 import { ChildProcess, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-
-import { timestampFile } from '../constants/iPlayarrConstants';
-import { DownloadDetails } from '../types/data/DownloadDetails';
-import { IPlayerDetails } from '../types/data/IPlayerDetails';
-import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
-import { IplayarrParameter } from '../types/enums/IplayarrParameters';
-import { Synonym } from '../types/models/Synonym';
-import { calculateSeasonAndEpisode, getQualityProfile } from '../utils/Utils';
-import configService from './configService';
-import episodeCacheService from './episodeCacheService';
-import getIplayerExecutableService from './getIplayerExecutableService';
-import loggingService from './loggingService';
-import queueService from './queueService';
+import { timestampFile } from 'src/constants/iPlayarrConstants';
+import configService from 'src/service/configService';
+import episodeCacheService from 'src/service/episodeCacheService';
+import getIplayerExecutableService from 'src/service/getIplayerExecutableService';
+import loggingService from 'src/service/loggingService';
+import queueService from 'src/service/queueService';
+import { DownloadDetails } from 'src/types/data/DownloadDetails';
+import { IPlayerDetails } from 'src/types/data/IPlayerDetails';
+import { IPlayerSearchResult } from 'src/types/data/IPlayerSearchResult';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { Synonym } from 'src/types/models/Synonym';
+import { calculateSeasonAndEpisode, getQualityProfile } from 'src/utils/Utils';
 
 const iplayerService = {
     createPidDirectory: async (pid : string): Promise<void> => {

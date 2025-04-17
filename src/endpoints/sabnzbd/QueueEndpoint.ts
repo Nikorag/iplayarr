@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { EndpointDirectory } from 'src/constants/EndpointDirectory';
+import { AbstractSabNZBDActionEndpoint, ActionQueryString } from 'src/endpoints/sabnzbd/AbstractSabNZBDActionEndpoint';
 import configService from 'src/service/configService';
 import historyService from 'src/service/entity/historyService';
 import queueService from 'src/service/queueService';
@@ -7,8 +8,6 @@ import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
 import { QueueEntry } from 'src/types/models/QueueEntry';
 import { queueEntrySkeleton, QueueEntryStatus, queueSkeleton, QueueStatus, SabNZBDQueueResponse, SabNZBQueueEntry } from 'src/types/responses/sabnzbd/QueueResponse';
 import { TrueFalseResponse } from 'src/types/responses/sabnzbd/TrueFalseResponse';
-
-import { AbstractSabNZBDActionEndpoint, ActionQueryString } from './AbstractSabNZBDActionEndpoint';
 
 function convertEntries(slot : QueueEntry, index : number) : SabNZBQueueEntry {
     return {

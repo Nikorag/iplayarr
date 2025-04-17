@@ -1,12 +1,11 @@
 import {Express, NextFunction,Request, Response, Router} from 'express';
 import session from 'express-session'
+import configService from 'src/service/configService';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import User from 'src/types/models/User'
+import { ApiError, ApiResponse } from 'src/types/responses/ApiResponse';
+import { md5 } from 'src/utils/Utils';
 import { v4 } from 'uuid';
-
-import configService from '../service/configService';
-import { IplayarrParameter } from '../types/enums/IplayarrParameters';
-import User from '../types/models/User'
-import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
-import { md5 } from '../utils/Utils';
 
 declare module 'express-session' {
     interface SessionData {

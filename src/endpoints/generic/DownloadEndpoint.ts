@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
-
-import episodeCacheService from '../../service/episodeCacheService';
-import queueService from '../../service/queueService';
-import { VideoType } from '../../types/data/IPlayerSearchResult';
-import { IPlayerMetadataResponse } from '../../types/responses/IPlayerMetadataResponse';
+import episodeCacheService from 'src/service/episodeCacheService';
+import queueService from 'src/service/queueService';
+import { VideoType } from 'src/types/data/IPlayerSearchResult';
+import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';
 
 interface DownloadQueryString {
     pid : string

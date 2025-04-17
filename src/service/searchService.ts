@@ -128,7 +128,7 @@ export class SearchService {
             pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
             series: details.series,
             type: details.type,
-            size: details.runtime ? (details.runtime * 60) * sizeFactor : undefined,
+            size: details.runtime ? Math.floor(details.runtime * 60 * sizeFactor) : undefined,
             nzbName: await createNZBName(details, synonym),
             episodeTitle: details.episodeTitle
         }

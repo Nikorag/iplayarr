@@ -175,7 +175,7 @@ const episodeCacheService = {
 }
 
 async function createResult(term : string, details : IPlayerDetails, sizeFactor : number) : Promise<IPlayerSearchResult> {
-    const size : number | undefined = details.runtime ? ((details.runtime * 60) * sizeFactor) / 100 : undefined;
+    const size : number | undefined = details.runtime ? Math.floor((details.runtime * 60 * sizeFactor) / 100) : undefined;
     const nzbName = await createNZBName(details);
     return {
         number: 0,

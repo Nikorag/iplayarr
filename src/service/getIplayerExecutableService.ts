@@ -156,6 +156,7 @@ export class GetIplayerExecutableService {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom, epTitle] = line.split('|:|');
                 const [ title, episodeNum, seriesNum ] = parseEpisodeDetailStrings(rawTitle, episodeStr, seriesStr)
+                const duration = durationStr != '' ? parseInt(durationStr) : undefined;
                 const [ type, episode, episodeTitle, series ] = calculateSeasonAndEpisode({
                     type: 'episode',
                     pid,
@@ -181,7 +182,7 @@ export class GetIplayerExecutableService {
                     episode,
                     series,
                     type,
-                    size: durationStr ? parseInt(durationStr) * sizeFactor : undefined,
+                    size: duration == null || isNaN(duration) ? undefined : Math.floor(duration * sizeFactor),
                     pubDate: onlineFrom ? new Date(onlineFrom) : undefined,
                     episodeTitle
                 });

@@ -1,7 +1,7 @@
 import { AxiosResponse } from 'axios';
 import { Request, Response } from 'express';
 import nzbFacade from 'src/facade/nzbFacade';
-import appService from 'src/service/appService';
+import appService from 'src/service/entity/appService';
 import loggingService from 'src/service/loggingService';
 import queueService from 'src/service/queueService';
 import { VideoType } from 'src/types/data/IPlayerSearchResult';
@@ -95,7 +95,7 @@ function getMetaEntryValue(result: any, type: string): string | undefined {
 }
 
 async function nzbForward(rejection: DetailsRejection, files : Express.Multer.File[]) : Promise<AxiosResponse | undefined> {
-    let allApps = await appService.getAllApps();
+    let allApps = await appService.all();
     allApps = allApps
         .filter(({ type }) => type == AppType.NZBGET || type == AppType.SABNZBD)
         .sort((a, b) => a.priority as number - (b.priority as number));

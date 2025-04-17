@@ -8,10 +8,10 @@ import { IPlayerNewSearchResponse } from '../types/responses/iplayer/IPlayerNewS
 import { IPlayerChildrenResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile, removeLastFourDigitNumber, splitArrayIntoChunks } from '../utils/Utils';
 import configService from './configService';
+import synonymService from './entity/synonymService';
 import episodeCacheService from './episodeCacheService';
 import iplayerService from './iplayerService';
 import RedisCacheService from './redisCacheService';
-import synonymService from './synonymService';
 
 interface SearchTerm {
     term: string,

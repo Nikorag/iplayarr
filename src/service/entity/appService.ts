@@ -1,63 +1,18 @@
 import nzbFacade from 'src/facade/nzbFacade';
-import { QueuedStorage } from 'src/helpers/QueuedStorage'
 import { appCategories, AppFeature, appFeatures, AppType } from 'src/types/enums/AppType';
 import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
 import { App } from 'src/types/models/App';
 import { CreateDownloadClientForm } from 'src/types/requests/form/CreateDownloadClientForm';
 import { CreateIndexerForm } from 'src/types/requests/form/CreateIndexerForm';
-import { v4 } from 'uuid';
 
-import arrService, { ArrConfig } from './arrService';
-import configService from './configService';
-import socketService from './socketService';
+import arrService, { ArrConfig } from '../arrService';
+import configService from '../configService';
+import socketService from '../socketService';
+import AbstractStorageService from './AbstractStorageService';
 
-const storage : QueuedStorage = new QueuedStorage();
 
-const appService = {    
-    getAllApps : async () : Promise<App[]> => {
-        return (await storage.getItem('apps')) || [];
-    },
-
-    getApp : async (id : string) : Promise<App | undefined> => {
-        const allApps : App[] = await appService.getAllApps();
-        return allApps.find(({id : app_id}) => app_id == id);
-    },
-
-    removeApp : async (id : string) : Promise<boolean> => {
-        let allApps : App[] = await appService.getAllApps();
-        allApps = allApps.filter(({id : app_id}) => app_id != id);
-        await storage.setItem('apps', allApps);
-        return true;
-    },
-
-    updateApp : async (form : Partial<App>) : Promise<App | undefined> => {
-        if (form.id){
-            let app : App | undefined = await appService.getApp(form.id);
-            if (app){
-                app = {
-                    ...app,
-                    ...form
-                }
-                await appService.removeApp(form.id);
-                await appService.addApp(app);
-                return app;
-            }
-        }
-        return;
-    },
-
-    addApp : async (form : App) : Promise<App | undefined> => {
-        if (!form.id){
-            const id = v4();
-            form.id = id;
-        }
-        const allApps : App[] = await appService.getAllApps();
-        allApps.push(form);
-        await storage.setItem('apps', allApps);
-        return form;
-    },
-
-    createUpdateIntegrations : async (input : App, allowCreate : boolean = true) : Promise<App> => {
+class AppService extends AbstractStorageService<App> {
+    async createUpdateIntegrations(input : App, allowCreate : boolean = true) : Promise<App> {
         let form = input;
         const features : AppFeature[] = appFeatures[form.type];
 
@@ -76,26 +31,26 @@ const appService = {
             }
         }
 
-        await appService.updateApp(form);
+        await this.updateItem(input.id, form);
         return form;
-    },
+    }
 
-    updateApiKey : async () : Promise<void> => {
-        const allApps : App[] = await appService.getAllApps();
+    async updateApiKey() : Promise<void> {
+        const allApps : App[] = await this.all();
         const apiKeyApps : App[] = allApps.filter(({type}) => appFeatures[type].includes(AppFeature.CALLBACK));
 
         apiKeyApps.forEach((app : App) => {
             socketService.emit('app_update_status', {id : app.id, status : 'In Progress'});
 
-            appService.createUpdateIntegrations(app).then(() => {
+            this.createUpdateIntegrations(app).then(() => {
                 socketService.emit('app_update_status', {id : app.id, status : 'Complete'});
             }).catch((err) => {
                 socketService.emit('app_update_status', {id : app.id, status : 'Error', message : err.message});
             });
         })
-    },
+    }
 
-    testAppConnection : async (form : App) : Promise<string | boolean> => {
+    async testAppConnection(form : App) : Promise<string | boolean> {
         switch (form.type){
         case AppType.PROWLARR:
         case AppType.RADARR:
@@ -241,4 +196,4 @@ const createUpdateFeature : Record<AppFeature, (form : App, arrConfig : ArrConfi
     }
 }
 
-export default appService;
+export default new AppService('apps');

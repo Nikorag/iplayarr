@@ -1,6 +1,6 @@
 import nzbFacade from 'src/facade/nzbFacade';
 import { QueuedStorage } from 'src/helpers/QueuedStorage';
-import appService from 'src/service/appService';
+import appService from 'src/service/entity/appService';
 import socketService from 'src/service/socketService';
 import { AppType } from 'src/types/enums/AppType';
 import { App } from 'src/types/models/App';
@@ -63,7 +63,7 @@ describe('appService', () => {
             iplayarr: { host: 'localhost', port: 7878, useSSL: false }
         } as any;
 
-        const result = await appService.addApp(app);
+        const result = await appService.setItem(app.id, app);
 
         expect(result?.id).toBe(id);
         expect(mockStorage.setItem).toHaveBeenCalledWith('apps', expect.arrayContaining([expect.objectContaining({ id })]));
@@ -71,24 +71,24 @@ describe('appService', () => {
 
     it('removes an app', async () => {
         const app: App = { id: '123', type: AppType.RADARR } as any;
-        await appService.addApp(app);
+        await appService.setItem(app.id, app);
 
-        await appService.removeApp('123');
+        await appService.removeItem('123');
 
         expect(mockStorage.setItem).toHaveBeenCalledWith('apps', []);
     });
 
     it('updates an app by merging and re-adding it', async () => {
         const app: App = { id: '123', name: 'Old Name', type: AppType.RADARR } as any;
-        await appService.addApp(app);
+        await appService.setItem(app.id, app);
 
-        await appService.updateApp({ id: '123', name: 'New Name' });
+        await appService.updateItem('123', { id: '123', name: 'New Name' });
 
         expect(mockStorage.setItem).toHaveBeenCalledWith('apps', [expect.objectContaining({ name: 'New Name' })]);
     });
 
     it('returns undefined when updating non-existent app', async () => {
-        const result = await appService.updateApp({ id: 'does-not-exist', name: 'Test' });
+        const result = await appService.updateItem('does-not-exist', { id: 'does-not-exist', name: 'Test' });
 
         expect(result).toBeUndefined();
     });
@@ -101,7 +101,7 @@ describe('appService', () => {
 
     it('updates API key and emits socket events', async () => {
         const app: App = { id: 'abc', type: AppType.RADARR } as any;
-        await appService.addApp(app);
+        await appService.setItem(app.id, app);
 
         const mockCreateUpdate = jest.spyOn(appService, 'createUpdateIntegrations').mockResolvedValue(app);
 

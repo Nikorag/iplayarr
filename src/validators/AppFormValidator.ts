@@ -1,4 +1,4 @@
-import appService from '../service/appService';
+import appService from '../service/entity/appService';
 import { Validator } from './Validator';
 
 export class AppFormValidator extends Validator {

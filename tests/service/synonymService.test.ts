@@ -1,5 +1,5 @@
+import synonymService from 'src/service/entity/synonymService'
 import searchService from 'src/service/searchService';
-import synonymService from 'src/service/synonymService'
 import { Synonym } from 'src/types/models/Synonym';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -31,6 +31,10 @@ jest.mock('uuid', () => ({
     v4: jest.fn()
 }));
 
+jest.mock('src/service/socketService', () => ({
+    emit: jest.fn()
+}));
+
 beforeEach(() => {
     jest.clearAllMocks();
     Object.keys(mockStorageData).forEach(k => delete mockStorageData[k]);
@@ -47,12 +51,12 @@ describe('synonymService', () => {
     describe('getAllSynonyms', () => {
         it('should return all synonyms', async () => {
             mockStorageData['synonyms'] = [testSynonym];
-            const result = await synonymService.getAllSynonyms();
+            const result = await synonymService.all();
             expect(result).toEqual([testSynonym]);
         });
 
         it('should return an empty array if no synonyms exist', async () => {
-            const result = await synonymService.getAllSynonyms();
+            const result = await synonymService.all();
             expect(result).toEqual([]);
         });
     });
@@ -81,7 +85,7 @@ describe('synonymService', () => {
         it('should assign an id if missing and add the synonym', async () => {
             const newSyn: Synonym = { from: 'ITV', target: 'Independent Television' } as Synonym;
             (uuidv4 as jest.Mock).mockReturnValue('generated-id');
-            await synonymService.addSynonym(newSyn);
+            await synonymService.setItem(newSyn.id, newSyn);
             const saved = mockStorageData['synonyms'];
             expect(saved.length).toBe(1);
             expect(saved[0].id).toBe('generated-id');
@@ -90,7 +94,7 @@ describe('synonymService', () => {
 
         it('should keep existing id and add the synonym', async () => {
             const syn: Synonym = { id: 'existing-id', from: 'C4', target: 'Channel 4', exemptions: '' };
-            await synonymService.addSynonym(syn);
+            await synonymService.setItem(syn.id, syn);
             const saved = mockStorageData['synonyms'];
             expect(saved[0].id).toBe('existing-id');
         });
@@ -101,7 +105,7 @@ describe('synonymService', () => {
             mockStorageData['synonyms'] = [testSynonym];
             const updated = { ...testSynonym, target: 'Updated Target' };
 
-            await synonymService.updateSynonym(updated);
+            await synonymService.updateItem(updated.id, updated);
             const saved = mockStorageData['synonyms'];
             expect(saved).toHaveLength(1);
             expect(saved[0].target).toBe('Updated Target');
@@ -112,14 +116,14 @@ describe('synonymService', () => {
     describe('removeSynonym', () => {
         it('should remove a synonym and call removeFromSearchCache', async () => {
             mockStorageData['synonyms'] = [testSynonym];
-            await synonymService.removeSynonym('123');
+            await synonymService.removeItem('123');
             expect(mockStorageData['synonyms']).toHaveLength(0);
             expect(searchService.removeFromSearchCache).toHaveBeenCalledWith(testSynonym.target);
         });
 
         it('should do nothing if id not found', async () => {
             mockStorageData['synonyms'] = [testSynonym];
-            await synonymService.removeSynonym('not-found');
+            await synonymService.removeItem('not-found');
             expect(mockStorageData['synonyms']).toHaveLength(1);
             expect(searchService.removeFromSearchCache).not.toHaveBeenCalled();
         });

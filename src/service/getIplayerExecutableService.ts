@@ -1,16 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import { listFormat, progressRegex } from 'src/constants/iPlayarrConstants';
+import { DownloadDetails } from 'src/types/data/DownloadDetails';
+import { IPlayerSearchResult } from 'src/types/data/IPlayerSearchResult';
+import { LogLine, LogLineLevel } from 'src/types/data/LogLine';
+import { IplayarrParameter } from 'src/types/enums/IplayarrParameters';
+import { GetIPlayerExecutable } from 'src/types/getIplayer/GetIPlayerExecutable';
+import { QueueEntry } from 'src/types/models/QueueEntry';
+import { Synonym } from 'src/types/models/Synonym';
 import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
+import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from 'src/utils/Utils';
 
-import { listFormat, progressRegex } from '../constants/iPlayarrConstants';
-import { DownloadDetails } from '../types/data/DownloadDetails';
-import { IPlayerSearchResult } from '../types/data/IPlayerSearchResult';
-import { LogLine, LogLineLevel } from '../types/data/LogLine';
-import { IplayarrParameter } from '../types/enums/IplayarrParameters';
-import { GetIPlayerExecutable } from '../types/getIplayer/GetIPlayerExecutable';
-import { QueueEntry } from '../types/models/QueueEntry';
-import { Synonym } from '../types/models/Synonym';
-import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from '../utils/Utils';
 import configService from './configService';
 import historyService from './entity/historyService';
 import loggingService from './loggingService';

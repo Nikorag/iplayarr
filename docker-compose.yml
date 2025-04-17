@@ -1,6 +1,7 @@
 # For running container dependencies locally
 services:
   redis:
+    container_name: iplayarr_redis
     image: redis
     ports:
       - 6379:6379

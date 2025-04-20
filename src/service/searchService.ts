@@ -137,6 +137,10 @@ export class SearchService {
     removeFromSearchCache(term: string) {
         this.searchCache.del(term);
     }
+
+    clearSearchCache() {
+        this.searchCache.clear();
+    }
 }
 
 export default new SearchService();

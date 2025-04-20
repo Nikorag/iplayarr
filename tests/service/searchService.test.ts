@@ -37,6 +37,12 @@ jest.mock('src/service/redisCacheService', () => {
         del: jest.fn((key: string) => {
             delete mockCacheData[key];
             return Promise.resolve();
+        }),
+        clear: jest.fn(() => {
+            Object.keys(mockCacheData).forEach((key: string) => {
+                delete mockCacheData[key];
+            });
+            return Promise.resolve();
         })
     };
     return {
@@ -127,5 +133,25 @@ describe('searchService', () => {
 
         expect(synonymService.getSynonym).toHaveBeenCalledWith(term);
         expect(iplayerService.performSearch).toHaveBeenCalledWith('targetTerm', synonym);
+    });
+
+    it('can remove a single entry from the cache', () => {
+        mockCacheData['show1'] = '{}';
+        mockCacheData['show2'] = '{}';
+
+        searchService.removeFromSearchCache('show1');
+
+        expect(mockCacheData['show1']).toBeUndefined();
+        expect(mockCacheData['show2']).toBe('{}')
+    });
+
+    it('can clear the entire cache', () => {
+        mockCacheData['show1'] = '{}';
+        mockCacheData['show2'] = '{}';
+
+        searchService.clearSearchCache();
+
+        expect(mockCacheData['show1']).toBeUndefined();
+        expect(mockCacheData['show2']).toBeUndefined();
     });
 });

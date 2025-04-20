@@ -28,4 +28,9 @@ export default class RedisCacheService<T> {
     async del(key : string) : Promise<void> {
         await redis.del(`${this.prefix}_${key}`);
     }
+
+    async clear() : Promise<void> {
+        const keys = await redis.keys(`${this.prefix}_*`);
+        await redis.del(keys);
+    }
 }

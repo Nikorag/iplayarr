@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { QueuedStorage } from '../types/QueuedStorage'
+import searchService from './searchService';
 
 
 dotenv.config();
@@ -55,8 +56,12 @@ const configService = {
 
     setParameter : async (parameter: IplayarrParameter, value : string) : Promise<void> => {
         const configMap = await getConfigMap();
+        const oldValue = configMap[parameter];
         configMap[parameter] = value;
         await storage.setItem('config', configMap);
+        if (parameter == IplayarrParameter.NATIVE_SEARCH && oldValue != value) {
+            searchService.clearSearchCache();
+        }
     },
 
     removeParameter : async (parameter: IplayarrParameter) : Promise<void> => {

@@ -4,10 +4,12 @@ import { redis } from 'src/service/redisService';
 jest.mock('src/service/redisService', () => ({
     redis: {
         get: jest.fn(),
+        keys: jest.fn(),
         set: jest.fn(),
         del: jest.fn(),
     },
 }));
+const mockedRedis = jest.mocked(redis);
 
 describe('RedisCacheService', () => {
     const prefix = 'test';
@@ -20,7 +22,7 @@ describe('RedisCacheService', () => {
 
     describe('get', () => {
         it('returns parsed value if found', async () => {
-            (redis.get as jest.Mock).mockResolvedValue(JSON.stringify({ hello: 'world' }));
+            mockedRedis.get.mockResolvedValue(JSON.stringify({ hello: 'world' }));
 
             const result = await service.get('myKey');
 
@@ -29,7 +31,7 @@ describe('RedisCacheService', () => {
         });
 
         it('returns undefined if value not found', async () => {
-            (redis.get as jest.Mock).mockResolvedValue(null);
+            mockedRedis.get.mockResolvedValue(null);
 
             const result = await service.get('missingKey');
 
@@ -38,7 +40,7 @@ describe('RedisCacheService', () => {
         });
 
         it('returns undefined if JSON parse throws', async () => {
-            (redis.get as jest.Mock).mockResolvedValue('invalid json');
+            mockedRedis.get.mockResolvedValue('invalid json');
 
             const result = await service.get('badKey');
 
@@ -47,7 +49,7 @@ describe('RedisCacheService', () => {
         });
 
         it('returns undefined if redis.get throws', async () => {
-            (redis.get as jest.Mock).mockRejectedValue(new Error('fail'));
+            mockedRedis.get.mockRejectedValue(new Error('fail'));
 
             const result = await service.get('errorKey');
 
@@ -76,4 +78,15 @@ describe('RedisCacheService', () => {
             expect(redis.del).toHaveBeenCalledWith('test_myKey');
         });
     });
+
+    describe('clear', () => {
+        it('deletes all keys with prefix', async () => {
+            mockedRedis.keys.mockResolvedValue(['test_myKey', 'test_myKey2']);
+
+            await service.clear();
+
+            expect(redis.keys).toHaveBeenCalledWith('test_*');
+            expect(redis.del).toHaveBeenCalledWith(['test_myKey', 'test_myKey2']);
+        })
+    })
 });

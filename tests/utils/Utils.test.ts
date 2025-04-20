@@ -273,6 +273,20 @@ describe('Utils', () => {
             expect(episode).toBeUndefined();
             expect(series).toBeUndefined();
         })
+        
+        it('extracts titles with special characters', () => {
+            const [title, episode, series] = Utils.parseEpisodeDetailStrings('The Apprentice: You\'re Fired!: Series 19', '12', '1');
+            expect(title.trim()).toBe('The Apprentice: You\'re Fired!');
+            expect(episode).toBe(12);
+            expect(series).toBe(19);
+        });
+        
+        it('fall back still extracts titles with special characters', () => {
+            const [title, episode, series] = Utils.parseEpisodeDetailStrings('The Apprentice: You\'re Fired!', '12', '19');
+            expect(title.trim()).toBe('The Apprentice: You\'re Fired!');
+            expect(episode).toBe(12);
+            expect(series).toBe(19);
+        });
     });
     
     describe('getPotentialRoman', () => {

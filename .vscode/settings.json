@@ -5,4 +5,8 @@
             "mode": "auto"
         }
     ],
+    "jest.runMode": {
+        "type": "on-save",
+        "coverage": true
+    },
 }

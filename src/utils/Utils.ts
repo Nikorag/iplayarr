@@ -82,7 +82,11 @@ export function parseEpisodeDetailStrings(title: string, episode?: string, serie
     const episodeNum = parseInt(episode ?? '')
     const seriesMatch = getIplayerSeriesRegex.exec(title);
     const seriesNum = parseInt(seriesMatch ? seriesMatch[1] : series ?? '')
-    return [title.replace(getIplayerSeriesRegex, '').split(': ')[0], isNaN(episodeNum) ? undefined : episodeNum, isNaN(seriesNum) ? undefined : seriesNum];
+    return [
+        title.replace(getIplayerSeriesRegex, ''),
+        isNaN(episodeNum) ? undefined : episodeNum,
+        isNaN(seriesNum) ? undefined : seriesNum
+    ];
 }
 
 export function getPotentialRoman(str: string): number {

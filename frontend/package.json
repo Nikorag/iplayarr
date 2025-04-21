@@ -30,9 +30,11 @@
     "@vue/cli-plugin-pwa": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "eslint": "^7.32.0",
+    "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-vue": "^8.0.3",
     "less": "^4.2.2",
-    "less-loader": "^12.2.0"
+    "less-loader": "^12.2.0",
+    "prettier": "^3.5.3"
   },
   "eslintConfig": {
     "root": true,
@@ -41,7 +43,8 @@
     },
     "extends": [
       "plugin:vue/vue3-essential",
-      "eslint:recommended"
+      "eslint:recommended",
+      "plugin:prettier/recommended"
     ],
     "parserOptions": {
       "parser": "@babel/eslint-parser"

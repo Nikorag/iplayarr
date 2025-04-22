@@ -24,8 +24,9 @@ class YTDLPService {
         const downloadProcess = spawn(ytdlpExec, [
 	    '--progress-template',
 	    '"download":"%(progress._percent_str)s of ~%(progress.total_bytes_str)s @ %(progress._speed_str)s ETA: %(progress.eta)s [audio+video]"',
-	    `"${iplayerURL}"`,
-	    `${pidDir}/${pid}.mp4`
+	    '-o',
+	    `"${pidDir}/%(title)s.%(ext)s"`,
+	    `"${iplayerURL}"`
         ]);
 
         downloadProcess.stdout.on('data', (data) => {

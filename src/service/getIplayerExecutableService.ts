@@ -99,8 +99,8 @@ export class GetIplayerExecutableService {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const [_, progress, size, speed, eta] = match;
                 const percentFactor = (100 - parseFloat(progress)) / 100;
-                const sizeLeft = parseFloat(size) * percentFactor;
 
+		const sizeLeft = size ? parseFloat(size) * percentFactor : undefined;
                 const deltaDetails: Partial<DownloadDetails> = {
                     uuid: pid,
                     progress: parseFloat(progress),

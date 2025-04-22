@@ -10,7 +10,6 @@ import fs from 'fs'
 import path from 'path'
 
 import { QueueEntry } from '../types/QueueEntry';
-
 import { progressRegex } from '../constants/iPlayarrConstants'
 import { DownloadDetails } from '../types/DownloadDetails'
 import { LogLine, LogLineLevel } from '../types/LogLine';
@@ -18,35 +17,58 @@ import { LogLine, LogLineLevel } from '../types/LogLine';
 class YTDLPService {
     async download(pid: string, pidDir: string): Promise<ChildProcess> {
         const ytdlpExec = await configService.getParameter(IplayarrParameter.YTDLP_EXEC) as string;
-	    
-        const iplayerURL : string = `https://www.bbc.co.uk/iplayer/episode/${pid}`
 
-        const downloadProcess = spawn(ytdlpExec, [
-	    '--progress-template',
-	    '"download":"%(progress._percent_str)s of ~%(progress.total_bytes_str)s @ %(progress._speed_str)s ETA: %(progress.eta)s [audio+video]"',
-	    '-o',
-	    `"${pidDir}/%(title)s.%(ext)s"`,
-	    `"${iplayerURL}"`
-        ]);
+        const iplayerURL: string = `https://www.bbc.co.uk/iplayer/episode/${pid}`;
+        const outputTemplate = `${pidDir}/%(title)s.%(ext)s`;
+
+        const args = [
+            '--progress-template',
+            '%(progress._percent_str)s of ~%(progress._total_bytes_str)s @ %(progress._speed_str)s ETA: %(progress.eta_str)s [audio+video]',
+            '-o',
+            outputTemplate,
+            iplayerURL
+        ];
+
+        // Log the command being run
+        const fullCommand = `${ytdlpExec} ${args.join(' ')}`;
+        loggingService.debug(pid, `Running command: ${fullCommand}`);
+
+        const downloadProcess = spawn(ytdlpExec, args);
 
         downloadProcess.stdout.on('data', (data) => {
             if (queueService.getFromQueue(pid)) {
                 this.logProgress(pid, data);
-                const downloadDetails : DownloadDetails | undefined = this.parseProgress(pid, data);
-                if (downloadDetails){
+                const downloadDetails: DownloadDetails | undefined = this.parseProgress(pid, data);
+                if (downloadDetails) {
                     queueService.updateQueue(pid, downloadDetails);
                 }
             }
         });
 
-	downloadProcess.on('close', (code) => this.processCompletedDownload(pid, code));
+        downloadProcess.stderr.on('data', (data) => {
+            loggingService.error(`${pid} STDERR: ${data.toString()}`);
+        });
+
+        downloadProcess.on('close', (code) => {
+            loggingService.debug(pid, `yt-dlp process exited with code ${code}`);
+            this.processCompletedDownload(pid, code);
+        });
+
+        downloadProcess.on('error', (err) => {
+            loggingService.error(`${pid} Process error: ${err.message}`);
+        });
 
         return downloadProcess;
     }
 
-    logProgress(pid: string, data : any) {
+    logProgress(pid: string, data: any) {
         console.log(data.toString());
-        const logLine: LogLine = { level: LogLineLevel.INFO, id: pid, message: data.toString(), timestamp: new Date() }
+        const logLine: LogLine = {
+            level: LogLineLevel.INFO,
+            id: pid,
+            message: data.toString(),
+            timestamp: new Date()
+        };
         socketService.emit('log', logLine);
     }
 
@@ -57,11 +79,9 @@ class YTDLPService {
             const progressLine: string = progressLines.pop() as string;
             const match = progressRegex.exec(progressLine);
             if (match) {
-
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const [_, progress, size, speed, eta] = match;
                 const percentFactor = (100 - parseFloat(progress)) / 100;
-                const sizeLeft = parseFloat(size) * percentFactor;
+                const sizeLeft = size ? parseFloat(size) * percentFactor : undefined;
 
                 const deltaDetails: Partial<DownloadDetails> = {
                     uuid: pid,
@@ -70,7 +90,7 @@ class YTDLPService {
                     speed: parseFloat(speed),
                     eta,
                     sizeLeft
-                }
+                };
 
                 return deltaDetails;
             }
@@ -79,7 +99,11 @@ class YTDLPService {
     }
 
     async processCompletedDownload(pid: string, code: number | null): Promise<void> {
-        const [downloadDir, completeDir] = await configService.getParameters(IplayarrParameter.DOWNLOAD_DIR, IplayarrParameter.COMPLETE_DIR) as string[];
+        const [downloadDir, completeDir] = await configService.getParameters(
+            IplayarrParameter.DOWNLOAD_DIR,
+            IplayarrParameter.COMPLETE_DIR
+        ) as string[];
+
         if (code === 0) {
             const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
             if (queueItem) {
@@ -98,7 +122,6 @@ class YTDLPService {
                         fs.copyFileSync(oldPath, newPath);
                     }
 
-                    // Delete the uuid directory and file after moving it
                     loggingService.debug(pid, `Deleting old directory ${uuidPath}`);
                     fs.rmSync(uuidPath, { recursive: true, force: true });
 
@@ -107,7 +130,10 @@ class YTDLPService {
                     loggingService.error(err);
                 }
             }
+        } else {
+            loggingService.error(`${pid} Download failed with exit code ${code}`);
         }
+
         queueService.removeFromQueue(pid);
     }
 }

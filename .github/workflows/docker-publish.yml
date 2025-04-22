@@ -49,6 +49,9 @@ jobs:
         id: extract_tag
         run: echo "git_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+      - name: Write version to JSON
+        run: echo "{\"version\": \"${{ env.git_tag }}\"}" > src/config/version.json
+
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
@@ -61,8 +64,6 @@ jobs:
             ${{ steps.meta.outputs.tags }}
             nikorag/iplayarr:latest
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            iplayarr_version=${{ env.git_tag }}
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2

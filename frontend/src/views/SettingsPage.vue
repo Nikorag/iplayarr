@@ -16,6 +16,7 @@
       <TextInput v-model="config.MOVIE_FILENAME_TEMPLATE" :advanced="true" name="Movie Filename Template" tooltip="Template for Movie Filenames, {title, synonym, quality}." :error="validationErrors.config?.MOVIE_FILENAME_TEMPLATE" />
       <TextInput v-model="config.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS" :advanced="true" name="Additional Download Parameters" tooltip="Extra parameters to pass to get_iplayer for download" :error="validationErrors.config?.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS" />
       <SelectInput v-model="config.ARCHIVE_ENABLED" :advanced="true" name="Archive Downloads?" tooltip="Archive Downloads for record-keeping" :error="validationErrors.config?.ARCHIVE_ENABLED" :options="trueOrFalse" />
+      <SelectInput v-model="config.DOWNLOAD_CLIENT" :advanced="true" name="Download Client?" tooltip="Which Download Client to use" :error="validationErrors.config?.DOWNLOAD_CLIENT" :options="downloadClients" />
 
 
       <InfoBar>
@@ -66,6 +67,11 @@ const trueOrFalse = ref([
     { key : 'true', value : 'Enabled'},
     { key : 'false', value : 'Disabled'},
 ])
+
+const downloadClients = ref([
+    { key : 'GET_IPLAYER', value : 'get_iplayer' },
+    { key : 'YTDLP', value : 'yt_dlp' }
+]);
 
 const saveEnabled = computed(() => {
     return configChanges.value;

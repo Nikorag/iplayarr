@@ -42,7 +42,8 @@ const configService = {
         'VIDEO_QUALITY' : 'hd',
         'RSS_FEED_HOURS' : '48',
         'NATIVE_SEARCH' : 'true',
-        'ARCHIVE_ENABLED' : 'false'
+        'ARCHIVE_ENABLED' : 'false',
+	'DOWNLOAD_CLIENT' : 'GET_IPLAYER'
     } as ConfigMap,
 
     getParameter : async (parameter: IplayarrParameter): Promise<string | undefined> => {

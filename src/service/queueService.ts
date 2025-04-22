@@ -1,4 +1,5 @@
 import { ChildProcess, spawn } from 'child_process';
+import downloadFacade from 'src/facade/downloadFacade';
 
 import { DownloadDetails } from '../types/DownloadDetails';
 import { IplayarrParameter } from '../types/IplayarrParameters';
@@ -7,7 +8,6 @@ import { QueueEntry } from '../types/QueueEntry'
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import configService from './configService';
 import historyService from './historyService';
-import iplayerService from './iplayerService';
 import socketService from './socketService';
 
 let queue : QueueEntry[] = [];
@@ -34,7 +34,7 @@ const queueService = {
         while(activeQueue.length < activeLimit && idleQueue.length > 0){
             const next = idleQueue.shift() as QueueEntry;
 
-            const downloadProcess : ChildProcess = await iplayerService.download(next.pid);
+            const downloadProcess : ChildProcess = await downloadFacade.download(next.pid);
             next.status = QueueEntryStatus.DOWNLOADING;
             next.process = downloadProcess;
             next.details = {...next.details, start : new Date()};

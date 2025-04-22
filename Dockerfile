@@ -37,6 +37,14 @@ ENV GET_IPLAYER_EXEC=/iplayer/get_iplayer
 ENV STORAGE_LOCATION=/node-persist
 ENV CACHE_LOCATION=/data
 
+WORKDIR /ytdlp
+
+RUN apk add --no-cache python3 py3-pip
+RUN wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+RUN chmod +x ./yt-dlp
+
+ENV YTDLP_EXEC=/ytdlp/yt-dlp
+
 # Copy Redis binary from the Redis Alpine image
 WORKDIR /redis
 COPY --from=redis /usr/local/bin/redis-server /redis/redis-server

@@ -23,6 +23,7 @@ jobs:
       contents: read
       attestations: write
       id-token: write
+
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -49,6 +50,10 @@ jobs:
         id: extract_tag
         run: echo "git_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+      - name: Write version to JSON
+        run: |
+          echo "{\"version\": \"${{ env.git_tag }}\"}" > src/config/version.json
+
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
@@ -70,4 +75,3 @@ jobs:
           subject-name: index.docker.io/nikorag/iplayarr
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-

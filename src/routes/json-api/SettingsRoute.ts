@@ -1,4 +1,5 @@
 import { Request, Response, Router } from 'express';
+import { version } from 'src/config/version.json'
 
 import configService, { ConfigMap } from '../../service/configService';
 import { IplayarrParameter } from '../../types/IplayarrParameters';
@@ -14,7 +15,7 @@ router.get('/hiddenSettings', (_, res : Response) => {
     res.json(
         {
 	 'HIDE_DONATE' : process.env.HIDE_DONATE || false,
-            'VERSION' : process.env.VERSION ?? '0'
+            'VERSION' : version
         }
     )
 });

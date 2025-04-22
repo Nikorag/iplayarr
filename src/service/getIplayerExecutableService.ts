@@ -16,6 +16,7 @@ import historyService from './historyService';
 import loggingService from './loggingService';
 import queueService from './queueService';
 import socketService from './socketService';
+import synonymService from './synonymService';
 
 export class GetIplayerExecutableService {
     async getIPlayerExec(): Promise<GetIPlayerExecutable> {
@@ -194,7 +195,8 @@ export class GetIplayerExecutableService {
 
     async processCompletedSearch(results : IPlayerSearchResult[], synonym? : Synonym) : Promise<IPlayerSearchResult[]> {
         for (const result of results) {
-            result.nzbName = await createNZBName(result, synonym);
+            const resultSynonym = synonym ?? await synonymService.getSynonym(result.title);
+            result.nzbName = await createNZBName(result, resultSynonym);
         }
         return results;
     }

@@ -323,7 +323,7 @@ describe('Utils', () => {
             it('sequel', async () => assertSeasonAndEpisode(b008m7xk, [ VideoType.MOVIE, undefined, undefined, undefined]));
         });
 
-        const assertSeasonAndEpisode = (metadata: any, expected: [ VideoType, number | undefined, string | undefined, number | undefined ]) => {
+        const assertSeasonAndEpisode = (metadata: unknown, expected: [ VideoType, number | undefined, string | undefined, number | undefined ]) => {
             expect(Utils.calculateSeasonAndEpisode((metadata as IPlayerMetadataResponse).programme)).toEqual(expected);
         }
     });

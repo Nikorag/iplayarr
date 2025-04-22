@@ -84,6 +84,7 @@ export class GetIplayerExecutableService {
     }
 
     logProgress(pid: string, data : any) {
+        console.log(data.toString());
         const logLine: LogLine = { level: LogLineLevel.INFO, id: pid, message: data.toString(), timestamp: new Date() }
         socketService.emit('log', logLine);
     }

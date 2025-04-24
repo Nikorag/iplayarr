@@ -2,13 +2,27 @@ import express from 'express';
 import SettingsRoute from 'src/routes/json-api/SettingsRoute';
 import configService from 'src/service/configService';
 import { qualityProfiles } from 'src/types/QualityProfiles';
+import { ApiError, ApiResponse } from 'src/types/responses/ApiResponse';
+import { ConfigFormValidator } from 'src/validators/ConfigFormValidator';
 import request from 'supertest';
 
 jest.mock('src/service/configService');
 const mockedConfigService = jest.mocked(configService);
 
+const mockedConfigFormValidator: jest.Mocked<ConfigFormValidator> = {
+    validate: jest.fn(),
+    compilesSuccessfully: jest.fn(),
+    directoryExists: jest.fn(),
+    isNumber: jest.fn(),
+    matchesRegex: jest.fn(),
+};
+jest.mock('src/validators/ConfigFormValidator', () => ({
+    ConfigFormValidator: jest.fn(() => mockedConfigFormValidator),
+}));
+
 describe('SettingsRoute', () => {
     const app = express();
+    app.use(express.json());
     app.use('/', SettingsRoute);
 
     describe('GET /hiddenSettings', () => {
@@ -39,6 +53,37 @@ describe('SettingsRoute', () => {
             const response = await request(app).get('/');
             expect(response.statusCode).toBe(200);
             expect(response.body).toEqual(configService.defaultConfigMap);
+        });
+    });
+
+    describe('PUT /', () => {
+        it('saves if body valid', async () => {
+            mockedConfigFormValidator.validate.mockResolvedValue({});
+            mockedConfigService.setParameter.mockResolvedValue();
+            const body = { FOO: 'BAR', BAZ: 'QUX' };
+            const response = await request(app).put('/').send(body);
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(body);
+            expect(mockedConfigFormValidator.validate).toHaveBeenCalledTimes(1);
+            expect(mockedConfigFormValidator.validate).toHaveBeenCalledWith(body);
+            expect(mockedConfigService.setParameter).toHaveBeenCalledTimes(2);
+            expect(mockedConfigService.setParameter).toHaveBeenCalledWith('FOO', 'BAR');
+            expect(mockedConfigService.setParameter).toHaveBeenCalledWith('BAZ', 'QUX');
+        });
+
+        it('errors if body is invalid', async () => {
+            const validation_result = { FOO: 'Must be BAR', BAZ: 'Must be QUX' };
+            mockedConfigFormValidator.validate.mockResolvedValue(validation_result);
+            const body = { FOO: 'FOOBAR', BAZ: 'QUUX' };
+            const response = await request(app).put('/').send(body);
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toEqual({
+                error: ApiError.INVALID_INPUT,
+                invalid_fields: validation_result,
+            } as ApiResponse);
+            expect(mockedConfigFormValidator.validate).toHaveBeenCalledTimes(1);
+            expect(mockedConfigFormValidator.validate).toHaveBeenCalledWith(body);
+            expect(mockedConfigService.setParameter).not.toHaveBeenCalled();
         });
     });
 

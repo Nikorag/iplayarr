@@ -12,12 +12,10 @@ import { Validator } from '../../validators/Validator';
 const router = Router();
 
 router.get('/hiddenSettings', (_, res : Response) => {
-    res.json(
-        {
-	 'HIDE_DONATE' : process.env.HIDE_DONATE || false,
-            'VERSION' : version
-        }
-    )
+    res.json({
+        HIDE_DONATE: Boolean(process.env.HIDE_DONATE) || false,
+        VERSION: version,
+    });
 });
 
 router.get('/', async (_, res : Response) => {

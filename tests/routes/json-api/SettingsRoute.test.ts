@@ -85,6 +85,40 @@ describe('SettingsRoute', () => {
             expect(mockedConfigFormValidator.validate).toHaveBeenCalledWith(body);
             expect(mockedConfigService.setParameter).not.toHaveBeenCalled();
         });
+
+        it('MD5 hashes AUTH_PASSWORD if included and different from existing value', async () => {
+            mockedConfigFormValidator.validate.mockResolvedValue({});
+            mockedConfigService.setParameter.mockResolvedValue();
+            mockedConfigService.getParameter.mockResolvedValueOnce('FUBAR');
+            const body = { AUTH_PASSWORD: 'FOOBAR' };
+            const response = await request(app).put('/').send(body);
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(body);
+            expect(mockedConfigFormValidator.validate).toHaveBeenCalledTimes(1);
+            expect(mockedConfigFormValidator.validate).toHaveBeenCalledWith(body);
+            expect(mockedConfigService.getParameter).toHaveBeenCalledTimes(1);
+            expect(mockedConfigService.getParameter).toHaveBeenCalledWith('AUTH_PASSWORD');
+            expect(mockedConfigService.setParameter).toHaveBeenCalledTimes(1);
+            expect(mockedConfigService.setParameter).toHaveBeenCalledWith(
+                'AUTH_PASSWORD',
+                '95c72a49c488d59f60c022fcfecf4382'
+            );
+        });
+
+        it('does not update AUTH_PASSWORD if included and same as existing value', async () => {
+            mockedConfigFormValidator.validate.mockResolvedValue({});
+            mockedConfigService.setParameter.mockResolvedValue();
+            mockedConfigService.getParameter.mockResolvedValueOnce('95c72a49c488d59f60c022fcfecf4382');
+            const body = { AUTH_PASSWORD: 'FOOBAR' };
+            const response = await request(app).put('/').send(body);
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(body);
+            expect(mockedConfigFormValidator.validate).toHaveBeenCalledTimes(1);
+            expect(mockedConfigFormValidator.validate).toHaveBeenCalledWith(body);
+            expect(mockedConfigService.getParameter).toHaveBeenCalledTimes(1);
+            expect(mockedConfigService.getParameter).toHaveBeenCalledWith('AUTH_PASSWORD');
+            expect(mockedConfigService.setParameter).not.toHaveBeenCalled();
+        });
     });
 
     describe('GET /qualityProfiles', () => {

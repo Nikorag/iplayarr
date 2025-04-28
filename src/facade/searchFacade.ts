@@ -18,7 +18,7 @@ class SearchFacade {
     searchCache: RedisCacheService<IPlayerSearchResult[]> = new RedisCacheService('search_cache', 300);
 
     async search(inputTerm: string, season?: number, episode?: number): Promise<IPlayerSearchResult[]> {
-        const service: AbstractSearchService = await this.#getService();
+        const service: AbstractSearchService = inputTerm == '*' ? getIplayerSearchService : await this.#getService();
         const { term, synonym } = await this.#getTerm(inputTerm, season);
 
         let results: IPlayerSearchResult[] | undefined = await this.searchCache.get(term);

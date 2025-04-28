@@ -7,7 +7,7 @@ import { IPlayerChildrenResponse } from '../../types/responses/IPlayerMetadataRe
 import { Synonym } from '../../types/Synonym';
 import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
 import episodeCacheService from '../episodeCacheService';
-import iplayerService from '../iplayerService';
+import iplayerDetailsService from '../iplayerDetailsService';
 import AbstractSearchService from './AbstractSearchService';
 
 class NativeSearchService implements AbstractSearchService {
@@ -30,7 +30,7 @@ class NativeSearchService implements AbstractSearchService {
                 if (brandPid) {
                     brandPids.add(brandPid);
                 } else {
-                    const pidInfos = await iplayerService.details([id]);
+                    const pidInfos = await iplayerDetailsService.details([id]);
                     infos = [...infos, ...pidInfos];
                 }
             }
@@ -57,7 +57,7 @@ class NativeSearchService implements AbstractSearchService {
                 const chunks = splitArrayIntoChunks(episodes, 5);
                 const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
                     const acc = await accPromise; // Ensure previous results are awaited
-                    const results: IPlayerDetails[] = await iplayerService.details(chunk);
+                    const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
                     return [...acc, ...results];
                 }, Promise.resolve([])); // Initialize accumulator as a resolved Promise
 

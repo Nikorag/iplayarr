@@ -8,7 +8,7 @@ import { QueuedStorage } from '../types/QueuedStorage';
 import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
 import { IPlayerChildrenResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
-import iplayerService from './iplayerService';
+import iplayerDetailsService from './iplayerDetailsService';
 
 const storage: QueuedStorage = new QueuedStorage();
 let lunrIndex: lunr.Index;
@@ -140,7 +140,7 @@ const episodeCacheService = {
             const chunks = splitArrayIntoChunks(episodes, 20);
             const infos: IPlayerDetails[] = await chunks.reduce(async (accPromise, chunk) => {
                 const acc = await accPromise; // Ensure previous results are awaited
-                const results: IPlayerDetails[] = await iplayerService.details(chunk);
+                const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
                 return [...acc, ...results];
             }, Promise.resolve([])); // Initialize accumulator as a resolved Promise
 

@@ -4,7 +4,7 @@ import downloadFacade from '../facade/downloadFacade';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import configService from './configService';
 import episodeCacheService from './episodeCacheService';
-import iplayerService from './iplayerService';
+import getIplayerSearchService from './search/GetIplayerSearchService';
 
 
 class ScheduleService {
@@ -13,7 +13,7 @@ class ScheduleService {
             cron.schedule(cronSchedule as string, async () => {
                 const nativeSearchEnabled = await configService.getParameter(IplayarrParameter.NATIVE_SEARCH);
                 if (nativeSearchEnabled == 'false') {
-                    iplayerService.refreshCache();
+                    getIplayerSearchService.refreshCache();
                     episodeCacheService.recacheAllSeries();
                 }
                 downloadFacade.cleanupFailedDownloads();

@@ -2,8 +2,9 @@ import { Request, Response, Router } from 'express';
 
 import nzbFacade from '../facade/nzbFacade';
 import searchFacade from '../facade/searchFacade';
-import iplayerService from '../service/iplayerService';
+import iplayerDetailsService from '../service/iplayerDetailsService';
 import queueService from '../service/queueService';
+import getIplayerSearchService from '../service/search/GetIplayerSearchService';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import AppsRoute from './json-api/AppsRoute';
@@ -44,7 +45,7 @@ router.get('/search', async (req: Request, res: Response) => {
 
 router.get('/details', async (req: Request, res: Response) => {
     const { pid } = req.query as any;
-    const details = await iplayerService.details([pid]);
+    const details = await iplayerDetailsService.details([pid]);
     res.json(details[0]);
 });
 
@@ -55,7 +56,7 @@ router.get('/download', async (req: Request, res: Response) => {
 });
 
 router.get('/cache-refresh', async (_, res: Response) => {
-    iplayerService.refreshCache();
+    getIplayerSearchService.refreshCache();
     res.json({ status: true });
 });
 

@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 
+import downloadFacade from '../../../src/facade/downloadFacade';
 import { IPlayerSearchResult, VideoType } from '../../../src/service/../types/IPlayerSearchResult';
 import episodeCacheService from '../../../src/service/episodeCacheService';
 import getIplayerExecutableService from '../../../src/service/getIplayerExecutableService';
@@ -141,5 +142,24 @@ describe('GetIplayerSearchService', () => {
             episodeTwo,
             episodeOne,
         ]);
+    });
+
+    describe('refreshCache', () => {
+        it('spawns a cache refresh process and logs output', async () => {
+            const on = jest.fn();
+            const child = { stdout: { on }, stderr: { on } };
+            (getIplayerExecutableService.getIPlayerExec as jest.Mock).mockResolvedValue({
+                exec: 'get_iplayer',
+                args: ['--type=tv'],
+            });
+            (spawn as jest.Mock).mockReturnValue(child as any);
+
+            const cleanupSpy = jest.spyOn(downloadFacade, 'cleanupFailedDownloads').mockResolvedValue();
+
+            await getIplayerSearchService.refreshCache();
+
+            expect(spawn).toHaveBeenCalledWith('get_iplayer', ['--type=tv', '--cache-rebuild'], { shell: true });
+            expect(cleanupSpy).toHaveBeenCalled();
+        });
     });
 });

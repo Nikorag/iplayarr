@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import episodeCacheService from '../../../src/service//episodeCacheService';
-import iplayerService from '../../../src/service/iplayerService';
+import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
 import NativeSearchService from '../../../src/service/search/NativeSearchService';
 import { IPlayerSearchResult, VideoType } from '../../../src/types/IPlayerSearchResult';
 import { IPlayerChildrenResponse } from '../../../src/types/responses/IPlayerMetadataResponse';
@@ -9,7 +9,7 @@ import { createNZBName, getQualityProfile } from '../../../src/utils/Utils';
 
 jest.mock('axios');
 jest.mock('../../../src/service//episodeCacheService');
-jest.mock('../../../src/service//iplayerService');
+jest.mock('../../../src/service//iplayerDetailsService');
 jest.mock('../../../src/utils/Utils', () => ({
     ...jest.requireActual('../../../src/utils/Utils'),
     createNZBName: jest.fn(),
@@ -63,8 +63,8 @@ describe('NativeSearchService', () => {
         // Mocking episodeCacheService.findBrandForPid
         (episodeCacheService.findBrandForPid as jest.Mock).mockResolvedValue('testBrandPid');
 
-        // Mocking iplayerService.details
-        (iplayerService.details as jest.Mock).mockResolvedValue([{ title: 'Test Title', pid: 'testPid', type: 'episode', firstBroadcast: '2025-01-01', runtime: 60 }]);
+        // Mocking iplayerDetailsService.details
+        (iplayerDetailsService.details as jest.Mock).mockResolvedValue([{ title: 'Test Title', pid: 'testPid', type: 'episode', firstBroadcast: '2025-01-01', runtime: 60 }]);
 
         // Mocking createNZBName
         (createNZBName as jest.Mock).mockResolvedValue('testNZBName');

@@ -1,9 +1,5 @@
-import { spawn } from 'child_process';
-
-import downloadFacade from '../../src/facade/downloadFacade';
 import episodeCacheService from '../../src/service/episodeCacheService';
-import getIplayerExecutableService from '../../src/service/getIplayerExecutableService';
-import iplayerService from '../../src/service/iplayerService';
+import iplayerDetailsService from '../../src/service/iplayerDetailsService';
 
 jest.mock('fs');
 jest.mock('child_process', () => ({
@@ -16,30 +12,9 @@ jest.mock('../../src/service/getIplayerExecutableService');
 jest.mock('../../src/service/episodeCacheService');
 jest.mock('../../src/facade/downloadFacade');
 
-const mockedSpawn = spawn as jest.Mock;
-
-describe('iplayerService', () => {
+describe('iplayerDetailsService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    });
-
-    describe('refreshCache', () => {
-        it('spawns a cache refresh process and logs output', async () => {
-            const on = jest.fn();
-            const child = { stdout: { on }, stderr: { on } };
-            (getIplayerExecutableService.getIPlayerExec as jest.Mock).mockResolvedValue({
-                exec: 'get_iplayer',
-                args: ['--type=tv'],
-            });
-            mockedSpawn.mockReturnValue(child as any);
-
-            const cleanupSpy = jest.spyOn(downloadFacade, 'cleanupFailedDownloads').mockResolvedValue();
-
-            await iplayerService.refreshCache();
-
-            expect(mockedSpawn).toHaveBeenCalledWith('get_iplayer', ['--type=tv', '--cache-rebuild'], { shell: true });
-            expect(cleanupSpy).toHaveBeenCalled();
-        });
     });
 
     describe('episodeDetails', () => {
@@ -66,7 +41,7 @@ describe('iplayerService', () => {
                 },
             });
 
-            const result = await iplayerService.episodeDetails(pid);
+            const result = await iplayerDetailsService.episodeDetails(pid);
             expect(result.title).toBe('Title');
             expect(result.series).toBeGreaterThan(0);
             expect(result.episode).toBe(2);

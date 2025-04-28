@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { version } from 'src/config/version.json'
+import { version } from '../../config/version.json'
 
 import configService, { ConfigMap } from '../../service/configService';
 import { IplayarrParameter } from '../../types/IplayarrParameters';

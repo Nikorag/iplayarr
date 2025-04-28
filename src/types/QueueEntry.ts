@@ -5,11 +5,11 @@ import { VideoType } from './IPlayerSearchResult';
 import { QueueEntryStatus } from './responses/sabnzbd/QueueResponse';
 
 export interface QueueEntry {
-    pid : string,
-    status : QueueEntryStatus,
-    process? : ChildProcess,
-    details?: DownloadDetails,
-    nzbName: string,
-    type : VideoType,
-    appId? : string
+    pid: string;
+    status: QueueEntryStatus;
+    process?: ChildProcess;
+    details?: DownloadDetails;
+    nzbName: string;
+    type: VideoType;
+    appId?: string;
 }

@@ -1,27 +1,27 @@
 name: PR Build Check
 
 on:
-  pull_request:
-    branches:
-      - "**"
+    pull_request:
+        branches:
+            - '**'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+    test:
+        runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 23
-        cache: 'npm'
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 23
+                  cache: 'npm'
 
-    - name: Install Dependencies
-      run: npm run install:both
+            - name: Install Dependencies
+              run: npm run install:both
 
-    - name: Run tests
-      run: npm run test
+            - name: Run tests
+              run: npm run test
 
-    - name: Run build
-      run: npm run build:both
+            - name: Run build
+              run: npm run build:both

@@ -1,1441 +1,1321 @@
 {
-	"openapi": "3.0.0",
-	"components": {
-		"examples": {},
-		"headers": {},
-		"parameters": {},
-		"requestBodies": {},
-		"responses": {},
-		"schemas": {
-			"Synonym": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"from": {
-						"type": "string"
-					},
-					"target": {
-						"type": "string"
-					},
-					"filenameOverride": {
-						"type": "string"
-					},
-					"exemptions": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"from",
-					"target",
-					"exemptions"
-				],
-				"type": "object",
-				"additionalProperties": true
-			},
-			"SearchHistoryEntry": {
-				"properties": {
-					"term": {
-						"type": "string"
-					},
-					"results": {
-						"type": "number",
-						"format": "double"
-					},
-					"appId": {
-						"type": "string"
-					},
-					"series": {
-						"type": "number",
-						"format": "double"
-					},
-					"episode": {
-						"type": "number",
-						"format": "double"
-					}
-				},
-				"required": [
-					"term",
-					"results"
-				],
-				"type": "object",
-				"additionalProperties": true
-			},
-			"QueueEntryStatus": {
-				"enum": [
-					"Downloading",
-					"Queued"
-				],
-				"type": "string"
-			},
-			"DownloadDetails": {
-				"properties": {
-					"uuid": {
-						"type": "string"
-					},
-					"progress": {
-						"type": "number",
-						"format": "double"
-					},
-					"size": {
-						"type": "number",
-						"format": "double"
-					},
-					"sizeLeft": {
-						"type": "number",
-						"format": "double"
-					},
-					"speed": {
-						"type": "number",
-						"format": "double"
-					},
-					"eta": {
-						"type": "string"
-					},
-					"start": {
-						"type": "string",
-						"format": "date-time"
-					}
-				},
-				"type": "object",
-				"additionalProperties": true
-			},
-			"VideoType": {
-				"enum": [
-					"TV",
-					"MOVIE"
-				],
-				"type": "string"
-			},
-			"QueueEntryDTO": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"pid": {
-						"type": "string"
-					},
-					"status": {
-						"$ref": "#/components/schemas/QueueEntryStatus"
-					},
-					"details": {
-						"$ref": "#/components/schemas/DownloadDetails"
-					},
-					"nzbName": {
-						"type": "string"
-					},
-					"type": {
-						"$ref": "#/components/schemas/VideoType"
-					},
-					"appId": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"pid",
-					"status",
-					"nzbName",
-					"type"
-				],
-				"type": "object",
-				"additionalProperties": true
-			},
-			"EpisodeCacheDefinition": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"url": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"cacheRefreshed": {
-						"type": "string",
-						"format": "date-time"
-					}
-				},
-				"required": [
-					"id",
-					"url",
-					"name"
-				],
-				"type": "object",
-				"additionalProperties": true
-			},
-			"Record_string.string_": {
-				"properties": {},
-				"additionalProperties": {
-					"type": "string"
-				},
-				"type": "object",
-				"description": "Construct a type with a set of properties K of type T"
-			},
-			"QualityProfile": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"quality": {
-						"type": "string"
-					},
-					"sizeFactor": {
-						"type": "number",
-						"format": "double"
-					}
-				},
-				"required": [
-					"id",
-					"name",
-					"quality",
-					"sizeFactor"
-				],
-				"type": "object",
-				"additionalProperties": true
-			},
-			"AppType": {
-				"enum": [
-					"SONARR",
-					"RADARR",
-					"PROWLARR",
-					"SABNZBD",
-					"NZBGET"
-				],
-				"type": "string"
-			},
-			"App": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"type": {
-						"$ref": "#/components/schemas/AppType"
-					},
-					"name": {
-						"type": "string"
-					},
-					"url": {
-						"type": "string"
-					},
-					"api_key": {
-						"type": "string"
-					},
-					"username": {
-						"type": "string"
-					},
-					"password": {
-						"type": "string"
-					},
-					"priority": {
-						"type": "number",
-						"format": "double"
-					},
-					"iplayarr": {
-						"properties": {
-							"useSSL": {
-								"type": "boolean"
-							},
-							"port": {
-								"type": "number",
-								"format": "double"
-							},
-							"host": {
-								"type": "string"
-							}
-						},
-						"required": [
-							"useSSL",
-							"port",
-							"host"
-						],
-						"type": "object"
-					},
-					"download_client": {
-						"properties": {
-							"port": {
-								"type": "number",
-								"format": "double"
-							},
-							"api_key": {
-								"type": "string"
-							},
-							"host": {
-								"type": "string"
-							},
-							"name": {
-								"type": "string"
-							},
-							"id": {
-								"type": "number",
-								"format": "double"
-							}
-						},
-						"required": [
-							"id"
-						],
-						"type": "object"
-					},
-					"indexer": {
-						"properties": {
-							"priority": {
-								"type": "number",
-								"format": "double"
-							},
-							"api_key": {
-								"type": "string"
-							},
-							"url": {
-								"type": "string"
-							},
-							"name": {
-								"type": "string"
-							},
-							"id": {
-								"type": "number",
-								"format": "double"
-							}
-						},
-						"required": [
-							"priority",
-							"id"
-						],
-						"type": "object"
-					}
-				},
-				"required": [
-					"id",
-					"type",
-					"name",
-					"url",
-					"iplayarr"
-				],
-				"type": "object",
-				"additionalProperties": true
-			},
-			"AppFeature": {
-				"enum": [
-					"api_key",
-					"callback",
-					"download_client",
-					"indexer",
-					"prowlarr_download_client",
-					"prowlarr_indexer",
-					"username_password",
-					"priority"
-				],
-				"type": "string"
-			},
-			"Record_AppType.AppFeature-Array_": {
-				"properties": {
-					"SONARR": {
-						"items": {
-							"$ref": "#/components/schemas/AppFeature"
-						},
-						"type": "array"
-					},
-					"RADARR": {
-						"items": {
-							"$ref": "#/components/schemas/AppFeature"
-						},
-						"type": "array"
-					},
-					"PROWLARR": {
-						"items": {
-							"$ref": "#/components/schemas/AppFeature"
-						},
-						"type": "array"
-					},
-					"SABNZBD": {
-						"items": {
-							"$ref": "#/components/schemas/AppFeature"
-						},
-						"type": "array"
-					},
-					"NZBGET": {
-						"items": {
-							"$ref": "#/components/schemas/AppFeature"
-						},
-						"type": "array"
-					}
-				},
-				"required": [
-					"SONARR",
-					"RADARR",
-					"PROWLARR",
-					"SABNZBD",
-					"NZBGET"
-				],
-				"type": "object",
-				"description": "Construct a type with a set of properties K of type T"
-			}
-		},
-		"securitySchemes": {
-			"api_key": {
-				"type": "apiKey",
-				"name": "X-API-Key",
-				"in": "header"
-			}
-		}
-	},
-	"info": {
-		"title": "iplayarr",
-		"version": "1.0.0",
-		"license": {
-			"name": "ISC"
-		},
-		"contact": {}
-	},
-	"paths": {
-		"/api/synonyms": {
-			"get": {
-				"operationId": "GetAll",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/Synonym"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Synonyms"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			},
-			"post": {
-				"operationId": "Create",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Synonym"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Synonyms"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Synonym"
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Synonym"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Synonyms"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Synonym"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Synonyms"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/synonyms/searchHistory": {
-			"get": {
-				"operationId": "SearchHistory",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/SearchHistoryEntry"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Synonyms"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			}
-		},
-		"/api/synonyms/lookup/{appId}": {
-			"get": {
-				"operationId": "Lookup",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/SearchHistoryEntry"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Synonyms"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "appId",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "term",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/api/queue": {
-			"get": {
-				"operationId": "GetAll",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/QueueEntryDTO"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"QueueEntrys"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			},
-			"post": {
-				"operationId": "Create",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/QueueEntryDTO"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"QueueEntrys"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/QueueEntryDTO"
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/QueueEntryDTO"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"QueueEntrys"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/QueueEntryDTO"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"QueueEntrys"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/offSchedule": {
-			"get": {
-				"operationId": "GetAll",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/EpisodeCacheDefinition"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"EpisodeCacheDefinitions"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			},
-			"post": {
-				"operationId": "Create",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/EpisodeCacheDefinition"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"EpisodeCacheDefinitions"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/EpisodeCacheDefinition"
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/EpisodeCacheDefinition"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"EpisodeCacheDefinitions"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/EpisodeCacheDefinition"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"EpisodeCacheDefinitions"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/offSchedule/refresh": {
-			"post": {
-				"operationId": "Refresh",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"EpisodeCacheDefinitions"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/EpisodeCacheDefinition"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/history": {
-			"get": {
-				"operationId": "GetAll",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/QueueEntryDTO"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"QueueEntrys"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			},
-			"post": {
-				"operationId": "Create",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/QueueEntryDTO"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"QueueEntrys"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/QueueEntryDTO"
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/QueueEntryDTO"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"QueueEntrys"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/QueueEntryDTO"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"QueueEntrys"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/config": {
-			"get": {
-				"operationId": "GetAll",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/Record_string.string_"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Settings"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			},
-			"post": {
-				"operationId": "Create",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Record_string.string_"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Settings"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Record_string.string_"
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Record_string.string_"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Settings"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Record_string.string_"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Settings"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/config/hiddenSettings": {
-			"get": {
-				"operationId": "HiddenSettings",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Record_string.string_"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Settings"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			}
-		},
-		"/api/config/qualityProfiles": {
-			"get": {
-				"operationId": "QualityProfiles",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/QualityProfile"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Settings"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			}
-		},
-		"/api/apps": {
-			"get": {
-				"operationId": "GetAll",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/App"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Apps"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			},
-			"post": {
-				"operationId": "Create",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/App"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Apps"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/App"
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/App"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Apps"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/App"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Apps"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "string"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/apps/types": {
-			"get": {
-				"operationId": "Types",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Record_AppType.AppFeature-Array_"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Apps"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			}
-		},
-		"/api/apps/test": {
-			"post": {
-				"operationId": "Test",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Apps"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/App"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/apps/updateApiKey": {
-			"post": {
-				"operationId": "UpdateApiKey",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Apps"
-				],
-				"security": [
-					{
-						"api_key": []
-					}
-				],
-				"parameters": []
-			}
-		}
-	},
-	"servers": [
-		{
-			"url": "/"
-		}
-	]
+    "openapi": "3.0.0",
+    "components": {
+        "examples": {},
+        "headers": {},
+        "parameters": {},
+        "requestBodies": {},
+        "responses": {},
+        "schemas": {
+            "Synonym": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "from": {
+                        "type": "string"
+                    },
+                    "target": {
+                        "type": "string"
+                    },
+                    "filenameOverride": {
+                        "type": "string"
+                    },
+                    "exemptions": {
+                        "type": "string"
+                    }
+                },
+                "required": ["id", "from", "target", "exemptions"],
+                "type": "object",
+                "additionalProperties": true
+            },
+            "SearchHistoryEntry": {
+                "properties": {
+                    "term": {
+                        "type": "string"
+                    },
+                    "results": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "appId": {
+                        "type": "string"
+                    },
+                    "series": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "episode": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": ["term", "results"],
+                "type": "object",
+                "additionalProperties": true
+            },
+            "QueueEntryStatus": {
+                "enum": ["Downloading", "Queued"],
+                "type": "string"
+            },
+            "DownloadDetails": {
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "progress": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "size": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "sizeLeft": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "speed": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "eta": {
+                        "type": "string"
+                    },
+                    "start": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object",
+                "additionalProperties": true
+            },
+            "VideoType": {
+                "enum": ["TV", "MOVIE"],
+                "type": "string"
+            },
+            "QueueEntryDTO": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "pid": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/QueueEntryStatus"
+                    },
+                    "details": {
+                        "$ref": "#/components/schemas/DownloadDetails"
+                    },
+                    "nzbName": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/VideoType"
+                    },
+                    "appId": {
+                        "type": "string"
+                    }
+                },
+                "required": ["id", "pid", "status", "nzbName", "type"],
+                "type": "object",
+                "additionalProperties": true
+            },
+            "EpisodeCacheDefinition": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "cacheRefreshed": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": ["id", "url", "name"],
+                "type": "object",
+                "additionalProperties": true
+            },
+            "Record_string.string_": {
+                "properties": {},
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "type": "object",
+                "description": "Construct a type with a set of properties K of type T"
+            },
+            "QualityProfile": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "quality": {
+                        "type": "string"
+                    },
+                    "sizeFactor": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": ["id", "name", "quality", "sizeFactor"],
+                "type": "object",
+                "additionalProperties": true
+            },
+            "AppType": {
+                "enum": ["SONARR", "RADARR", "PROWLARR", "SABNZBD", "NZBGET"],
+                "type": "string"
+            },
+            "App": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/AppType"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "api_key": {
+                        "type": "string"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "priority": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "iplayarr": {
+                        "properties": {
+                            "useSSL": {
+                                "type": "boolean"
+                            },
+                            "port": {
+                                "type": "number",
+                                "format": "double"
+                            },
+                            "host": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["useSSL", "port", "host"],
+                        "type": "object"
+                    },
+                    "download_client": {
+                        "properties": {
+                            "port": {
+                                "type": "number",
+                                "format": "double"
+                            },
+                            "api_key": {
+                                "type": "string"
+                            },
+                            "host": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "type": "number",
+                                "format": "double"
+                            }
+                        },
+                        "required": ["id"],
+                        "type": "object"
+                    },
+                    "indexer": {
+                        "properties": {
+                            "priority": {
+                                "type": "number",
+                                "format": "double"
+                            },
+                            "api_key": {
+                                "type": "string"
+                            },
+                            "url": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "id": {
+                                "type": "number",
+                                "format": "double"
+                            }
+                        },
+                        "required": ["priority", "id"],
+                        "type": "object"
+                    }
+                },
+                "required": ["id", "type", "name", "url", "iplayarr"],
+                "type": "object",
+                "additionalProperties": true
+            },
+            "AppFeature": {
+                "enum": [
+                    "api_key",
+                    "callback",
+                    "download_client",
+                    "indexer",
+                    "prowlarr_download_client",
+                    "prowlarr_indexer",
+                    "username_password",
+                    "priority"
+                ],
+                "type": "string"
+            },
+            "Record_AppType.AppFeature-Array_": {
+                "properties": {
+                    "SONARR": {
+                        "items": {
+                            "$ref": "#/components/schemas/AppFeature"
+                        },
+                        "type": "array"
+                    },
+                    "RADARR": {
+                        "items": {
+                            "$ref": "#/components/schemas/AppFeature"
+                        },
+                        "type": "array"
+                    },
+                    "PROWLARR": {
+                        "items": {
+                            "$ref": "#/components/schemas/AppFeature"
+                        },
+                        "type": "array"
+                    },
+                    "SABNZBD": {
+                        "items": {
+                            "$ref": "#/components/schemas/AppFeature"
+                        },
+                        "type": "array"
+                    },
+                    "NZBGET": {
+                        "items": {
+                            "$ref": "#/components/schemas/AppFeature"
+                        },
+                        "type": "array"
+                    }
+                },
+                "required": ["SONARR", "RADARR", "PROWLARR", "SABNZBD", "NZBGET"],
+                "type": "object",
+                "description": "Construct a type with a set of properties K of type T"
+            }
+        },
+        "securitySchemes": {
+            "api_key": {
+                "type": "apiKey",
+                "name": "X-API-Key",
+                "in": "header"
+            }
+        }
+    },
+    "info": {
+        "title": "iplayarr",
+        "version": "1.0.0",
+        "license": {
+            "name": "ISC"
+        },
+        "contact": {}
+    },
+    "paths": {
+        "/api/synonyms": {
+            "get": {
+                "operationId": "GetAll",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Synonym"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Synonyms"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            },
+            "post": {
+                "operationId": "Create",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Synonym"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Synonyms"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Synonym"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Update",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Synonym"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Synonyms"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Synonym"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Delete",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Synonyms"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/synonyms/searchHistory": {
+            "get": {
+                "operationId": "SearchHistory",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/SearchHistoryEntry"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Synonyms"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            }
+        },
+        "/api/synonyms/lookup/{appId}": {
+            "get": {
+                "operationId": "Lookup",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/SearchHistoryEntry"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Synonyms"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "appId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "term",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/queue": {
+            "get": {
+                "operationId": "GetAll",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/QueueEntryDTO"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["QueueEntrys"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            },
+            "post": {
+                "operationId": "Create",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/QueueEntryDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["QueueEntrys"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QueueEntryDTO"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Update",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/QueueEntryDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["QueueEntrys"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QueueEntryDTO"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Delete",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["QueueEntrys"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/offSchedule": {
+            "get": {
+                "operationId": "GetAll",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/EpisodeCacheDefinition"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["EpisodeCacheDefinitions"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            },
+            "post": {
+                "operationId": "Create",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EpisodeCacheDefinition"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["EpisodeCacheDefinitions"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EpisodeCacheDefinition"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Update",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EpisodeCacheDefinition"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["EpisodeCacheDefinitions"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EpisodeCacheDefinition"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Delete",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["EpisodeCacheDefinitions"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/offSchedule/refresh": {
+            "post": {
+                "operationId": "Refresh",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["EpisodeCacheDefinitions"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EpisodeCacheDefinition"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/history": {
+            "get": {
+                "operationId": "GetAll",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/QueueEntryDTO"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["QueueEntrys"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            },
+            "post": {
+                "operationId": "Create",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/QueueEntryDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["QueueEntrys"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QueueEntryDTO"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Update",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/QueueEntryDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["QueueEntrys"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QueueEntryDTO"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Delete",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["QueueEntrys"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/config": {
+            "get": {
+                "operationId": "GetAll",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Record_string.string_"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Settings"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            },
+            "post": {
+                "operationId": "Create",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Record_string.string_"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Settings"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Record_string.string_"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Update",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Record_string.string_"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Settings"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Record_string.string_"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Delete",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Settings"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/config/hiddenSettings": {
+            "get": {
+                "operationId": "HiddenSettings",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Record_string.string_"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Settings"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            }
+        },
+        "/api/config/qualityProfiles": {
+            "get": {
+                "operationId": "QualityProfiles",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/QualityProfile"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Settings"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            }
+        },
+        "/api/apps": {
+            "get": {
+                "operationId": "GetAll",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/App"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Apps"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            },
+            "post": {
+                "operationId": "Create",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/App"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Apps"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/App"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Update",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/App"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Apps"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/App"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Delete",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Apps"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/apps/types": {
+            "get": {
+                "operationId": "Types",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Record_AppType.AppFeature-Array_"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Apps"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            }
+        },
+        "/api/apps/test": {
+            "post": {
+                "operationId": "Test",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Apps"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/App"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/apps/updateApiKey": {
+            "post": {
+                "operationId": "UpdateApiKey",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": ["Apps"],
+                "security": [
+                    {
+                        "api_key": []
+                    }
+                ],
+                "parameters": []
+            }
+        }
+    },
+    "servers": [
+        {
+            "url": "/"
+        }
+    ]
 }

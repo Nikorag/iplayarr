@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+
 import configService from '../../src/service/configService';
 import historyService from '../../src/service/historyService';
 import iplayerService from '../../src/service/iplayerService';
@@ -98,7 +99,7 @@ describe('queueService', () => {
             if (item) {
                 item.process = { pid: 1234 } as any;
             }
-          
+
             queueService.cancelItem('killme');
             expect(mockSpawn).toHaveBeenCalledWith('kill', ['-9', '1234']);
             expect(queueService.getFromQueue('killme')).toBeUndefined();

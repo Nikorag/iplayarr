@@ -89,35 +89,25 @@
                 "canonical": 0,
                 "pid": "m0029c0f",
                 "duration": 3420,
-                "types": [
-                    "Technical Replacement"
-                ]
+                "types": ["Technical Replacement"]
             },
             {
                 "canonical": 0,
                 "pid": "m0029m24",
                 "duration": 3420,
-                "types": [
-                    "Sign language"
-                ]
+                "types": ["Sign language"]
             },
             {
                 "canonical": 0,
                 "pid": "p0kz9q73",
                 "duration": 3420,
-                "types": [
-                    "Technical Replacement",
-                    "Dubbed Audio Described"
-                ]
+                "types": ["Technical Replacement", "Dubbed Audio Described"]
             },
             {
                 "canonical": 0,
                 "pid": "p0l229xw",
                 "duration": 3420,
-                "types": [
-                    "Sign language",
-                    "Dubbed Audio Described"
-                ]
+                "types": ["Sign language", "Dubbed Audio Described"]
             }
         ],
         "links": [],

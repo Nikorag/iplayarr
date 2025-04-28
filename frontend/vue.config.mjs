@@ -8,9 +8,9 @@ export default defineConfig({
                 additionalData: `
                     @import "~@/assets/styles/variables.less";
                     @import "~@/assets/styles/global.less";
-                `
-            }
-        }
+                `,
+            },
+        },
     },
     pwa: {
         name: 'iPlayarr',
@@ -18,5 +18,5 @@ export default defineConfig({
         msTileColor: '#000000',
         appleMobileWebAppCapable: 'yes',
         appleMobileWebAppStatusBarStyle: 'black-translucent',
-    }
+    },
 });

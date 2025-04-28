@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
+
 import { timestampFile } from '../../src/constants/iPlayarrConstants';
 import configService from '../../src/service/configService';
 import episodeCacheService from '../../src/service/episodeCacheService';
@@ -8,7 +9,7 @@ import iplayerService from '../../src/service/iplayerService';
 
 jest.mock('fs');
 jest.mock('child_process', () => ({
-    spawn: jest.fn()
+    spawn: jest.fn(),
 }));
 jest.mock('../../src/service/configService');
 jest.mock('../../src/service/loggingService');
@@ -39,7 +40,10 @@ describe('iplayerService', () => {
             const on = jest.fn();
             const stdout = { on };
             const child = { stdout, on };
-            (getIplayerExecutableService.getAllDownloadParameters as jest.Mock).mockResolvedValue({ exec: 'get_iplayer', args: ['--pid=abc'] });
+            (getIplayerExecutableService.getAllDownloadParameters as jest.Mock).mockResolvedValue({
+                exec: 'get_iplayer',
+                args: ['--pid=abc'],
+            });
             (configService.getParameter as jest.Mock).mockResolvedValue('/downloads');
             mockedSpawn.mockReturnValue(child as any);
 
@@ -54,7 +58,10 @@ describe('iplayerService', () => {
         it('spawns a cache refresh process and logs output', async () => {
             const on = jest.fn();
             const child = { stdout: { on }, stderr: { on } };
-            (getIplayerExecutableService.getIPlayerExec as jest.Mock).mockResolvedValue({ exec: 'get_iplayer', args: ['--type=tv'] });
+            (getIplayerExecutableService.getIPlayerExec as jest.Mock).mockResolvedValue({
+                exec: 'get_iplayer',
+                args: ['--type=tv'],
+            });
             mockedSpawn.mockReturnValue(child as any);
 
             const cleanupSpy = jest.spyOn(iplayerService, 'cleanupFailedDownloads').mockResolvedValue();
@@ -84,10 +91,10 @@ describe('iplayerService', () => {
                             type: 'series',
                             title: 'Series V',
                             position: 5,
-                            aggregated_episode_count: 12
-                        }
-                    }
-                }
+                            aggregated_episode_count: 12,
+                        },
+                    },
+                },
             });
 
             const result = await iplayerService.episodeDetails(pid);

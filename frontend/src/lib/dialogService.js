@@ -1,24 +1,24 @@
-import { useModal } from 'vue-final-modal'
+import { useModal } from 'vue-final-modal';
 
 import AlertDialog from '@/components/modals/AlertDialog.vue';
 
 const dialogService = {
-    alert : (title, text, subtext) => {
+    alert: (title, text, subtext) => {
         const formModal = useModal({
             component: AlertDialog,
             attrs: {
                 title,
                 text,
                 subtext,
-                onConfirm : () => {
+                onConfirm: () => {
                     formModal.close();
-                }
-            }
+                },
+            },
         });
         formModal.open();
     },
 
-    confirm : async (title, text, subtext) => {
+    confirm: async (title, text, subtext) => {
         return new Promise((resolve) => {
             const formModal = useModal({
                 component: AlertDialog,
@@ -26,22 +26,22 @@ const dialogService = {
                     title,
                     text,
                     subtext,
-                    showCancel : true,
-                    onConfirm : () => {
+                    showCancel: true,
+                    onConfirm: () => {
                         resolve(true);
                         formModal.close();
                     },
-                    onCancel : () => {
+                    onCancel: () => {
                         resolve(false);
                         formModal.close();
-                    }
-                }
+                    },
+                },
             });
             formModal.open();
         });
     },
 
-    select : async (title, text, subtext, options) => {
+    select: async (title, text, subtext, options) => {
         return new Promise((resolve) => {
             const formModal = useModal({
                 component: AlertDialog,
@@ -49,21 +49,21 @@ const dialogService = {
                     title,
                     text,
                     subtext,
-                    showCancel : true,
+                    showCancel: true,
                     options,
-                    onConfirm : (option) => {
+                    onConfirm: (option) => {
                         resolve(option);
                         formModal.close();
                     },
-                    onCancel : () => {
+                    onCancel: () => {
                         resolve(false);
                         formModal.close();
-                    }
-                }
+                    },
+                },
             });
             formModal.open();
         });
-    }
-}
+    },
+};
 
 export default dialogService;

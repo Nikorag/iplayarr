@@ -65,17 +65,13 @@
                 "canonical": 1,
                 "pid": "m0026fkk",
                 "duration": 3420,
-                "types": [
-                    "Original version"
-                ]
+                "types": ["Original version"]
             },
             {
                 "canonical": 0,
                 "pid": "p0kd2b54",
                 "duration": 3420,
-                "types": [
-                    "Dubbed Audio Described"
-                ]
+                "types": ["Dubbed Audio Described"]
             }
         ],
         "links": [],

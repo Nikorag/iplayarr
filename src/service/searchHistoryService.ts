@@ -1,20 +1,20 @@
 import { FixedFIFOQueue } from '../types/FixedFIFOQueue';
 import { SearchHistoryEntry } from '../types/SearchHistoryEntry';
 
-let history : FixedFIFOQueue<SearchHistoryEntry> = new FixedFIFOQueue(10);
+let history: FixedFIFOQueue<SearchHistoryEntry> = new FixedFIFOQueue(10);
 
 const searchHistoryService = {
-    addItem : (entry : SearchHistoryEntry) : void => {
+    addItem: (entry: SearchHistoryEntry): void => {
         history.enqueue(entry);
     },
 
-    getHistory : () : SearchHistoryEntry[] => {
+    getHistory: (): SearchHistoryEntry[] => {
         return history.getItems();
     },
 
-    clearHistory : () : void => {
+    clearHistory: (): void => {
         history = new FixedFIFOQueue(10);
-    }
-}
+    },
+};
 
 export default searchHistoryService;

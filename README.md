@@ -1,6 +1,6 @@
 # <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/frontend/public/iplayarr.png" alt="Description" width="45" style="margin-right: 1rem;"> iPlayarr
 
-iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to integrate **get_iplayer** for searching and downloading iPlayer content directly. It acts as both an **indexer** and a **download client**, allowing seamless automation of TV and movie downloads. 
+iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to integrate **get_iplayer** for searching and downloading iPlayer content directly. It acts as both an **indexer** and a **download client**, allowing seamless automation of TV and movie downloads.
 
 [![Discord](https://img.shields.io/discord/1359619754456907856?label=Discord&logo=discord&style=flat)](https://discord.com/channels/1359619754456907856)
 
@@ -90,21 +90,21 @@ services:
 
 You can pre-set the following environment variables, or you can set them in the Settings menu once the container is up.
 
-| Property     | Description                                  |
-| ------------ | -------------------------------------------- |
-| API_KEY      | Api key to secure your iplayarr instance     |
-| DOWNLOAD_DIR | Download directory for in progress pulls     |
-| COMPLETE_DIR | Directory to move completed files to         |
+| Property     | Description                              |
+| ------------ | ---------------------------------------- |
+| API_KEY      | Api key to secure your iplayarr instance |
+| DOWNLOAD_DIR | Download directory for in progress pulls |
+| COMPLETE_DIR | Directory to move completed files to     |
 
 There's a few more optional settings too:
 
-| Property | Description |
-| -------- | ----------- |
-| ACTIVE_LIMIT | How many downloads are allowed simultaneously, defaults to 3 |
+| Property         | Description                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| ACTIVE_LIMIT     | How many downloads are allowed simultaneously, defaults to 3                               |
 | REFRESH_SCHEDULE | Cron expression for when to pro-actively refresh schedule, defaults to hourly, on the hour |
-| HIDE_DONATE | If you don't like the Kofi donate links you can hide them |
-| PUID | Host User ID for file permissions |
-| PGID | Host Group ID for file permissions |
+| HIDE_DONATE      | If you don't like the Kofi donate links you can hide them                                  |
+| PUID             | Host User ID for file permissions                                                          |
+| PGID             | Host Group ID for file permissions                                                         |
 
 ### Usage
 
@@ -113,8 +113,8 @@ There's a few more optional settings too:
 The default details are:
 
 | Username | Password |
-| -------- | ----- |
-| admin | password |
+| -------- | -------- |
+| admin    | password |
 
 **Sonarr and Radarr link**
 
@@ -129,13 +129,13 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 1. Go to Settings > Download Clients in Sonarr/Radarr.
 2. Add a new SABnzbd client with the following details:
 
-| Property | Value |
-| ---------| ----- |
-| Name     | iPlayarr |
-| Host     | Your_Docker_Host |
-| Port     | 4404 |
+| Property | Value              |
+| -------- | ------------------ |
+| Name     | iPlayarr           |
+| Host     | Your_Docker_Host   |
+| Port     | 4404               |
 | API Key  | API_KEY from above |
-| Category | iplayer |
+| Category | iplayer            |
 
 3. Test and save.
 
@@ -144,12 +144,12 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 1. Go to Settings > Indexers in Sonarr/Radarr.
 2. Add a new Newznab indexer with these settings:
 
-| Property | Value |
-| ---------| ----- |
-| Name     | iPlayarr |
-| URL      | http://Your_Docker_Host:4404 |
-| API Key  | API_KEY from above |
-| Download Client  | iPlayarr (created above) |
+| Property        | Value                        |
+| --------------- | ---------------------------- |
+| Name            | iPlayarr                     |
+| URL             | http://Your_Docker_Host:4404 |
+| API Key         | API_KEY from above           |
+| Download Client | iPlayarr (created above)     |
 
 ### Web Interface
 
@@ -162,6 +162,7 @@ http://Your_Docker_Host:4404
 From here, you can manage settings, view logs, and monitor downloads.
 
 ## Redis
+
 iPlayarr uses Redis for storage. this is built into the container and **doesn't require any additional setup**, but if you would like to use a standalone redis instance set the following settings:
 
 - REDIS_HOST

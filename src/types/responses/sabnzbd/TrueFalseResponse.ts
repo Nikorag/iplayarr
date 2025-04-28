@@ -1,3 +1,3 @@
 export interface TrueFalseResponse {
-    status : boolean
+    status: boolean;
 }

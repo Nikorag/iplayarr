@@ -1,4 +1,4 @@
-import {redis} from '../service/redisService';
+import { redis } from '../service/redisService';
 
 export class QueuedStorage {
     private current: Promise<void>;
@@ -13,7 +13,7 @@ export class QueuedStorage {
                 try {
                     const keys = await redis.keys('*');
                     const values = await redis.mget(keys);
-                    resolve(values.map(value => value ? JSON.parse(value) : undefined));
+                    resolve(values.map((value) => (value ? JSON.parse(value) : undefined)));
                 } catch (error) {
                     reject(error);
                 }
@@ -23,36 +23,46 @@ export class QueuedStorage {
 
     async keys(): Promise<string[]> {
         return new Promise((resolve, reject) => {
-            this.current = this.current.then(() =>
-                redis.keys('*').then(resolve, reject)
-            );
+            this.current = this.current.then(() => redis.keys('*').then(resolve, reject));
         });
     }
 
     async getItem(key: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.current = this.current.then(() => 
-                redis.get(key).then((str : string | null) => resolve(str ? JSON.parse(str) : undefined), reject)
+            this.current = this.current.then(() =>
+                redis.get(key).then((str: string | null) => resolve(str ? JSON.parse(str) : undefined), reject)
             );
         });
     }
 
     async setItem(key: string, value: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            this.current = this.current.then(() => 
-                redis.set(key, JSON.stringify(value)).then(() => {
-                    redis.save().then(() => resolve()).catch(reject)
-                }).catch(reject)
+            this.current = this.current.then(() =>
+                redis
+                    .set(key, JSON.stringify(value))
+                    .then(() => {
+                        redis
+                            .save()
+                            .then(() => resolve())
+                            .catch(reject);
+                    })
+                    .catch(reject)
             );
         });
     }
 
     async removeItem(key: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            this.current = this.current.then(() => 
-                redis.del(key).then(() => {
-                    redis.save().then(() => resolve()).catch(reject)
-                }).catch(reject)
+            this.current = this.current.then(() =>
+                redis
+                    .del(key)
+                    .then(() => {
+                        redis
+                            .save()
+                            .then(() => resolve())
+                            .catch(reject);
+                    })
+                    .catch(reject)
             );
         });
     }

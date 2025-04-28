@@ -8,15 +8,18 @@ module.exports = {
     testPathIgnorePatterns: ['/node_modules/', '/dist/'],
     reporters: [
         'default',
-        ['jest-junit', {
-            outputDirectory: './test-results',
-            outputName: 'junit.xml'
-        }]
+        [
+            'jest-junit',
+            {
+                outputDirectory: './test-results',
+                outputName: 'junit.xml',
+            },
+        ],
     ],
     roots: ['<rootDir>'],
     modulePaths: ['<rootDir>'],
     setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
     collectCoverage: true,
     coverageReporters: ['lcov', 'text'],
-    testTimeout: 30000
+    testTimeout: 30000,
 };

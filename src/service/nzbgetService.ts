@@ -22,7 +22,10 @@ const nzbGetService = {
         }
     },
 
-    addFile: async ({ url: inputUrl, username, password }: App, files: Express.Multer.File[]): Promise<AxiosResponse> => {
+    addFile: async (
+        { url: inputUrl, username, password }: App,
+        files: Express.Multer.File[]
+    ): Promise<AxiosResponse> => {
         const url = `${inputUrl}/jsonrpc`;
 
         const file = files[0];
@@ -39,20 +42,20 @@ const nzbGetService = {
                 nzo_id, // Dupe key
                 1000, // Dupe score
                 'force', // Dupe mode
-                [] // Post-processing parameters
+                [], // Post-processing parameters
             ],
-            id: 1
+            id: 1,
         };
 
         try {
             const response = await axios.post(`${url}/append`, requestBody, {
                 auth: {
                     username: username as string,
-                    password: password as string
+                    password: password as string,
                 },
                 headers: {
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                },
             });
 
             if (response.status == 200) {
@@ -60,22 +63,22 @@ const nzbGetService = {
                     status: 200,
                     data: {
                         status: true,
-                        nzo_ids: [nzo_id]
-                    }
-                } as unknown as AxiosResponse
+                        nzo_ids: [nzo_id],
+                    },
+                } as unknown as AxiosResponse;
             } else {
-                return response
+                return response;
             }
         } catch {
             return {
                 status: 500,
                 data: {
                     status: false,
-                    nzo_ids: []
-                }
-            } as unknown as AxiosResponse
+                    nzo_ids: [],
+                },
+            } as unknown as AxiosResponse;
         }
-    }
-}
+    },
+};
 
 export default nzbGetService;

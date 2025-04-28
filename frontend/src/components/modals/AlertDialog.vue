@@ -1,15 +1,23 @@
 <template>
-  <IPlayarrModal :title="title" :show-cancel="showCancel" cancel-label="Cancel" :show-confirm="true" confirm-label="OK" @cancel="emit('cancel')" @confirm="emit('confirm', selected)">
-    <p :class="[subtext ? 'hasLower' : '']">
-      {{ text }}
-    </p>
-    <p v-if="subtext" class="sub">
-      {{ subtext }}
-    </p>
-    <div class="alertDialogSelect">
-      <SelectInput v-if="options" v-model="selected" :options="computedOptions" />
-    </div>
-  </IPlayarrModal>
+    <IPlayarrModal
+        :title="title"
+        :show-cancel="showCancel"
+        cancel-label="Cancel"
+        :show-confirm="true"
+        confirm-label="OK"
+        @cancel="emit('cancel')"
+        @confirm="emit('confirm', selected)"
+    >
+        <p :class="[subtext ? 'hasLower' : '']">
+            {{ text }}
+        </p>
+        <p v-if="subtext" class="sub">
+            {{ subtext }}
+        </p>
+        <div class="alertDialogSelect">
+            <SelectInput v-if="options" v-model="selected" :options="computedOptions" />
+        </div>
+    </IPlayarrModal>
 </template>
 
 <script setup>
@@ -26,9 +34,9 @@ const props = defineProps({
     subtext: String,
     showCancel: {
         type: Boolean,
-        default: false
+        default: false,
     },
-    options: Array
+    options: Array,
 });
 
 const selected = ref(props.options ? props.options[0] : true);
@@ -40,13 +48,13 @@ const computedOptions = computed(() => {
 
 <style lang="less" scoped>
 p {
-  &.sub {
-    font-size: 14px;
-    margin-top: 0px;
-  }
+    &.sub {
+        font-size: 14px;
+        margin-top: 0px;
+    }
 
-  &.hasLower {
-    margin-bottom: 0px;
-  }
+    &.hasLower {
+        margin-bottom: 0px;
+    }
 }
 </style>

@@ -8,8 +8,8 @@ jest.mock('../../src/service/redisService', () => ({
         get: jest.fn(),
         set: jest.fn(),
         del: jest.fn(),
-        save: jest.fn()
-    }
+        save: jest.fn(),
+    },
 }));
 
 describe('QueuedStorage', () => {
@@ -22,10 +22,7 @@ describe('QueuedStorage', () => {
 
     it('should get all values', async () => {
         (redis.keys as jest.Mock).mockResolvedValue(['key1', 'key2']);
-        (redis.mget as jest.Mock).mockResolvedValue([
-            JSON.stringify({ a: 1 }),
-            JSON.stringify({ b: 2 })
-        ]);
+        (redis.mget as jest.Mock).mockResolvedValue([JSON.stringify({ a: 1 }), JSON.stringify({ b: 2 })]);
 
         const values = await storage.values();
 
@@ -105,13 +102,9 @@ describe('QueuedStorage', () => {
         await Promise.all([
             storage.setItem('key1', { a: 1 }),
             storage.setItem('key2', { b: 2 }),
-            storage.setItem('key3', { c: 3 })
+            storage.setItem('key3', { c: 3 }),
         ]);
 
-        expect(order).toEqual([
-            'set:key1', 'save',
-            'set:key2', 'save',
-            'set:key3', 'save'
-        ]);
+        expect(order).toEqual(['set:key1', 'save', 'set:key2', 'save', 'set:key3', 'save']);
     });
 });

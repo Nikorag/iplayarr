@@ -1,22 +1,22 @@
 export const getHost = () => {
     return process.env.NODE_ENV != 'production' ? `http://${window.location.hostname}:4404` : '';
-}
+};
 
 export const formatStorageSize = (mb) => {
-    if (mb){
+    if (mb) {
         if (mb >= 1024) {
             return (mb / 1024).toFixed(2) + ' GB';
         }
         return mb.toFixed(2) + ' MB';
     }
     return;
-}
+};
 
 export const enforceMaxLength = (arr, maxLength) => {
     if (arr.length > maxLength) {
         arr.splice(0, arr.length - maxLength);
     }
-}
+};
 
 export function capitalize(word) {
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
@@ -50,5 +50,11 @@ export function getCleanSceneTitle(title) {
 
 export function formatDate(dateString, dateStyle, timeStyle) {
     const date = dateString != null ? new Date(dateString) : undefined;
-    return isNaN(date?.getTime()) ? undefined : new Intl.DateTimeFormat('en-GB', { dateStyle: dateStyle ?? 'medium', timeStyle: timeStyle ?? 'short', hour12: true }).format(date);
+    return isNaN(date?.getTime())
+        ? undefined
+        : new Intl.DateTimeFormat('en-GB', {
+              dateStyle: dateStyle ?? 'medium',
+              timeStyle: timeStyle ?? 'short',
+              hour12: true,
+          }).format(date);
 }

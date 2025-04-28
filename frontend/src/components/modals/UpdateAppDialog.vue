@@ -1,35 +1,37 @@
 <template>
-  <IPlayarrModal title="Updating Apps" :show-close="true" close-label="Close">
-    <table class="resultsTable">
-      <thead>
-        <tr>
-          <th>App</th>
-          <th>Status</th>
-          <th>
-            <font-awesome-icon :icon="['fas', 'book-open']" />
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="app of apps" :key="app.id">
-          <td>
-            <div class="appDisplay">
-              <img class="appImg" :src="`/img/${app.type.toLowerCase()}.svg`">
-              <span class="appName">
-                {{ app.name }}
-              </span>
-            </div>
-          </td>
-          <td v-if="appStatus[app.id]">
-            <span :class="['pill', getPillColor(appStatus[app.id].status)]">{{ appStatus[app.id].status }}</span>
-          </td>
-          <td v-if="appStatus[app.id]">
-            {{ appStatus[app.id].message }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </IPlayarrModal>
+    <IPlayarrModal title="Updating Apps" :show-close="true" close-label="Close">
+        <table class="resultsTable">
+            <thead>
+                <tr>
+                    <th>App</th>
+                    <th>Status</th>
+                    <th>
+                        <font-awesome-icon :icon="['fas', 'book-open']" />
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="app of apps" :key="app.id">
+                    <td>
+                        <div class="appDisplay">
+                            <img class="appImg" :src="`/img/${app.type.toLowerCase()}.svg`" />
+                            <span class="appName">
+                                {{ app.name }}
+                            </span>
+                        </div>
+                    </td>
+                    <td v-if="appStatus[app.id]">
+                        <span :class="['pill', getPillColor(appStatus[app.id].status)]">{{
+                            appStatus[app.id].status
+                        }}</span>
+                    </td>
+                    <td v-if="appStatus[app.id]">
+                        {{ appStatus[app.id].message }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </IPlayarrModal>
 </template>
 
 <script setup>
@@ -45,7 +47,7 @@ const socket = inject('socket');
 
 const appStatus = ref({});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close']);
 
 onMounted(async () => {
     apps.value = (await ipFetch('json-api/apps')).data;
@@ -76,61 +78,61 @@ onBeforeUnmount(() => {
 
 const getPillColor = (status) => {
     switch (status) {
-    default:
-        return 'grey';
-    case 'In Progress':
-        return 'error';
-    case 'Complete':
-        return 'success';
-    case 'Error':
-        return 'error';
+        default:
+            return 'grey';
+        case 'In Progress':
+            return 'error';
+        case 'Complete':
+            return 'success';
+        case 'Error':
+            return 'error';
     }
-}
+};
 </script>
 
 <style lang="less">
 .resultsTable {
-  max-width: 100%;
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  color: @table-text-color;
-  margin-bottom: 2rem;
+    max-width: 100%;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    color: @table-text-color;
+    margin-bottom: 2rem;
 
-  thead {
-    th {
-      padding: 8px;
-      border-bottom: 1px solid @table-border-color;
-      text-align: left;
-      font-weight: bold;
-    }
-  }
-
-  tbody {
-    tr {
-      transition: background-color 500ms;
-
-      &:hover {
-        background-color: @table-row-hover-color;
-      }
-
-      td {
-        padding: 8px;
-        border-top: 1px solid @table-border-color;
-        line-height: 1.52857143;
-
-        .appDisplay {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          height: 30px;
-
-          .appImg {
-            width: 15px;
-          }
+    thead {
+        th {
+            padding: 8px;
+            border-bottom: 1px solid @table-border-color;
+            text-align: left;
+            font-weight: bold;
         }
-      }
     }
-  }
+
+    tbody {
+        tr {
+            transition: background-color 500ms;
+
+            &:hover {
+                background-color: @table-row-hover-color;
+            }
+
+            td {
+                padding: 8px;
+                border-top: 1px solid @table-border-color;
+                line-height: 1.52857143;
+
+                .appDisplay {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    height: 30px;
+
+                    .appImg {
+                        width: 15px;
+                    }
+                }
+            }
+        }
+    }
 }
 </style>

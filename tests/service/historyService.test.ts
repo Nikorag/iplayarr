@@ -5,14 +5,14 @@ jest.mock('../../src/types/QueuedStorage', () => {
     return {
         QueuedStorage: jest.fn().mockImplementation(() => ({
             getItem: mockGetItem,
-            setItem: mockSetItem
-        }))
+            setItem: mockSetItem,
+        })),
     };
 });
 
 jest.mock('../../src/service/socketService', () => ({
     __esModule: true,
-    default: { emit: jest.fn() }
+    default: { emit: jest.fn() },
 }));
 
 import historyService from '../../src/service/historyService';
@@ -27,7 +27,7 @@ const sampleEntry: QueueEntry = {
     nzbName: 'Test NZB',
     type: VideoType.MOVIE,
     details: {},
-    appId: 'radarr'
+    appId: 'radarr',
 };
 
 beforeEach(() => {
@@ -50,8 +50,8 @@ describe('historyService', () => {
             expect.arrayContaining([
                 expect.objectContaining({
                     pid: '123',
-                    status: QueueEntryStatus.COMPLETE
-                })
+                    status: QueueEntryStatus.COMPLETE,
+                }),
             ])
         );
         expect(socketService.emit).toHaveBeenCalledWith('history', expect.any(Array));
@@ -64,8 +64,8 @@ describe('historyService', () => {
             expect.arrayContaining([
                 expect.objectContaining({
                     pid: '123',
-                    status: QueueEntryStatus.QUEUED
-                })
+                    status: QueueEntryStatus.QUEUED,
+                }),
             ])
         );
     });
@@ -77,8 +77,8 @@ describe('historyService', () => {
             expect.arrayContaining([
                 expect.objectContaining({
                     pid: '123',
-                    status: QueueEntryStatus.CANCELLED
-                })
+                    status: QueueEntryStatus.CANCELLED,
+                }),
             ])
         );
     });
@@ -86,12 +86,9 @@ describe('historyService', () => {
     it('removeHistory filters out entry by PID', async () => {
         mockGetItem.mockResolvedValue([
             { ...sampleEntry, pid: '123' },
-            { ...sampleEntry, pid: '456' }
+            { ...sampleEntry, pid: '456' },
         ]);
         await historyService.removeHistory('123');
-        expect(mockSetItem).toHaveBeenCalledWith(
-            'history',
-            [expect.objectContaining({ pid: '456' })]
-        );
+        expect(mockSetItem).toHaveBeenCalledWith('history', [expect.objectContaining({ pid: '456' })]);
     });
 });

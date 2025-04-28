@@ -1,10 +1,11 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import nzbFacade from '../../src/facade/nzbFacade';
 import appService from '../../src/service/appService';
 import socketService from '../../src/service/socketService';
 import { App } from '../../src/types/App';
 import { AppType } from '../../src/types/AppType';
 import { QueuedStorage } from '../../src/types/QueuedStorage';
-import { v4 as uuidv4 } from 'uuid';
 
 jest.mock('uuid', () => ({ v4: jest.fn() }));
 
@@ -12,7 +13,7 @@ const mockStorageData: Record<string, any> = {};
 jest.mock('../../src/types/QueuedStorage', () => {
     const mockStorageInstance = {
         getItem: jest.fn((key: string) => {
-            return Promise.resolve(mockStorageData[key])
+            return Promise.resolve(mockStorageData[key]);
         }),
         setItem: jest.fn((key: string, value: any) => {
             mockStorageData[key] = value;
@@ -21,7 +22,7 @@ jest.mock('../../src/types/QueuedStorage', () => {
     };
     return {
         QueuedStorage: jest.fn(() => mockStorageInstance),
-        __esModule: true
+        __esModule: true,
     };
 });
 
@@ -33,15 +34,15 @@ jest.mock('../../src/service/arrService', () => ({
 }));
 
 jest.mock('../../src/service/configService', () => ({
-    getParameter: jest.fn()
+    getParameter: jest.fn(),
 }));
 
 jest.mock('../../src/facade/nzbFacade', () => ({
-    testConnection: jest.fn()
+    testConnection: jest.fn(),
 }));
 
 jest.mock('../../src/service/socketService', () => ({
-    emit: jest.fn()
+    emit: jest.fn(),
 }));
 
 const mockStorage = (QueuedStorage as jest.Mock).mock.results[0].value;
@@ -49,7 +50,7 @@ const mockStorage = (QueuedStorage as jest.Mock).mock.results[0].value;
 describe('appService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        Object.keys(mockStorageData).forEach(k => delete mockStorageData[k]);
+        Object.keys(mockStorageData).forEach((k) => delete mockStorageData[k]);
     });
 
     it('adds a new app and assigns an ID if not present', async () => {
@@ -60,13 +61,16 @@ describe('appService', () => {
             type: AppType.RADARR,
             url: 'http://localhost',
             tags: [],
-            iplayarr: { host: 'localhost', port: 7878, useSSL: false }
+            iplayarr: { host: 'localhost', port: 7878, useSSL: false },
         } as any;
 
         const result = await appService.addApp(app);
 
         expect(result?.id).toBe(id);
-        expect(mockStorage.setItem).toHaveBeenCalledWith('apps', expect.arrayContaining([expect.objectContaining({ id })]));
+        expect(mockStorage.setItem).toHaveBeenCalledWith(
+            'apps',
+            expect.arrayContaining([expect.objectContaining({ id })])
+        );
     });
 
     it('removes an app', async () => {
@@ -107,7 +111,10 @@ describe('appService', () => {
 
         await appService.updateApiKey();
 
-        expect(socketService.emit).toHaveBeenCalledWith('app_update_status', expect.objectContaining({ status: 'In Progress' }));
+        expect(socketService.emit).toHaveBeenCalledWith(
+            'app_update_status',
+            expect.objectContaining({ status: 'In Progress' })
+        );
         expect(mockCreateUpdate).toHaveBeenCalled();
     });
 });

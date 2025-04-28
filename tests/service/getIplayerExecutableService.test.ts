@@ -1,4 +1,5 @@
 import fs from 'fs';
+
 import configService from '../../src/service/configService';
 import { GetIplayerExecutableService } from '../../src/service/getIplayerExecutableService';
 import historyService from '../../src/service/historyService';
@@ -36,7 +37,8 @@ describe('GetIplayerExecutableService', () => {
             const mockArgs = ['arg1', 'arg2'];
 
             mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC)
+                    return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
                 return Promise.resolve(undefined);
             });
 
@@ -58,7 +60,8 @@ describe('GetIplayerExecutableService', () => {
             const mockArgs = ['arg1', 'arg2'];
 
             mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC)
+                    return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
                 return Promise.resolve(undefined);
             });
 
@@ -90,7 +93,8 @@ describe('GetIplayerExecutableService', () => {
             const mockArgs = ['arg1', 'arg2'];
 
             mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC)
+                    return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
                 if (key === IplayarrParameter.DOWNLOAD_DIR) return Promise.resolve(mockDownloadDir);
                 if (key === IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS) return Promise.resolve('extraParam');
                 return Promise.resolve(undefined);
@@ -112,14 +116,15 @@ describe('GetIplayerExecutableService', () => {
                 exemptions: 'exempt1,exempt2',
                 id: 'synonym-1',
                 from: 'Gladiators',
-                target: 'Doctor Who'
+                target: 'Doctor Who',
             };
 
             const mockExec = 'mock_exec';
             const mockArgs = ['arg1', 'arg2'];
 
             mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC)
+                    return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
                 return Promise.resolve(undefined);
             });
 
@@ -130,8 +135,7 @@ describe('GetIplayerExecutableService', () => {
             expect(result.args).toContain('--exclude');
             mockSynonym.exemptions.split(',').forEach((exemption: string) => {
                 expect(result.args).toContain(`"${exemption}"`);
-            })
-
+            });
         });
 
         it('should handle "*" as term and add available-since parameter', async () => {
@@ -142,7 +146,8 @@ describe('GetIplayerExecutableService', () => {
             const mockArgs = ['arg1', 'arg2'];
 
             mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC)
+                    return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
                 if (key === IplayarrParameter.RSS_FEED_HOURS) return Promise.resolve(mockRssHours);
                 return Promise.resolve(undefined);
             });
@@ -221,7 +226,7 @@ describe('GetIplayerExecutableService', () => {
             const mockCompleteDir = '/mock/complete';
 
             queueService.getFromQueue = jest.fn().mockReturnValue(mockQueueItem);
-            
+
             (configService.getParameters as jest.Mock).mockImplementation(() => {
                 return [mockDownloadDir, mockCompleteDir];
             });
@@ -252,29 +257,33 @@ describe('GetIplayerExecutableService', () => {
 
     describe('processCompletedSearch', () => {
         it('should process results and create NZB name', async () => {
-            const mockResults : IPlayerSearchResult[] = [{
-                pid: '12345',
-                title: 'Test Title',
-                number: 0,
-                channel: 'BBC One',
-                request: {
-                    term : 'Term',
-                    line : 'line'
+            const mockResults: IPlayerSearchResult[] = [
+                {
+                    pid: '12345',
+                    title: 'Test Title',
+                    number: 0,
+                    channel: 'BBC One',
+                    request: {
+                        term: 'Term',
+                        line: 'line',
+                    },
+                    type: VideoType.TV,
                 },
-                type: VideoType.TV
-            }];
-            const mockSynonym : Synonym = {
+            ];
+            const mockSynonym: Synonym = {
                 filenameOverride: 'test.nzb',
                 id: 'synonym-1',
                 from: 'Test Title',
                 target: 'To',
-                exemptions: ''
+                exemptions: '',
             };
 
             mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
                 if (key === IplayarrParameter.VIDEO_QUALITY) return Promise.resolve('hd');
-                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE) return Promise.resolve('TV-{{title}}-{{synonym}}-{{quality}}');
-                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE) return Promise.resolve('Movie-{{title}}-{{synonym}}-{{quality}}');
+                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE)
+                    return Promise.resolve('TV-{{title}}-{{synonym}}-{{quality}}');
+                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE)
+                    return Promise.resolve('Movie-{{title}}-{{synonym}}-{{quality}}');
                 return Promise.resolve(undefined);
             });
 
@@ -285,29 +294,33 @@ describe('GetIplayerExecutableService', () => {
         });
 
         it('should look up synonym if not passed in', async () => {
-            const mockResults : IPlayerSearchResult[] = [{
-                pid: '12345',
-                title: 'Test Title',
-                number: 0,
-                channel: 'BBC One',
-                request: {
-                    term : 'Term',
-                    line : 'line'
+            const mockResults: IPlayerSearchResult[] = [
+                {
+                    pid: '12345',
+                    title: 'Test Title',
+                    number: 0,
+                    channel: 'BBC One',
+                    request: {
+                        term: 'Term',
+                        line: 'line',
+                    },
+                    type: VideoType.TV,
                 },
-                type: VideoType.TV
-            }];
-            const mockSynonym : Synonym = {
+            ];
+            const mockSynonym: Synonym = {
                 filenameOverride: 'test.nzb',
                 id: 'synonym-1',
                 from: 'From',
                 target: 'Test Title',
-                exemptions: ''
+                exemptions: '',
             };
 
             mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
                 if (key === IplayarrParameter.VIDEO_QUALITY) return Promise.resolve('hd');
-                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE) return Promise.resolve('TV-{{title}}-{{synonym}}-{{quality}}');
-                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE) return Promise.resolve('Movie-{{title}}-{{synonym}}-{{quality}}');
+                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE)
+                    return Promise.resolve('TV-{{title}}-{{synonym}}-{{quality}}');
+                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE)
+                    return Promise.resolve('Movie-{{title}}-{{synonym}}-{{quality}}');
                 return Promise.resolve(undefined);
             });
 

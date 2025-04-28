@@ -9,19 +9,19 @@ import { Synonym } from '../../src/types/Synonym';
 
 jest.mock('../../src/service/iplayerService', () => ({
     details: jest.fn(),
-    performSearch: jest.fn()
+    performSearch: jest.fn(),
 }));
 
 jest.mock('../../src/service/configService', () => ({
-    getParameter: jest.fn()
+    getParameter: jest.fn(),
 }));
 
 jest.mock('../../src/service/synonymService', () => ({
-    getSynonym: jest.fn()
+    getSynonym: jest.fn(),
 }));
 
 jest.mock('../../src/service/episodeCacheService', () => ({
-    searchEpisodeCache: jest.fn(() => [])
+    searchEpisodeCache: jest.fn(() => []),
 }));
 
 const mockCacheData: Record<string, any> = {};
@@ -43,11 +43,11 @@ jest.mock('../../src/service/redisCacheService', () => {
                 delete mockCacheData[key];
             });
             return Promise.resolve();
-        })
+        }),
     };
     return {
         default: jest.fn(() => mockCacheInstance),
-        __esModule: true
+        __esModule: true,
     };
 });
 
@@ -56,13 +56,16 @@ const mockRedisCacheService = (RedisCacheService as jest.Mock).mock.results[0].v
 describe('searchService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        Object.keys(mockCacheData).forEach(k => delete mockCacheData[k]);
+        Object.keys(mockCacheData).forEach((k) => delete mockCacheData[k]);
     });
 
     it('should return cached results if available', async () => {
         const term = 'testTerm';
         const pubDate: Date = new Date(Date.now() - 3 * 60 * 60 * 1000);
-        const cachedResults: IPlayerSearchResult[] = [{ title: 'Cached Result', pubDate }, { title: 'Without Date' } as any];
+        const cachedResults: IPlayerSearchResult[] = [
+            { title: 'Cached Result', pubDate },
+            { title: 'Without Date' } as any,
+        ];
         mockCacheData[term] = JSON.stringify(cachedResults);
 
         const results = await searchService.search(term);
@@ -142,7 +145,7 @@ describe('searchService', () => {
         searchService.removeFromSearchCache('show1');
 
         expect(mockCacheData['show1']).toBeUndefined();
-        expect(mockCacheData['show2']).toBe('{}')
+        expect(mockCacheData['show2']).toBe('{}');
     });
 
     it('can clear the entire cache', () => {

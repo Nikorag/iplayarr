@@ -30,17 +30,13 @@
                 "canonical": 1,
                 "pid": "m001ksc7",
                 "duration": 5880,
-                "types": [
-                    "Original version"
-                ]
+                "types": ["Original version"]
             },
             {
                 "canonical": 0,
                 "pid": "p0g9rtwn",
                 "duration": 5880,
-                "types": [
-                    "Dubbed Audio Described"
-                ]
+                "types": ["Dubbed Audio Described"]
             }
         ],
         "links": [],

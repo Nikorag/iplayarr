@@ -14,8 +14,8 @@ import RedisCacheService from './redisCacheService';
 import synonymService from './synonymService';
 
 interface SearchTerm {
-    term: string,
-    synonym?: Synonym
+    term: string;
+    synonym?: Synonym;
 }
 
 export class SearchService {
@@ -27,17 +27,21 @@ export class SearchService {
 
         let results: IPlayerSearchResult[] | undefined = await this.searchCache.get(term);
         if (!results) {
-            const service = (term == '*' || nativeSearchEnabled != 'true') ? iplayerService : this;
+            const service = term == '*' || nativeSearchEnabled != 'true' ? iplayerService : this;
             results = await service.performSearch(term, synonym);
             this.searchCache.set(term, results as IPlayerSearchResult[]);
         } else {
             //Fix the results which are stored as string
-            results.forEach(result => {
-                result.pubDate = result.pubDate ? new Date((result.pubDate as unknown as string)) : undefined;
+            results.forEach((result) => {
+                result.pubDate = result.pubDate ? new Date(result.pubDate as unknown as string) : undefined;
             });
         }
 
-        const filteredResults = await this.#filterForSeasonAndEpisode(results as IPlayerSearchResult[], season, episode);
+        const filteredResults = await this.#filterForSeasonAndEpisode(
+            results as IPlayerSearchResult[],
+            season,
+            episode
+        );
 
         if (nativeSearchEnabled == 'false') {
             const episodeCache: IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
@@ -47,7 +51,10 @@ export class SearchService {
                     const validSeason = season ? cachedEpisode.series == season : true;
                     const validEpisode = episode ? cachedEpisode.episode == episode : true;
                     if (!exists && validSeason && validEpisode) {
-                        filteredResults.push({ ...cachedEpisode, pubDate: cachedEpisode.pubDate ? new Date(cachedEpisode.pubDate) : undefined });
+                        filteredResults.push({
+                            ...cachedEpisode,
+                            pubDate: cachedEpisode.pubDate ? new Date(cachedEpisode.pubDate) : undefined,
+                        });
                     }
                 }
             }
@@ -61,7 +68,9 @@ export class SearchService {
         const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(term)}`;
         const response: AxiosResponse<IPlayerNewSearchResponse> = await axios.get(url);
         if (response.status == 200) {
-            const { new_search: { results } } = response.data;
+            const {
+                new_search: { results },
+            } = response.data;
             const brandPids: Set<string> = new Set();
             let infos: IPlayerDetails[] = [];
 
@@ -78,9 +87,23 @@ export class SearchService {
             }
 
             for (const brandPid of brandPids) {
-                const { data: { children: seriesList } }: { data: IPlayerChildrenResponse } = await axios.get(`https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`);
-                const episodes = (await Promise.all(seriesList.programmes.filter(({ type }) => type == 'series').map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid)))).flat();
-                episodes.push(...seriesList.programmes.filter(({ type, first_broadcast_date }) => type == 'episode' && first_broadcast_date != null).map(({ pid }) => pid));
+                const {
+                    data: { children: seriesList },
+                }: { data: IPlayerChildrenResponse } = await axios.get(
+                    `https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`
+                );
+                const episodes = (
+                    await Promise.all(
+                        seriesList.programmes
+                            .filter(({ type }) => type == 'series')
+                            .map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid))
+                    )
+                ).flat();
+                episodes.push(
+                    ...seriesList.programmes
+                        .filter(({ type, first_broadcast_date }) => type == 'episode' && first_broadcast_date != null)
+                        .map(({ pid }) => pid)
+                );
 
                 const chunks = splitArrayIntoChunks(episodes, 5);
                 const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
@@ -92,8 +115,9 @@ export class SearchService {
                 infos = [...infos, ...chunkInfos];
             }
 
-            return await Promise.all(infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonym)));
-
+            return await Promise.all(
+                infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonym))
+            );
         } else {
             return [];
         }
@@ -104,17 +128,22 @@ export class SearchService {
         const synonym = await synonymService.getSynonym(inputTerm);
         return {
             term: synonym ? synonym.target : term,
-            synonym
-        }
+            synonym,
+        };
     }
 
     async #filterForSeasonAndEpisode(results: IPlayerSearchResult[], season?: number, episode?: number) {
         return results.filter((result) => {
-            return ((!season || result.series == season) && (!episode || result.episode == episode))
-        })
+            return (!season || result.series == season) && (!episode || result.episode == episode);
+        });
     }
 
-    async #createSearchResult(term: string, details: IPlayerDetails, sizeFactor: number, synonym?: Synonym): Promise<IPlayerSearchResult> {
+    async #createSearchResult(
+        term: string,
+        details: IPlayerDetails,
+        sizeFactor: number,
+        synonym?: Synonym
+    ): Promise<IPlayerSearchResult> {
         return {
             number: 0,
             title: details.title,
@@ -122,7 +151,7 @@ export class SearchService {
             pid: details.pid,
             request: {
                 term,
-                line: term
+                line: term,
             },
             episode: details.episode,
             pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
@@ -130,8 +159,8 @@ export class SearchService {
             type: details.type,
             size: details.runtime ? Math.floor(details.runtime * 60 * sizeFactor) : undefined,
             nzbName: await createNZBName(details, synonym),
-            episodeTitle: details.episodeTitle
-        }
+            episodeTitle: details.episodeTitle,
+        };
     }
 
     removeFromSearchCache(term: string) {

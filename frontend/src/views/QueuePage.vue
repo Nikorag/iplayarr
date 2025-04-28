@@ -1,8 +1,8 @@
 <template>
-  <SettingsPageToolbar :icons="['delete']" delete-label="Remove" @delete-queue-item="deleteItems" />
-  <div class="inner-content scroll-x">
-    <QueueTable ref="queueTable" :queue="queue" :history="history" />
-  </div>
+    <SettingsPageToolbar :icons="['delete']" delete-label="Remove" @delete-queue-item="deleteItems" />
+    <div class="inner-content scroll-x">
+        <QueueTable ref="queueTable" :queue="queue" :history="history" />
+    </div>
 </template>
 
 <script setup>
@@ -41,7 +41,7 @@ const deleteItems = async () => {
         return;
     }
     const count = queueItems.length + historyItems.length;
-    if (await dialogService.confirm('Remove From Queue', `Are you sure you want to remove these ${count} items?`)){
+    if (await dialogService.confirm('Remove From Queue', `Are you sure you want to remove these ${count} items?`)) {
         for (const { pid } of queueItems) {
             await ipFetch(`json-api/queue/queue?pid=${pid}`, 'DELETE');
         }
@@ -50,5 +50,5 @@ const deleteItems = async () => {
             await ipFetch(`json-api/queue/history?pid=${pid}`, 'DELETE');
         }
     }
-}
+};
 </script>

@@ -30,50 +30,37 @@
                 "canonical": 1,
                 "pid": "b008m1w0",
                 "duration": 5100,
-                "types": [
-                    "Original version"
-                ]
+                "types": ["Original version"]
             },
             {
                 "canonical": 0,
                 "pid": "b05qq4zd",
                 "duration": 5100,
-                "types": [
-                    "Editorial"
-                ]
+                "types": ["Editorial"]
             },
             {
                 "canonical": 0,
                 "pid": "b06tmfch",
                 "duration": 4920,
-                "types": [
-                    "Editorial"
-                ]
+                "types": ["Editorial"]
             },
             {
                 "canonical": 1,
                 "pid": "m0026dm2",
                 "duration": 4980,
-                "types": [
-                    "Original version"
-                ]
+                "types": ["Original version"]
             },
             {
                 "canonical": 0,
                 "pid": "p01wyft3",
                 "duration": 5100,
-                "types": [
-                    "Dubbed Audio Described"
-                ]
+                "types": ["Dubbed Audio Described"]
             },
             {
                 "canonical": 0,
                 "pid": "p04sm8p8",
                 "duration": 5100,
-                "types": [
-                    "Dubbed Audio Described",
-                    "Editorial"
-                ]
+                "types": ["Dubbed Audio Described", "Editorial"]
             }
         ],
         "links": [

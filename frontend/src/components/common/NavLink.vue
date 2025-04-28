@@ -1,12 +1,12 @@
 <template>
-  <component :is="noLink ? 'span' : 'RouterLink'" :to="path">
-    <li :class="[route.path === path ? 'active' : '', 'clickable']" @click="optionClicked">
-      <span>
-        <font-awesome-icon :icon="['fas', icon]" fixed-width />
-        <span class="menuText">{{ label }}</span>
-      </span>
-    </li>
-  </component>
+    <component :is="noLink ? 'span' : 'RouterLink'" :to="path">
+        <li :class="[route.path === path ? 'active' : '', 'clickable']" @click="optionClicked">
+            <span>
+                <font-awesome-icon :icon="['fas', icon]" fixed-width />
+                <span class="menuText">{{ label }}</span>
+            </span>
+        </li>
+    </component>
 </template>
 
 <script setup>
@@ -19,7 +19,7 @@ const route = useRoute();
 defineProps({
     path: {
         type: String,
-        required: false
+        required: false,
     },
     label: {
         type: String,
@@ -32,11 +32,11 @@ defineProps({
     noLink: {
         type: Boolean,
         required: false,
-        default: false
-    }
+        default: false,
+    },
 });
 
 const optionClicked = () => {
     emit('optionClicked');
-}
+};
 </script>

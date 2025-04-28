@@ -1,41 +1,41 @@
 name: Lint
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
 
 permissions:
-  checks: write
-  contents: write
+    checks: write
+    contents: write
 
 jobs:
-  run-linters:
-    name: Run linters
-    runs-on: ubuntu-latest
+    run-linters:
+        name: Run linters
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Check out Git repository
+              uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 23
+            - name: Set up Node.js
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 23
 
-      - name: Install Node.js dependencies
-        run: npm run install:both
+            - name: Install Node.js dependencies
+              run: npm run install:both
 
-      - name: Reset any package-lock changes backend
-        run: git checkout -- package-lock.json
+            - name: Reset any package-lock changes backend
+              run: git checkout -- package-lock.json
 
-      - name: Reset any package-lock changes frontend
-        run: git checkout -- frontend/package-lock.json  
+            - name: Reset any package-lock changes frontend
+              run: git checkout -- frontend/package-lock.json
 
-      - name: Run linters
-        uses: wearerequired/lint-action@v2
-        with:
-          eslint: true
+            - name: Run linters
+              uses: wearerequired/lint-action@v2
+              with:
+                  eslint: true

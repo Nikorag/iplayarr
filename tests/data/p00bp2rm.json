@@ -96,25 +96,19 @@
                 "canonical": 1,
                 "pid": "p00bp2rn",
                 "duration": 1800,
-                "types": [
-                    "Original version"
-                ]
+                "types": ["Original version"]
             },
             {
                 "canonical": 0,
                 "pid": "p02nqnmx",
                 "duration": 1800,
-                "types": [
-                    "Store only"
-                ]
+                "types": ["Store only"]
             },
             {
                 "canonical": 0,
                 "pid": "p0ft94fb",
                 "duration": 1800,
-                "types": [
-                    "Technical Replacement"
-                ]
+                "types": ["Technical Replacement"]
             }
         ],
         "links": [],

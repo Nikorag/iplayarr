@@ -1,39 +1,40 @@
-import searchService from '../../src/service/searchService';
-import synonymService from '../../src/service/synonymService'
-import { Synonym } from '../../src/types/Synonym';
 import { v4 as uuidv4 } from 'uuid';
+
+import searchService from '../../src/service/searchService';
+import synonymService from '../../src/service/synonymService';
+import { Synonym } from '../../src/types/Synonym';
 
 const mockStorageData: Record<string, any> = {};
 jest.mock('../../src/types/QueuedStorage', () => {
     const mockStorageInstance = {
         getItem: jest.fn((key: string) => {
-            return Promise.resolve(mockStorageData[key])
+            return Promise.resolve(mockStorageData[key]);
         }),
         setItem: jest.fn((key: string, value: any) => {
             mockStorageData[key] = value;
             return Promise.resolve();
-        })
+        }),
     };
     return {
         QueuedStorage: jest.fn(() => mockStorageInstance),
-        __esModule: true
+        __esModule: true,
     };
 });
 
 jest.mock('../../src/service/searchService', () => ({
     __esModule: true,
     default: {
-        removeFromSearchCache: jest.fn()
-    }
+        removeFromSearchCache: jest.fn(),
+    },
 }));
 
 jest.mock('uuid', () => ({
-    v4: jest.fn()
+    v4: jest.fn(),
 }));
 
 beforeEach(() => {
     jest.clearAllMocks();
-    Object.keys(mockStorageData).forEach(k => delete mockStorageData[k]);
+    Object.keys(mockStorageData).forEach((k) => delete mockStorageData[k]);
 });
 
 describe('synonymService', () => {
@@ -41,7 +42,7 @@ describe('synonymService', () => {
         id: '123',
         from: 'BBC',
         target: 'British Broadcasting Corporation',
-        exemptions: ''
+        exemptions: '',
     };
 
     describe('getAllSynonyms', () => {

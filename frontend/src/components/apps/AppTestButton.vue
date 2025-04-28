@@ -1,15 +1,13 @@
 <template>
-  <button class="test-button" @click="test">
-    <template v-if="testStatus == 'INITIAL'">
-      Test {{ capitalize(app.type) }}
-    </template>
-    <template v-if="testStatus == 'PENDING'">
-      <font-awesome-icon class="test-pending" :icon="['fas', 'spinner']" />
-    </template>
-    <template v-if="testStatus == 'SUCCESS'">
-      <font-awesome-icon class="test-success" :icon="['fas', 'check']" />
-    </template>
-  </button>
+    <button class="test-button" @click="test">
+        <template v-if="testStatus == 'INITIAL'"> Test {{ capitalize(app.type) }} </template>
+        <template v-if="testStatus == 'PENDING'">
+            <font-awesome-icon class="test-pending" :icon="['fas', 'spinner']" />
+        </template>
+        <template v-if="testStatus == 'SUCCESS'">
+            <font-awesome-icon class="test-success" :icon="['fas', 'check']" />
+        </template>
+    </button>
 </template>
 
 <script setup>
@@ -20,7 +18,7 @@ import { ipFetch } from '@/lib/ipFetch';
 import { capitalize } from '@/lib/utils';
 
 const props = defineProps({
-    app: Object
+    app: Object,
 });
 
 const testStatus = ref('INITIAL');
@@ -38,7 +36,7 @@ const test = async () => {
 
 const resetTest = () => {
     testStatus.value = 'INITIAL';
-}
+};
 
 defineExpose({ resetTest, status: testStatus.value == 'SUCCESS' });
 </script>

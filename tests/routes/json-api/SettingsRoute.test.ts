@@ -1,10 +1,11 @@
 import express from 'express';
+import request from 'supertest';
+
 import SettingsRoute from '../../../src/routes/json-api/SettingsRoute';
 import configService from '../../../src/service/configService';
 import { qualityProfiles } from '../../../src/types/QualityProfiles';
 import { ApiError, ApiResponse } from '../../../src/types/responses/ApiResponse';
 import { ConfigFormValidator } from '../../../src/validators/ConfigFormValidator';
-import request from 'supertest';
 
 jest.mock('../../../src/service/configService');
 const mockedConfigService = jest.mocked(configService);

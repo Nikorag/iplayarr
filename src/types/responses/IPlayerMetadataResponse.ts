@@ -1,55 +1,55 @@
 export interface IPlayerMetadataResponse {
-    programme : IPlayerProgramMetadata;
+    programme: IPlayerProgramMetadata;
 }
 
 export interface IPlayerProgramMetadata {
-    type : 'series' | 'episode' | 'brand';
-    pid : string;
-    parent? : IPlayerMetadataResponse;
-    categories? : IPlayerCategoryResponse[];
-    display_title? : {
-        title : string;
-        subtitle? : string;
+    type: 'series' | 'episode' | 'brand';
+    pid: string;
+    parent?: IPlayerMetadataResponse;
+    categories?: IPlayerCategoryResponse[];
+    display_title?: {
+        title: string;
+        subtitle?: string;
     };
-    position? : number | null;
-    title : string;
-    ownership? : {
-        service? : {
-            title? : string;
+    position?: number | null;
+    title: string;
+    ownership?: {
+        service?: {
+            title?: string;
         };
     };
-    medium_synopsis? : string;
-    versions? : {
-        canonical : number;
-        pid : string;
-        duration : number;
-        types : string[];
+    medium_synopsis?: string;
+    versions?: {
+        canonical: number;
+        pid: string;
+        duration: number;
+        types: string[];
     }[];
-    first_broadcast_date? : string | null;
-    image? : {
-        pid : string;
+    first_broadcast_date?: string | null;
+    image?: {
+        pid: string;
     };
-    expected_child_count? : number | null;
-    aggregated_episode_count? : number | null;
+    expected_child_count?: number | null;
+    aggregated_episode_count?: number | null;
 }
 
 export interface IPlayerCategoryResponse {
-    type : string;
-    id : string;
-    key : string;
-    title : string;
-    narrower? : IPlayerCategoryResponse[] | never[];
-    broader : {
-        category? : IPlayerCategoryResponse;
+    type: string;
+    id: string;
+    key: string;
+    title: string;
+    narrower?: IPlayerCategoryResponse[] | never[];
+    broader: {
+        category?: IPlayerCategoryResponse;
     };
-    has_topic_page : boolean;
-    sameAs? : IPlayerCategoryResponse | null;
+    has_topic_page: boolean;
+    sameAs?: IPlayerCategoryResponse | null;
 }
 
 export interface IPlayerChildrenResponse {
-    children : {
-        page : number;
-        total : number;
-        programmes : IPlayerProgramMetadata[];
+    children: {
+        page: number;
+        total: number;
+        programmes: IPlayerProgramMetadata[];
     };
 }

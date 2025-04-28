@@ -1,33 +1,33 @@
 export interface NZBFileResponse {
-    $: { xmlns: string },
+    $: { xmlns: string };
     head: {
-        title: string,
-        meta: NZBMetaEntry[]
-    },
+        title: string;
+        meta: NZBMetaEntry[];
+    };
     file: {
         $: {
-            poster: string,
-            date: number,
-            subject: string
-        },
+            poster: string;
+            date: number;
+            subject: string;
+        };
         groups: {
-            group: string[]
-        },
+            group: string[];
+        };
         segments: {
-            segment: NZBSegmentEntry[]
-        }
-    }
+            segment: NZBSegmentEntry[];
+        };
+    };
 }
 
 export interface NZBMetaEntry {
-    _? : string,
-    $ : { type : string, _ : string}
+    _?: string;
+    $: { type: string; _: string };
 }
 
 interface NZBSegmentEntry {
-    _ : string,
+    _: string;
     $: {
-        bytes : number,
-        number: number
-    }
+        bytes: number;
+        number: number;
+    };
 }

@@ -1,12 +1,12 @@
 import express from 'express';
-import SettingsRoute from 'src/routes/json-api/SettingsRoute';
-import configService from 'src/service/configService';
-import { qualityProfiles } from 'src/types/QualityProfiles';
-import { ApiError, ApiResponse } from 'src/types/responses/ApiResponse';
-import { ConfigFormValidator } from 'src/validators/ConfigFormValidator';
+import SettingsRoute from '../../../src/routes/json-api/SettingsRoute';
+import configService from '../../../src/service/configService';
+import { qualityProfiles } from '../../../src/types/QualityProfiles';
+import { ApiError, ApiResponse } from '../../../src/types/responses/ApiResponse';
+import { ConfigFormValidator } from '../../../src/validators/ConfigFormValidator';
 import request from 'supertest';
 
-jest.mock('src/service/configService');
+jest.mock('../../../src/service/configService');
 const mockedConfigService = jest.mocked(configService);
 
 const mockedConfigFormValidator: jest.Mocked<ConfigFormValidator> = {
@@ -16,7 +16,7 @@ const mockedConfigFormValidator: jest.Mocked<ConfigFormValidator> = {
     isNumber: jest.fn(),
     matchesRegex: jest.fn(),
 };
-jest.mock('src/validators/ConfigFormValidator', () => ({
+jest.mock('../../../src/validators/ConfigFormValidator', () => ({
     ConfigFormValidator: jest.fn(() => mockedConfigFormValidator),
 }));
 

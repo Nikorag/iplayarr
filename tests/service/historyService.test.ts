@@ -1,7 +1,7 @@
 const mockGetItem = jest.fn();
 const mockSetItem = jest.fn();
 
-jest.mock('src/types/QueuedStorage', () => {
+jest.mock('../../src/types/QueuedStorage', () => {
     return {
         QueuedStorage: jest.fn().mockImplementation(() => ({
             getItem: mockGetItem,
@@ -10,16 +10,16 @@ jest.mock('src/types/QueuedStorage', () => {
     };
 });
 
-jest.mock('src/service/socketService', () => ({
+jest.mock('../../src/service/socketService', () => ({
     __esModule: true,
     default: { emit: jest.fn() }
 }));
 
-import historyService from 'src/service/historyService';
-import socketService from 'src/service/socketService';
-import { VideoType } from 'src/types/IPlayerSearchResult';
-import { QueueEntry } from 'src/types/QueueEntry';
-import { QueueEntryStatus } from 'src/types/responses/sabnzbd/QueueResponse';
+import historyService from '../../src/service/historyService';
+import socketService from '../../src/service/socketService';
+import { VideoType } from '../../src/types/IPlayerSearchResult';
+import { QueueEntry } from '../../src/types/QueueEntry';
+import { QueueEntryStatus } from '../../src/types/responses/sabnzbd/QueueResponse';
 
 const sampleEntry: QueueEntry = {
     pid: '123',

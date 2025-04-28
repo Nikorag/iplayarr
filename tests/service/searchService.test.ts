@@ -1,31 +1,31 @@
-import configService from 'src/service/configService';
-import iplayerService from 'src/service/iplayerService';
-import RedisCacheService from 'src/service/redisCacheService';
-import searchService from 'src/service/searchService';
-import synonymService from 'src/service/synonymService';
-import { IplayarrParameter } from 'src/types/IplayarrParameters';
-import { IPlayerSearchResult } from 'src/types/IPlayerSearchResult';
-import { Synonym } from 'src/types/Synonym';
+import configService from '../../src/service/configService';
+import iplayerService from '../../src/service/iplayerService';
+import RedisCacheService from '../../src/service/redisCacheService';
+import searchService from '../../src/service/searchService';
+import synonymService from '../../src/service/synonymService';
+import { IplayarrParameter } from '../../src/types/IplayarrParameters';
+import { IPlayerSearchResult } from '../../src/types/IPlayerSearchResult';
+import { Synonym } from '../../src/types/Synonym';
 
-jest.mock('src/service/iplayerService', () => ({
+jest.mock('../../src/service/iplayerService', () => ({
     details: jest.fn(),
     performSearch: jest.fn()
 }));
 
-jest.mock('src/service/configService', () => ({
+jest.mock('../../src/service/configService', () => ({
     getParameter: jest.fn()
 }));
 
-jest.mock('src/service/synonymService', () => ({
+jest.mock('../../src/service/synonymService', () => ({
     getSynonym: jest.fn()
 }));
 
-jest.mock('src/service/episodeCacheService', () => ({
+jest.mock('../../src/service/episodeCacheService', () => ({
     searchEpisodeCache: jest.fn(() => [])
 }));
 
 const mockCacheData: Record<string, any> = {};
-jest.mock('src/service/redisCacheService', () => {
+jest.mock('../../src/service/redisCacheService', () => {
     const mockCacheInstance = {
         get: jest.fn((key: string) => {
             return Promise.resolve(mockCacheData[key] ? JSON.parse(mockCacheData[key]) : undefined);

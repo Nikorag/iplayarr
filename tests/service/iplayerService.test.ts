@@ -1,12 +1,9 @@
 import { spawn } from 'child_process';
-import fs from 'fs';
 
-import { timestampFile } from '../../src/constants/iPlayarrConstants';
-import configService from '../../src/service/configService';
+import downloadFacade from '../../src/facade/downloadFacade';
 import episodeCacheService from '../../src/service/episodeCacheService';
 import getIplayerExecutableService from '../../src/service/getIplayerExecutableService';
 import iplayerService from '../../src/service/iplayerService';
-import downloadFacade from '../../src/facade/downloadFacade';
 
 jest.mock('fs');
 jest.mock('child_process', () => ({
@@ -19,7 +16,6 @@ jest.mock('../../src/service/getIplayerExecutableService');
 jest.mock('../../src/service/episodeCacheService');
 jest.mock('../../src/facade/downloadFacade');
 
-const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedSpawn = spawn as jest.Mock;
 
 describe('iplayerService', () => {

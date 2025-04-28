@@ -1,14 +1,9 @@
-import { spawn } from 'child_process';
 import fs from 'fs';
 
 import { timestampFile } from '../../src/constants/iPlayarrConstants';
 import downloadFacade from '../../src/facade/downloadFacade';
 import configService from '../../src/service/configService';
 import GetIplayerDownloadService from '../../src/service/download/GetIplayerDownloadService';
-import YTDLPDownloadService from '../../src/service/download/YTDLPDownloadService';
-import loggingService from '../../src/service/loggingService';
-import queueService from '../../src/service/queueService';
-import socketService from '../../src/service/socketService';
 import { DownloadClient } from '../../src/types/enums/DownloadClient';
 
 // Mocks

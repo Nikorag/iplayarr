@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
 
+import downloadFacade from '../../src/facade/downloadFacade';
 import configService from '../../src/service/configService';
 import historyService from '../../src/service/historyService';
-import downloadFacade from '../../src/facade/downloadFacade';
 import queueService from '../../src/service/queueService';
 import { VideoType } from '../../src/types/IPlayerSearchResult';
 import { QueueEntryStatus } from '../../src/types/responses/sabnzbd/QueueResponse';

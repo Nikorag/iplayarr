@@ -100,7 +100,7 @@ describe('GetIplayerExecutableService', () => {
                 return Promise.resolve(undefined);
             });
 
-            const result = await service.getAllDownloadParameters(mockPid, mockDownloadDir);
+            const result = await service.getAllDownloadParameters(mockPid, `${mockDownloadDir}/${mockPid}`);
 
             expect(result.exec).toBe(mockExec);
             expect(result.args).toContain('--output');

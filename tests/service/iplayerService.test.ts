@@ -6,6 +6,7 @@ import configService from '../../src/service/configService';
 import episodeCacheService from '../../src/service/episodeCacheService';
 import getIplayerExecutableService from '../../src/service/getIplayerExecutableService';
 import iplayerService from '../../src/service/iplayerService';
+import downloadFacade from '../../src/facade/downloadFacade';
 
 jest.mock('fs');
 jest.mock('child_process', () => ({
@@ -16,6 +17,7 @@ jest.mock('../../src/service/loggingService');
 jest.mock('../../src/service/queueService');
 jest.mock('../../src/service/getIplayerExecutableService');
 jest.mock('../../src/service/episodeCacheService');
+jest.mock('../../src/facade/downloadFacade');
 
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedSpawn = spawn as jest.Mock;
@@ -23,35 +25,6 @@ const mockedSpawn = spawn as jest.Mock;
 describe('iplayerService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    });
-
-    describe('createPidDirectory', () => {
-        it('creates directory and writes timestamp file', async () => {
-            (configService.getParameter as jest.Mock).mockResolvedValue('/downloads');
-            await iplayerService.createPidDirectory('abc123');
-
-            expect(mockedFs.mkdirSync).toHaveBeenCalledWith('/downloads/abc123', { recursive: true });
-            expect(mockedFs.writeFileSync).toHaveBeenCalledWith('/downloads/abc123/' + timestampFile, '');
-        });
-    });
-
-    describe('download', () => {
-        it('spawns a download process and wires events', async () => {
-            const on = jest.fn();
-            const stdout = { on };
-            const child = { stdout, on };
-            (getIplayerExecutableService.getAllDownloadParameters as jest.Mock).mockResolvedValue({
-                exec: 'get_iplayer',
-                args: ['--pid=abc'],
-            });
-            (configService.getParameter as jest.Mock).mockResolvedValue('/downloads');
-            mockedSpawn.mockReturnValue(child as any);
-
-            await iplayerService.download('abc');
-
-            expect(mockedSpawn).toHaveBeenCalledWith('get_iplayer', ['--pid=abc']);
-            expect(on).toHaveBeenCalledWith('data', expect.any(Function));
-        });
     });
 
     describe('refreshCache', () => {
@@ -64,7 +37,7 @@ describe('iplayerService', () => {
             });
             mockedSpawn.mockReturnValue(child as any);
 
-            const cleanupSpy = jest.spyOn(iplayerService, 'cleanupFailedDownloads').mockResolvedValue();
+            const cleanupSpy = jest.spyOn(downloadFacade, 'cleanupFailedDownloads').mockResolvedValue();
 
             await iplayerService.refreshCache();
 

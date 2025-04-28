@@ -4,9 +4,6 @@ FROM redis:alpine AS redis
 # Main build stage
 FROM node:current-alpine
 
-ARG iplayarr_version
-ENV VERSION=${iplayarr_version}
-
 RUN apk --update add \
     ffmpeg \
     openssl \

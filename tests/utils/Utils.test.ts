@@ -5,18 +5,18 @@ import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
 import { IPlayerMetadataResponse } from 'src/types/responses/IPlayerMetadataResponse';
 import { Synonym } from 'src/types/Synonym';
 import * as Utils from 'src/utils/Utils';
-import b008m7xk from 'tests/data/b008m7xk';
-import b0211hsl from 'tests/data/b0211hsl';
-import m000jbtq from 'tests/data/m000jbtq';
-import m001kscd from 'tests/data/m001kscd';
-import m001zh3r from 'tests/data/m001zh3r';
-import m001zh50 from 'tests/data/m001zh50';
-import m001zr9t from 'tests/data/m001zr9t';
-import m002b3cb from 'tests/data/m002b3cb';
-import m0026fkl from 'tests/data/m0026fkl';
-import m0029c0g from 'tests/data/m0029c0g';
-import p00bp2rm from 'tests/data/p00bp2rm';
-import p0fq3s31 from 'tests/data/p0fq3s31';
+import b008m7xk from 'tests/data/b008m7xk.json';
+import b0211hsl from 'tests/data/b0211hsl.json';
+import m000jbtq from 'tests/data/m000jbtq.json';
+import m001kscd from 'tests/data/m001kscd.json';
+import m001zh3r from 'tests/data/m001zh3r.json';
+import m001zh50 from 'tests/data/m001zh50.json';
+import m001zr9t from 'tests/data/m001zr9t.json';
+import m002b3cb from 'tests/data/m002b3cb.json';
+import m0026fkl from 'tests/data/m0026fkl.json';
+import m0029c0g from 'tests/data/m0029c0g.json';
+import p00bp2rm from 'tests/data/p00bp2rm.json';
+import p0fq3s31 from 'tests/data/p0fq3s31.json';
 
 jest.mock('src/service/configService');
 const mockedConfigService = jest.mocked(configService);
@@ -323,8 +323,8 @@ describe('Utils', () => {
             it('sequel', async () => assertSeasonAndEpisode(b008m7xk, [ VideoType.MOVIE, undefined, undefined, undefined]));
         });
 
-        const assertSeasonAndEpisode = (metadata: IPlayerMetadataResponse, expected: [ VideoType, number | undefined, string | undefined, number | undefined ]) => {
-            expect(Utils.calculateSeasonAndEpisode(metadata.programme)).toEqual(expected);
+        const assertSeasonAndEpisode = (metadata: unknown, expected: [ VideoType, number | undefined, string | undefined, number | undefined ]) => {
+            expect(Utils.calculateSeasonAndEpisode((metadata as IPlayerMetadataResponse).programme)).toEqual(expected);
         }
     });
     

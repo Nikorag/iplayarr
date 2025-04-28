@@ -1,8 +1,22 @@
 {
-    "html.format.wrapLineLength": 600,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "editor.guides.indentation": true,
+    "editor.rulers": [120],
+    "eslint.validate": ["javascript", "javascriptvue", "typescript", "typescriptvue"],
     "eslint.workingDirectories": [
         {
             "mode": "auto"
         }
     ],
+    "files.eol": "\n",
+    "html.format.wrapLineLength": 120,
+    "jest.runMode": {
+        "coverage": true,
+        "type": "on-save"
+    }
 }

@@ -4,15 +4,19 @@ import { GetIplayerExecutableService } from 'src/service/getIplayerExecutableSer
 import historyService from 'src/service/historyService';
 import queueService from 'src/service/queueService';
 import socketService from 'src/service/socketService';
+import synonymService from 'src/service/synonymService';
 import { IplayarrParameter } from 'src/types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from 'src/types/IPlayerSearchResult';
 import { Synonym } from 'src/types/Synonym';
 
 jest.mock('src/service/configService');
-jest.mock('src/service/queueService');
-jest.mock('src/service/socketService');
+const mockedConfigService = jest.mocked(configService);
 jest.mock('src/service/historyService');
 jest.mock('src/service/loggingService');
+jest.mock('src/service/queueService');
+jest.mock('src/service/socketService');
+jest.mock('src/service/synonymService');
+const mockedSynonymService = jest.mocked(synonymService);
 jest.mock('fs');
 jest.mock('path');
 
@@ -31,8 +35,9 @@ describe('GetIplayerExecutableService', () => {
             const mockExec = 'mock_exec';
             const mockArgs = ['arg1', 'arg2'];
 
-            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return `${mockExec} ${mockArgs.join(' ')}`;
+            mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                return Promise.resolve(undefined);
             });
 
             const result = await service.getIPlayerExec();
@@ -52,8 +57,9 @@ describe('GetIplayerExecutableService', () => {
             const mockExec = 'mock_exec';
             const mockArgs = ['arg1', 'arg2'];
 
-            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return `${mockExec} ${mockArgs.join(' ')}`;
+            mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                return Promise.resolve(undefined);
             });
 
             const result = await service.getIPlayerExec();
@@ -65,8 +71,9 @@ describe('GetIplayerExecutableService', () => {
         });
 
         it('should fallback to get_iplayer exec if GET_IPLAYER_EXEC is not set', async () => {
-            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return undefined;
+            mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(undefined);
+                return Promise.resolve(undefined);
             });
 
             const result = await service.getIPlayerExec();
@@ -82,10 +89,11 @@ describe('GetIplayerExecutableService', () => {
             const mockExec = 'mock_exec';
             const mockArgs = ['arg1', 'arg2'];
 
-            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return `${mockExec} ${mockArgs.join(' ')}`;
-                if (key === IplayarrParameter.DOWNLOAD_DIR) return mockDownloadDir;
-                if (key === IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS) return 'extraParam';
+            mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                if (key === IplayarrParameter.DOWNLOAD_DIR) return Promise.resolve(mockDownloadDir);
+                if (key === IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS) return Promise.resolve('extraParam');
+                return Promise.resolve(undefined);
             });
 
             const result = await service.getAllDownloadParameters(mockPid, mockDownloadDir);
@@ -110,8 +118,9 @@ describe('GetIplayerExecutableService', () => {
             const mockExec = 'mock_exec';
             const mockArgs = ['arg1', 'arg2'];
 
-            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return `${mockExec} ${mockArgs.join(' ')}`;
+            mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                return Promise.resolve(undefined);
             });
 
             const result = await service.getSearchParameters(mockTerm, mockSynonym);
@@ -132,9 +141,10 @@ describe('GetIplayerExecutableService', () => {
             const mockExec = 'mock_exec';
             const mockArgs = ['arg1', 'arg2'];
 
-            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return `${mockExec} ${mockArgs.join(' ')}`;
-                if (key === IplayarrParameter.RSS_FEED_HOURS) return mockRssHours;
+            mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.GET_IPLAYER_EXEC) return Promise.resolve(`${mockExec} ${mockArgs.join(' ')}`);
+                if (key === IplayarrParameter.RSS_FEED_HOURS) return Promise.resolve(mockRssHours);
+                return Promise.resolve(undefined);
             });
 
             const result = await service.getSearchParameters(mockTerm);
@@ -243,7 +253,41 @@ describe('GetIplayerExecutableService', () => {
     describe('processCompletedSearch', () => {
         it('should process results and create NZB name', async () => {
             const mockResults : IPlayerSearchResult[] = [{
-                pid: '12345', title: 'Test Title',
+                pid: '12345',
+                title: 'Test Title',
+                number: 0,
+                channel: 'BBC One',
+                request: {
+                    term : 'Term',
+                    line : 'line'
+                },
+                type: VideoType.TV
+            }];
+            const mockSynonym : Synonym = {
+                filenameOverride: 'test.nzb',
+                id: 'synonym-1',
+                from: 'Test Title',
+                target: 'To',
+                exemptions: ''
+            };
+
+            mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.VIDEO_QUALITY) return Promise.resolve('hd');
+                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE) return Promise.resolve('TV-{{title}}-{{synonym}}-{{quality}}');
+                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE) return Promise.resolve('Movie-{{title}}-{{synonym}}-{{quality}}');
+                return Promise.resolve(undefined);
+            });
+
+            const results = await service.processCompletedSearch(mockResults, mockSynonym);
+
+            expect(results[0]).toHaveProperty('nzbName', 'TV-Test.Title-test.nzb-720p');
+            expect(mockedSynonymService.getSynonym).not.toHaveBeenCalled();
+        });
+
+        it('should look up synonym if not passed in', async () => {
+            const mockResults : IPlayerSearchResult[] = [{
+                pid: '12345',
+                title: 'Test Title',
                 number: 0,
                 channel: 'BBC One',
                 request: {
@@ -256,19 +300,23 @@ describe('GetIplayerExecutableService', () => {
                 filenameOverride: 'test.nzb',
                 id: 'synonym-1',
                 from: 'From',
-                target: 'To',
+                target: 'Test Title',
                 exemptions: ''
             };
 
-            (configService.getParameter as jest.Mock).mockImplementation((key: IplayarrParameter) => {
-                if (key === IplayarrParameter.VIDEO_QUALITY) return 'hd';
-                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE) return 'TV-{{title}}-{{quality}}';
-                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE) return 'Movie-{{title}}-{{quality}}';
+            mockedConfigService.getParameter.mockImplementation((key: IplayarrParameter) => {
+                if (key === IplayarrParameter.VIDEO_QUALITY) return Promise.resolve('hd');
+                if (key === IplayarrParameter.TV_FILENAME_TEMPLATE) return Promise.resolve('TV-{{title}}-{{synonym}}-{{quality}}');
+                if (key === IplayarrParameter.MOVIE_FILENAME_TEMPLATE) return Promise.resolve('Movie-{{title}}-{{synonym}}-{{quality}}');
+                return Promise.resolve(undefined);
             });
 
-            const results = await service.processCompletedSearch(mockResults, mockSynonym);
+            mockedSynonymService.getSynonym.mockResolvedValue(mockSynonym);
 
-            expect(results[0]).toHaveProperty('nzbName', 'TV-Test.Title-720p');
+            const results = await service.processCompletedSearch(mockResults, undefined);
+
+            expect(results[0]).toHaveProperty('nzbName', 'TV-Test.Title-test.nzb-720p');
+            expect(synonymService.getSynonym).toHaveBeenCalledWith('Test Title');
         });
     });
 });

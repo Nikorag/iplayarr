@@ -11,7 +11,7 @@ export interface IPlayerProgramMetadata {
         title : string;
         subtitle? : string;
     };
-    position? : number;
+    position? : number | null;
     title : string;
     ownership? : {
         service? : {
@@ -25,12 +25,12 @@ export interface IPlayerProgramMetadata {
         duration : number;
         types : string[];
     }[];
-    first_broadcast_date? : string;
+    first_broadcast_date? : string | null;
     image? : {
         pid : string;
     };
-    expected_child_count? : number;
-    aggregated_episode_count? : number;
+    expected_child_count? : number | null;
+    aggregated_episode_count? : number | null;
 }
 
 export interface IPlayerCategoryResponse {
@@ -38,12 +38,12 @@ export interface IPlayerCategoryResponse {
     id : string;
     key : string;
     title : string;
-    narrower? : IPlayerCategoryResponse[];
+    narrower? : IPlayerCategoryResponse[] | never[];
     broader : {
         category? : IPlayerCategoryResponse;
     };
     has_topic_page : boolean;
-    sameAs? : IPlayerCategoryResponse;
+    sameAs? : IPlayerCategoryResponse | null;
 }
 
 export interface IPlayerChildrenResponse {

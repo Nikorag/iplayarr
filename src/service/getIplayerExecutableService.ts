@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { IPlayerProgramMetadata } from '../types/responses/IPlayerMetadataResponse';
 
 import { listFormat, progressRegex } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
@@ -9,6 +8,7 @@ import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
+import { IPlayerProgramMetadata } from '../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../types/Synonym';
 import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from '../utils/Utils';
 import configService from './configService';

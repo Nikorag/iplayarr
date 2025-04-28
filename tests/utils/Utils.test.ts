@@ -1,4 +1,5 @@
 import { Request } from 'express';
+
 import configService from '../../src/service/configService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';

@@ -1,10 +1,11 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import nzbFacade from '../../src/facade/nzbFacade';
 import appService from '../../src/service/appService';
 import socketService from '../../src/service/socketService';
 import { App } from '../../src/types/App';
 import { AppType } from '../../src/types/AppType';
 import { QueuedStorage } from '../../src/types/QueuedStorage';
-import { v4 as uuidv4 } from 'uuid';
 
 jest.mock('uuid', () => ({ v4: jest.fn() }));
 

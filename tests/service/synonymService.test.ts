@@ -1,7 +1,8 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import searchService from '../../src/service/searchService';
 import synonymService from '../../src/service/synonymService'
 import { Synonym } from '../../src/types/Synonym';
-import { v4 as uuidv4 } from 'uuid';
 
 const mockStorageData: Record<string, any> = {};
 jest.mock('../../src/types/QueuedStorage', () => {

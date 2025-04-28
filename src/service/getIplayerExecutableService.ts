@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
+import { IPlayerProgramMetadata } from '../types/responses/IPlayerMetadataResponse';
 
 import { listFormat, progressRegex } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';

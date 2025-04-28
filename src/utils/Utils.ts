@@ -2,9 +2,9 @@ import * as crypto from 'crypto';
 import { Request } from 'express';
 import Handlebars from 'handlebars';
 import { deromanize } from 'romans';
-import { IPlayerDetails } from 'src/types/IPlayerDetails';
-import { IPlayerProgramMetadata } from 'src/types/responses/IPlayerMetadataResponse';
-import { Synonym } from 'src/types/Synonym';
+import { IPlayerDetails } from '../types/IPlayerDetails';
+import { IPlayerProgramMetadata } from '../types/responses/IPlayerMetadataResponse';
+import { Synonym } from '../types/Synonym';
 
 import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
 import configService from '../service/configService';

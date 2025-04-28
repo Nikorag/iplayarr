@@ -1,13 +1,13 @@
-import configService from 'src/service/configService';
-import loggingService from 'src/service/loggingService';
-import socketService from 'src/service/socketService';
-import { LogLineLevel } from 'src/types/LogLine';
+import configService from '../../src/service/configService';
+import loggingService from '../../src/service/loggingService';
+import socketService from '../../src/service/socketService';
+import { LogLineLevel } from '../../src/types/LogLine';
 
-jest.mock('src/service/socketService', () => ({
+jest.mock('../../src/service/socketService', () => ({
     emit: jest.fn(),
 }));
 
-jest.mock('src/service/configService', () => ({
+jest.mock('../../src/service/configService', () => ({
     getParameter: jest.fn(),
 }));
 

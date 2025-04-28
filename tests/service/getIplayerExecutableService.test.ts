@@ -88,7 +88,7 @@ describe('GetIplayerExecutableService', () => {
                 if (key === IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS) return 'extraParam';
             });
 
-            const result = await service.getAllDownloadParameters(mockPid);
+            const result = await service.getAllDownloadParameters(mockPid, mockDownloadDir);
 
             expect(result.exec).toBe(mockExec);
             expect(result.args).toContain('--output');

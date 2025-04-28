@@ -44,14 +44,12 @@ export class GetIplayerExecutableService {
         return `--tv-quality=${videoQuality}`;
     }
 
-    async getAllDownloadParameters(pid: string): Promise<GetIPlayerExecutable> {
-        const downloadDir: string = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
-
+    async getAllDownloadParameters(pid: string, directory: string): Promise<GetIPlayerExecutable> {
         const { exec, args } = await this.getIPlayerExec();
         const additionalParamsString: string = await configService.getParameter(IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS) as string;
         const additionalParams: string[] = additionalParamsString ? additionalParamsString.split(' ') : [];
 
-        const allArgs: string[] = [...args, ...additionalParams, await this.#getQualityParam(), '--output', `${downloadDir}/${pid}`, '--overwrite', '--force', '--log-progress', `--pid=${pid}`];
+        const allArgs: string[] = [...args, ...additionalParams, await this.#getQualityParam(), '--output', directory, '--overwrite', '--force', '--log-progress', `--pid=${pid}`];
 
         return {
             exec,

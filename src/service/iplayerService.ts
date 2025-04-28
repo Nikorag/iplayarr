@@ -23,25 +23,26 @@ const iplayerService = {
     },
 
     download: async (pid: string): Promise<ChildProcess> => {
-        const {exec, args} = await getIplayerExecutableService.getAllDownloadParameters(pid);
+        // const {exec, args} = await getIplayerExecutableService.getAllDownloadParameters(pid);
 
-        await iplayerService.createPidDirectory(pid);
-        loggingService.debug(`Executing get_iplayer with args: ${args.join(' ')}`);
-        const downloadProcess = spawn(exec, args);
+        // await iplayerService.createPidDirectory(pid);
+        // loggingService.debug(`Executing get_iplayer with args: ${args.join(' ')}`);
+        // const downloadProcess = spawn(exec, args);
 
-        downloadProcess.stdout.on('data', (data) => {
-            if (queueService.getFromQueue(pid)) {
-                getIplayerExecutableService.logProgress(pid, data);
-                const downloadDetails : DownloadDetails | undefined = getIplayerExecutableService.parseProgress(pid, data);
-                if (downloadDetails){
-                    queueService.updateQueue(pid, downloadDetails);
-                }
-            }
-        });
+        // downloadProcess.stdout.on('data', (data) => {
+        //     if (queueService.getFromQueue(pid)) {
+        //         getIplayerExecutableService.logProgress(pid, data);
+        //         const downloadDetails : DownloadDetails | undefined = getIplayerExecutableService.parseProgress(pid, data);
+        //         if (downloadDetails){
+        //             queueService.updateQueue(pid, downloadDetails);
+        //         }
+        //     }
+        // });
 
-        downloadProcess.on('close', (code) => getIplayerExecutableService.processCompletedDownload(pid, code));
+        // downloadProcess.on('close', (code) => getIplayerExecutableService.processCompletedDownload(pid, code));
 
-        return downloadProcess;
+        // return downloadProcess;
+        return spawn('Echo', ['Hello World']);
     },
 
     refreshCache: async () => {

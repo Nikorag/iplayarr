@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import searchService from '../../src/service/searchService';
+import searchFacade from '../../src/facade/searchFacade';
 import synonymService from '../../src/service/synonymService';
 import { Synonym } from '../../src/types/Synonym';
 
@@ -21,7 +21,7 @@ jest.mock('../../src/types/QueuedStorage', () => {
     };
 });
 
-jest.mock('../../src/service/searchService', () => ({
+jest.mock('../../src/facade/searchFacade', () => ({
     __esModule: true,
     default: {
         removeFromSearchCache: jest.fn(),
@@ -86,7 +86,7 @@ describe('synonymService', () => {
             const saved = mockStorageData['synonyms'];
             expect(saved.length).toBe(1);
             expect(saved[0].id).toBe('generated-id');
-            expect(searchService.removeFromSearchCache).toHaveBeenCalledWith('Independent Television');
+            expect(searchFacade.removeFromSearchCache).toHaveBeenCalledWith('Independent Television');
         });
 
         it('should keep existing id and add the synonym', async () => {
@@ -106,7 +106,7 @@ describe('synonymService', () => {
             const saved = mockStorageData['synonyms'];
             expect(saved).toHaveLength(1);
             expect(saved[0].target).toBe('Updated Target');
-            expect(searchService.removeFromSearchCache).toHaveBeenCalledWith('Updated Target');
+            expect(searchFacade.removeFromSearchCache).toHaveBeenCalledWith('Updated Target');
         });
     });
 
@@ -115,14 +115,14 @@ describe('synonymService', () => {
             mockStorageData['synonyms'] = [testSynonym];
             await synonymService.removeSynonym('123');
             expect(mockStorageData['synonyms']).toHaveLength(0);
-            expect(searchService.removeFromSearchCache).toHaveBeenCalledWith(testSynonym.target);
+            expect(searchFacade.removeFromSearchCache).toHaveBeenCalledWith(testSynonym.target);
         });
 
         it('should do nothing if id not found', async () => {
             mockStorageData['synonyms'] = [testSynonym];
             await synonymService.removeSynonym('not-found');
             expect(mockStorageData['synonyms']).toHaveLength(1);
-            expect(searchService.removeFromSearchCache).not.toHaveBeenCalled();
+            expect(searchFacade.removeFromSearchCache).not.toHaveBeenCalled();
         });
     });
 });

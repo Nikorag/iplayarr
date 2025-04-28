@@ -2,9 +2,7 @@ import { spawn } from 'child_process';
 
 import downloadFacade from '../facade/downloadFacade';
 import { IPlayerDetails } from '../types/IPlayerDetails';
-import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
-import { Synonym } from '../types/Synonym';
-import { calculateSeasonAndEpisode, getQualityProfile } from '../utils/Utils';
+import { calculateSeasonAndEpisode } from '../utils/Utils';
 import episodeCacheService from './episodeCacheService';
 import getIplayerExecutableService from './getIplayerExecutableService';
 import loggingService from './loggingService';
@@ -53,40 +51,7 @@ const iplayerService = {
                 : undefined,
             type,
         };
-    },
-
-    performSearch: async (term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> => {
-        const { sizeFactor } = await getQualityProfile();
-        return new Promise(async (resolve, reject) => {
-            const results: IPlayerSearchResult[] = [];
-            const { exec, args } = await getIplayerExecutableService.getSearchParameters(term, synonym);
-
-            loggingService.debug(`Executing get_iplayer with args: ${args.join(' ')}`);
-            const searchProcess = spawn(exec as string, args, { shell: true });
-
-            searchProcess.stdout.on('data', (data) => {
-                loggingService.debug(data.toString().trim());
-                const chunkResults: IPlayerSearchResult[] = getIplayerExecutableService.parseResults(
-                    term,
-                    data,
-                    sizeFactor
-                );
-                chunkResults.forEach((chunk) => results.push(chunk));
-            });
-
-            searchProcess.stderr.on('data', (data) => {
-                loggingService.error(data.toString().trim());
-            });
-
-            searchProcess.on('close', async (code) => {
-                if (code === 0) {
-                    resolve(await getIplayerExecutableService.processCompletedSearch(results, synonym));
-                } else {
-                    reject(new Error(`Process exited with code ${code}`));
-                }
-            });
-        });
-    },
+    }
 };
 
 export default iplayerService;

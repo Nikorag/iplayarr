@@ -1,9 +1,9 @@
 import { Request, Response, Router } from 'express';
 
 import nzbFacade from '../facade/nzbFacade';
+import searchFacade from '../facade/searchFacade';
 import iplayerService from '../service/iplayerService';
 import queueService from '../service/queueService';
-import searchService from '../service/searchService';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import AppsRoute from './json-api/AppsRoute';
@@ -38,7 +38,7 @@ router.post('/nzb/test', async (req: Request, res: Response) => {
 
 router.get('/search', async (req: Request, res: Response) => {
     const { q } = req.query as any;
-    const result: IPlayerSearchResult[] = await searchService.search(q);
+    const result: IPlayerSearchResult[] = await searchFacade.search(q);
     res.json(result);
 });
 

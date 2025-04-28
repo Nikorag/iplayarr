@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 
+import searchFacade from '../facade/searchFacade';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { QueuedStorage } from '../types/QueuedStorage';
-import searchService from './searchService';
 
 dotenv.config();
 
@@ -64,7 +64,7 @@ const configService = {
         configMap[parameter] = value;
         await storage.setItem('config', configMap);
         if (parameter == IplayarrParameter.NATIVE_SEARCH && oldValue != value) {
-            searchService.clearSearchCache();
+            searchFacade.clearSearchCache();
         }
     },
 

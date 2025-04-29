@@ -1,6 +1,5 @@
 import { spawn } from 'child_process';
 
-import downloadFacade from '../../facade/downloadFacade';
 import { IPlayerSearchResult } from '../../types/IPlayerSearchResult';
 import { Synonym } from '../../types/Synonym';
 import { getQualityProfile } from '../../utils/Utils';

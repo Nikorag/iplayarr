@@ -185,13 +185,14 @@ export function convertToMB(size: string): number {
     }
 }
 
-export function getETA(eta: string | undefined, size: number, speed: number): string {
+export function getETA(eta: string | undefined, size: number, speed: number, percent: number = 0): string {
     if (eta) return eta;
     if (speed <= 0) {
         return '';
     }
 
-    const totalSeconds = size / speed;
+    const remainingSize = size * (1 - (percent / 100))
+    const totalSeconds = remainingSize / speed;
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = Math.floor(totalSeconds % 60);

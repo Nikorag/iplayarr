@@ -169,17 +169,17 @@ export function convertToMB(size: string): number {
 
     switch (unit) {
         case 'MB':
-            return value; // Already in MB
+            return Number(value.toFixed(2)); // Already in MB
         case 'GB':
-            return value * 1024; // 1 GB = 1024 MB
+            return Number((value * 1024).toFixed(2)); // 1 GB = 1024 MB
         case 'GIB':
-            return value * 1024; // 1 GiB = 1024 MB
+            return Number((value * 1024).toFixed(2)); // 1 GiB = 1024 MB
         case 'KB':
-            return value / 1024; // 1 KB = 1/1024 MB
+            return Number((value / 1024).toFixed(2)); // 1 KB = 1/1024 MB
         case 'KIB':
-            return value / 1024; // 1 KiB = 1/1024 MB
+            return Number((value / 1024).toFixed(2)); // 1 KiB = 1/1024 MB
         case 'MIB':
-            return value; // Already in MB (since MiB and MB are equivalent for practical purposes)
+            return Number(value.toFixed(2)); // Already in MB (since MiB and MB are equivalent for practical purposes)
         default:
             return 0;
     }

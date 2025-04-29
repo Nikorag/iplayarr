@@ -117,7 +117,7 @@ class DownloadFacade {
                     progress: parseFloat(progress),
                     size: convertToMB(size),
                     speed: convertToMB(speed),
-                    eta: getETA(eta, convertToMB(size), convertToMB(speed)),
+                    eta: getETA(eta, convertToMB(size), convertToMB(speed), parseFloat(progress)),
                     sizeLeft,
                 };
 

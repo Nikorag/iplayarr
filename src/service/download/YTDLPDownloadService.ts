@@ -32,8 +32,10 @@ class YTDLPDownloadService implements AbstractDownloadService {
             const width = parseInt(width_str);
             if (!isNaN(width)) {
                 executable.args.push('-f');
-                executable.args.push(`bestvideo[width<=${width}]`);
-            }
+                executable.args.push(`bestvideo[width<=${width}]+bestaudio`);
+                executable.args.push('--merge-output-format');
+                executable.args.push('mp4');
+	    }
         }
 
         const iplayerURL: string = `https://www.bbc.co.uk/iplayer/episode/${pid}`;

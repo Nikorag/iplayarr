@@ -1,6 +1,7 @@
 import axios from 'axios';
-import nzbGetService from 'src/service/nzbgetService';
-import { App } from 'src/types/App';
+
+import nzbGetService from '../../src/service/nzbgetService';
+import { App } from '../../src/types/App';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;

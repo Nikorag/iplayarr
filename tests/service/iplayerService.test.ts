@@ -1,20 +1,21 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
-import { timestampFile } from 'src/constants/iPlayarrConstants';
-import configService from 'src/service/configService';
-import episodeCacheService from 'src/service/episodeCacheService';
-import getIplayerExecutableService from 'src/service/getIplayerExecutableService';
-import iplayerService from 'src/service/iplayerService';
+
+import { timestampFile } from '../../src/constants/iPlayarrConstants';
+import configService from '../../src/service/configService';
+import episodeCacheService from '../../src/service/episodeCacheService';
+import getIplayerExecutableService from '../../src/service/getIplayerExecutableService';
+import iplayerService from '../../src/service/iplayerService';
 
 jest.mock('fs');
 jest.mock('child_process', () => ({
     spawn: jest.fn()
 }));
-jest.mock('src/service/configService');
-jest.mock('src/service/loggingService');
-jest.mock('src/service/queueService');
-jest.mock('src/service/getIplayerExecutableService');
-jest.mock('src/service/episodeCacheService');
+jest.mock('../../src/service/configService');
+jest.mock('../../src/service/loggingService');
+jest.mock('../../src/service/queueService');
+jest.mock('../../src/service/getIplayerExecutableService');
+jest.mock('../../src/service/episodeCacheService');
 
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedSpawn = spawn as jest.Mock;

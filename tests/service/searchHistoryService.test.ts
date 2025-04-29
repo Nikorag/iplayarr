@@ -1,5 +1,5 @@
-import searchHistoryService from 'src/service/searchHistoryService';
-import { SearchHistoryEntry } from 'src/types/SearchHistoryEntry';
+import searchHistoryService from '../../src/service/searchHistoryService';
+import { SearchHistoryEntry } from '../../src/types/SearchHistoryEntry';
 
 describe('searchHistoryService', () => {
     // Clear history before each test run

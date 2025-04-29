@@ -1,15 +1,16 @@
-import nzbFacade from 'src/facade/nzbFacade';
-import appService from 'src/service/appService';
-import socketService from 'src/service/socketService';
-import { App } from 'src/types/App';
-import { AppType } from 'src/types/AppType';
-import { QueuedStorage } from 'src/types/QueuedStorage';
 import { v4 as uuidv4 } from 'uuid';
+
+import nzbFacade from '../../src/facade/nzbFacade';
+import appService from '../../src/service/appService';
+import socketService from '../../src/service/socketService';
+import { App } from '../../src/types/App';
+import { AppType } from '../../src/types/AppType';
+import { QueuedStorage } from '../../src/types/QueuedStorage';
 
 jest.mock('uuid', () => ({ v4: jest.fn() }));
 
 const mockStorageData: Record<string, any> = {};
-jest.mock('src/types/QueuedStorage', () => {
+jest.mock('../../src/types/QueuedStorage', () => {
     const mockStorageInstance = {
         getItem: jest.fn((key: string) => {
             return Promise.resolve(mockStorageData[key])
@@ -25,22 +26,22 @@ jest.mock('src/types/QueuedStorage', () => {
     };
 });
 
-jest.mock('src/service/arrService', () => ({
+jest.mock('../../src/service/arrService', () => ({
     testConnection: jest.fn(),
     createUpdateDownloadClient: jest.fn(),
     createUpdateIndexer: jest.fn(),
     createUpdateProwlarrIndexer: jest.fn(),
 }));
 
-jest.mock('src/service/configService', () => ({
+jest.mock('../../src/service/configService', () => ({
     getParameter: jest.fn()
 }));
 
-jest.mock('src/facade/nzbFacade', () => ({
+jest.mock('../../src/facade/nzbFacade', () => ({
     testConnection: jest.fn()
 }));
 
-jest.mock('src/service/socketService', () => ({
+jest.mock('../../src/service/socketService', () => ({
     emit: jest.fn()
 }));
 

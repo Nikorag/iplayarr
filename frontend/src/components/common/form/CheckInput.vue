@@ -1,41 +1,44 @@
 <template>
-  <div class="CheckInput-container">
-    <label class="CheckInput-label">
-      <input v-model="localValue" class="CheckInput-checkbox" type="checkbox">
-      <div
-        :class="{
-          'CheckInput-isChecked': localValue,
-          'CheckInput-isNotChecked': !localValue
-        }"
-        class="CheckInput-input"
-      >
-        <font-awesome-icon :icon="['fas', 'check']" />
-      </div>
-    </label>
-  </div>
+    <div class="CheckInput-container">
+        <label class="CheckInput-label">
+            <input v-model="localValue" class="CheckInput-checkbox" type="checkbox" />
+            <div
+                :class="{
+                    'CheckInput-isChecked': localValue,
+                    'CheckInput-isNotChecked': !localValue,
+                }"
+                class="CheckInput-input"
+            >
+                <font-awesome-icon :icon="['fas', 'check']" />
+            </div>
+        </label>
+    </div>
 </template>
 
 <script setup>
-import { defineEmits,defineProps, ref, watch } from 'vue'
+import { defineEmits, defineProps, ref, watch } from 'vue';
 
 const props = defineProps({
     modelValue: {
         type: Boolean,
         required: true,
-    }
-})
+    },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
-const localValue = ref(props.modelValue)
+const localValue = ref(props.modelValue);
 
 watch(localValue, (newValue) => {
-    emit('update:modelValue', newValue)
-})
+    emit('update:modelValue', newValue);
+});
 
-watch(() => props.modelValue, (newVal) => {
-    localValue.value = newVal
-})
+watch(
+    () => props.modelValue,
+    (newVal) => {
+        localValue.value = newVal;
+    }
+);
 </script>
 
 <style lang="less">

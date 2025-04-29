@@ -1,8 +1,25 @@
 <template>
-  <IPlayarrModal :title="`${action} Cache Definition`" :show-close="true" close-label="Cancel" :show-confirm="true" confirm-label="Save" @confirm="saveCacheDefinition">
-    <TextInput v-model="form.name" name="Search Term" tooltip="Search Term for the Cache Definition" placeholder="Red Dwarf" />
-    <TextInput v-model="form.url" name="URL" tooltip="iPlayer URL" placeholder="https://www.bbc.co.uk/iplayer/episodes/b008ncn6/red-dwarf" />
-  </IPlayarrModal>
+    <IPlayarrModal
+        :title="`${action} Cache Definition`"
+        :show-close="true"
+        close-label="Cancel"
+        :show-confirm="true"
+        confirm-label="Save"
+        @confirm="saveCacheDefinition"
+    >
+        <TextInput
+            v-model="form.name"
+            name="Search Term"
+            tooltip="Search Term for the Cache Definition"
+            placeholder="Red Dwarf"
+        />
+        <TextInput
+            v-model="form.url"
+            name="URL"
+            tooltip="iPlayer URL"
+            placeholder="https://www.bbc.co.uk/iplayer/episodes/b008ncn6/red-dwarf"
+        />
+    </IPlayarrModal>
 </template>
 
 <script setup>
@@ -18,28 +35,28 @@ const emit = defineEmits(['save']);
 const form = ref({
     id: undefined,
     name: '',
-    url: ''
+    url: '',
 });
 
 const props = defineProps({
     inputObj: {
         type: Object,
         required: false,
-        default: () => { }
+        default: () => {},
     },
 
     action: {
         type: String,
         required: false,
-        default: 'Create'
-    }
-})
+        default: 'Create',
+    },
+});
 
 onMounted(() => {
     form.value = {
         ...form.value,
-        ...props.inputObj
-    }
+        ...props.inputObj,
+    };
 });
 
 const saveCacheDefinition = () => {
@@ -48,11 +65,11 @@ const saveCacheDefinition = () => {
             form.value = {
                 id: undefined,
                 name: '',
-                url: ''
+                url: '',
             };
         });
     } else {
         dialogService.alert('Can\'t Save', 'Please complete the form');
     }
-}
+};
 </script>

@@ -1,20 +1,20 @@
 <template>
-  <div :class="['form-group', advanced ? 'advanced' : '']">
-    <label v-if="name">{{ name }}</label>
-    <div :class="['inputBox', error ? 'error' : '']">
-      <select v-model="localValue">
-        <option v-for="option of options" :key="option.key" :value="option.key">
-          {{ option.value }}
-        </option>
-      </select>
-      <div v-if="error" class="error">
-        {{ error }}
-      </div>
-      <div class="tooltip">
-        {{ tooltip }}
-      </div>
+    <div :class="['form-group', advanced ? 'advanced' : '']">
+        <label v-if="name">{{ name }}</label>
+        <div :class="['inputBox', error ? 'error' : '']">
+            <select v-model="localValue">
+                <option v-for="option of options" :key="option.key" :value="option.key">
+                    {{ option.value }}
+                </option>
+            </select>
+            <div v-if="error" class="error">
+                {{ error }}
+            </div>
+            <div class="tooltip">
+                {{ tooltip }}
+            </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -27,7 +27,7 @@ const props = defineProps({
     },
     options: {
         type: Array,
-        required: true
+        required: true,
     },
     tooltip: {
         type: String,
@@ -40,14 +40,14 @@ const props = defineProps({
     error: {
         type: String,
         required: false,
-        default: undefined
+        default: undefined,
     },
     advanced: {
         type: Boolean,
         required: false,
-        default: false
-    }
-})
+        default: false,
+    },
+});
 
 const emit = defineEmits(['update:modelValue']);
 

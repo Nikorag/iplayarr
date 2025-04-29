@@ -1,0 +1,84 @@
+import { spawn } from 'child_process';
+
+import downloadFacade from '../../facade/downloadFacade';
+import { IPlayerSearchResult } from '../../types/IPlayerSearchResult';
+import { Synonym } from '../../types/Synonym';
+import { getQualityProfile } from '../../utils/Utils';
+import episodeCacheService from '../episodeCacheService';
+import getIplayerExecutableService from '../getIplayerExecutableService';
+import loggingService from '../loggingService';
+import AbstractSearchService from './AbstractSearchService';
+
+class GetIplayerSearchService implements AbstractSearchService {
+    async search(term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> {
+        const { sizeFactor } = await getQualityProfile();
+        return new Promise(async (resolve, reject) => {
+            const results: IPlayerSearchResult[] = [];
+            const { exec, args } = await getIplayerExecutableService.getSearchParameters(term, synonym);
+
+            loggingService.debug(`Executing get_iplayer with args: ${args.join(' ')}`);
+            const searchProcess = spawn(exec as string, args, { shell: true });
+
+            searchProcess.stdout.on('data', (data) => {
+                loggingService.debug(data.toString().trim());
+                const chunkResults: IPlayerSearchResult[] = getIplayerExecutableService.parseResults(
+                    term,
+                    data,
+                    sizeFactor
+                );
+                chunkResults.forEach((chunk) => results.push(chunk));
+            });
+
+            searchProcess.stderr.on('data', (data) => {
+                loggingService.error(data.toString().trim());
+            });
+
+            searchProcess.on('close', async (code) => {
+                if (code === 0) {
+                    resolve(await getIplayerExecutableService.processCompletedSearch(results, synonym));
+                } else {
+                    reject(new Error(`Process exited with code ${code}`));
+                }
+            });
+        });
+    }
+
+    async processCompletedSearch(results: IPlayerSearchResult[], inputTerm: string, season?: number, episode?: number): Promise<IPlayerSearchResult[]> {
+        const episodeCache: IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
+        for (const cachedEpisode of episodeCache) {
+            if (cachedEpisode) {
+                const exists = results.some(({ pid }) => pid == cachedEpisode.pid);
+                const validSeason = season ? cachedEpisode.series == season : true;
+                const validEpisode = episode ? cachedEpisode.episode == episode : true;
+                if (!exists && validSeason && validEpisode) {
+                    results.push({
+                        ...cachedEpisode,
+                        pubDate: cachedEpisode.pubDate ? new Date(cachedEpisode.pubDate) : undefined,
+                    });
+                }
+            }
+        }
+        return results;
+    }
+
+    async refreshCache () : Promise<void> {
+        const { exec, args } = await getIplayerExecutableService.getIPlayerExec();
+
+        //Refresh the cache
+        loggingService.debug(`Executing get_iplayer with args: ${[...args].join(' ')} --cache-rebuild`);
+        const refreshService = spawn(exec as string, [...args, '--cache-rebuild'], { shell: true });
+
+        refreshService.stdout.on('data', (data) => {
+            loggingService.debug(data.toString());
+        });
+
+        refreshService.stderr.on('data', (data) => {
+            loggingService.error(data.toString());
+        });
+
+        //Delete failed jobs
+        downloadFacade.cleanupFailedDownloads();
+    }
+}
+
+export default new GetIplayerSearchService();

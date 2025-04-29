@@ -1,7 +1,7 @@
 <template>
-  <div :class="['progress-bar', status]">
-    <div class="progress" :style="{ width: progress + '%' }" />
-  </div>  
+    <div :class="['progress-bar', status]">
+        <div class="progress" :style="{ width: progress + '%' }" />
+    </div>
 </template>
 
 <script setup>
@@ -11,42 +11,42 @@ defineProps({
     progress: {
         type: Number,
         required: false,
-        default: 100
+        default: 100,
     },
     status: {
         type: String,
-        required: true
-    }
+        required: true,
+    },
 });
 </script>
 
 <style lang="less" scoped>
 .progress-bar {
-  width: 100%;
-  position: relative;
-  background-color: @input-background-color;
-  border-radius: 5px;
-  overflow: hidden;
+    width: 100%;
+    position: relative;
+    background-color: @input-background-color;
+    border-radius: 5px;
+    overflow: hidden;
 
-  .progress {
-    height: 15px;
-    background-color: @primary-color;
-  }
+    .progress {
+        height: 15px;
+        background-color: @primary-color;
+    }
 
-  &.Complete {
-    .progress {
-      background-color: @complete-color;
+    &.Complete {
+        .progress {
+            background-color: @complete-color;
+        }
     }
-  }
-  &.Forwarded {
-    .progress {
-      background-color: @warn-color;
+    &.Forwarded {
+        .progress {
+            background-color: @warn-color;
+        }
     }
-  }
-  &.Cancelled {
-    .progress {
-      background-color: @error-color;
+    &.Cancelled {
+        .progress {
+            background-color: @error-color;
+        }
     }
-  }
 }
 </style>

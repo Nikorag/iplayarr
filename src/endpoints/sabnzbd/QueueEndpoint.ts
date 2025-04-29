@@ -1,44 +1,51 @@
-import { NextFunction, Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express';
 
 import configService from '../../service/configService';
 import historyService from '../../service/historyService';
 import queueService from '../../service/queueService';
 import { IplayarrParameter } from '../../types/IplayarrParameters';
 import { QueueEntry } from '../../types/QueueEntry';
-import { queueEntrySkeleton, QueueEntryStatus, queueSkeleton, QueueStatus, SabNZBDQueueResponse, SabNZBQueueEntry } from '../../types/responses/sabnzbd/QueueResponse';
+import {
+    queueEntrySkeleton,
+    QueueEntryStatus,
+    queueSkeleton,
+    QueueStatus,
+    SabNZBDQueueResponse,
+    SabNZBQueueEntry,
+} from '../../types/responses/sabnzbd/QueueResponse';
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse';
 import { EndpointDirectory } from '../EndpointDirectory';
 
 interface QueueQuery {
-    name? : string
-    value? : string
+    name?: string;
+    value?: string;
 }
 
-export default async (req : Request, res : Response, next : NextFunction) => {
-    const {name} = req.query as QueueQuery;
-    if (name && actionDirectory[name]){
+export default async (req: Request, res: Response, next: NextFunction) => {
+    const { name } = req.query as QueueQuery;
+    if (name && actionDirectory[name]) {
         actionDirectory[name](req, res, next);
-        return
+        return;
     } else {
-        const queue : QueueEntry[] = queueService.getQueue();
-        const downloadQueue : QueueEntry[] = queue.filter(({status}) => status == QueueEntryStatus.DOWNLOADING);
+        const queue: QueueEntry[] = queueService.getQueue();
+        const downloadQueue: QueueEntry[] = queue.filter(({ status }) => status == QueueEntryStatus.DOWNLOADING);
         const iplayerComplete = await historyService.getHistory();
-        const queueResponse : SabNZBDQueueResponse = {
+        const queueResponse: SabNZBDQueueResponse = {
             ...queueSkeleton,
-            status : downloadQueue.length > 0 ? QueueStatus.DOWNLOADING : QueueStatus.IDLE,
-            noofslots_total : queue.length,
-            noofslots : queue.length,
+            status: downloadQueue.length > 0 ? QueueStatus.DOWNLOADING : QueueStatus.IDLE,
+            noofslots_total: queue.length,
+            noofslots: queue.length,
             finish: iplayerComplete.length,
-            slots : queue.map(convertEntries)
+            slots: queue.map(convertEntries),
         } as SabNZBDQueueResponse;
-        res.json({queue : queueResponse});
+        res.json({ queue: queueResponse });
     }
-}
+};
 
-function convertEntries(slot : QueueEntry, index : number) : SabNZBQueueEntry {
+function convertEntries(slot: QueueEntry, index: number): SabNZBQueueEntry {
     return {
         ...queueEntrySkeleton,
-        status : slot.status,
+        status: slot.status,
         index,
         mb: slot.details?.size || 0,
         mbleft: slot.details?.sizeLeft || 100,
@@ -49,16 +56,16 @@ function convertEntries(slot : QueueEntry, index : number) : SabNZBQueueEntry {
     } as SabNZBQueueEntry;
 }
 
-const actionDirectory : EndpointDirectory = {
-    delete : async (req : Request, res : Response) => {
+const actionDirectory: EndpointDirectory = {
+    delete: async (req: Request, res: Response) => {
         const archive = (await configService.getParameter(IplayarrParameter.ARCHIVE_ENABLED)) == 'true';
-        const {value} = req.query as QueueQuery;
-        if (value){
+        const { value } = req.query as QueueQuery;
+        if (value) {
             queueService.cancelItem(value, archive);
-            res.json({status:true} as TrueFalseResponse);
+            res.json({ status: true } as TrueFalseResponse);
         } else {
-            res.json({status:false} as TrueFalseResponse);
+            res.json({ status: false } as TrueFalseResponse);
         }
-	    return;
-    }
-}
+        return;
+    },
+};

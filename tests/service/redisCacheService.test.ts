@@ -62,12 +62,7 @@ describe('RedisCacheService', () => {
         it('sets value with correct key and TTL', async () => {
             await service.set('myKey', { hello: 'world' });
 
-            expect(redis.set).toHaveBeenCalledWith(
-                'test_myKey',
-                JSON.stringify({ hello: 'world' }),
-                'EX',
-                ttl
-            );
+            expect(redis.set).toHaveBeenCalledWith('test_myKey', JSON.stringify({ hello: 'world' }), 'EX', ttl);
         });
     });
 
@@ -87,6 +82,6 @@ describe('RedisCacheService', () => {
 
             expect(redis.keys).toHaveBeenCalledWith('test_*');
             expect(redis.del).toHaveBeenCalledWith(['test_myKey', 'test_myKey2']);
-        })
-    })
+        });
+    });
 });

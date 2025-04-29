@@ -7,7 +7,6 @@ jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('nzbGetService', () => {
-
     afterEach(() => {
         jest.clearAllMocks(); // Clear mocks between tests
     });
@@ -80,12 +79,12 @@ describe('nzbGetService', () => {
             const app: App = {
                 url: 'http://localhost:6789',
                 username: 'testuser',
-                password: 'testpassword'
+                password: 'testpassword',
             } as App;
             const mockFile = {
                 originalname: 'test.nzb',
                 buffer: Buffer.from('dummy content'),
-                mimetype: 'application/octet-stream'
+                mimetype: 'application/octet-stream',
             } as Express.Multer.File;
 
             const files = [mockFile];
@@ -103,33 +102,33 @@ describe('nzbGetService', () => {
                         'test.nzb', // File name
                         expect.stringContaining(Buffer.from('dummy content').toString('base64')), // Base64 content
                         'iplayer', // Category
-                        expect.any(String) // nzo_id (UUID)
-                    ])
+                        expect.any(String), // nzo_id (UUID)
+                    ]),
                 }),
                 expect.objectContaining({
                     auth: {
                         username: app.username,
-                        password: app.password
+                        password: app.password,
                     },
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
                 })
             );
         });
 
         it('should handle an exception when adding a file', async () => {
             mockedAxios.post.mockResolvedValue({
-                status : 404
-            })
+                status: 404,
+            });
 
             const app: App = {
                 url: 'http://localhost:6789',
                 username: 'testuser',
-                password: 'testpassword'
+                password: 'testpassword',
             } as App;
             const mockFile = {
                 originalname: 'test.nzb',
                 buffer: Buffer.from('dummy content'),
-                mimetype: 'application/octet-stream'
+                mimetype: 'application/octet-stream',
             } as Express.Multer.File;
 
             const files = [mockFile];
@@ -151,12 +150,12 @@ describe('nzbGetService', () => {
             const app: App = {
                 url: 'http://localhost:6789',
                 username: 'testuser',
-                password: 'testpassword'
+                password: 'testpassword',
             } as App;
             const mockFile = {
                 originalname: 'test.nzb',
                 buffer: Buffer.from('dummy content'),
-                mimetype: 'application/octet-stream'
+                mimetype: 'application/octet-stream',
             } as Express.Multer.File;
 
             const files = [mockFile];

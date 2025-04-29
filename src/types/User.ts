@@ -1,6 +1,6 @@
 class User {
-    username : string = '';
-    password? : string;
+    username: string = '';
+    password?: string;
 }
 
 export = User;

@@ -1,6 +1,6 @@
 export interface EpisodeCacheDefinition {
-    id : string,
-    url : string,
-    name : string,
-    cacheRefreshed? : Date
+    id: string;
+    url: string;
+    name: string;
+    cacheRefreshed?: Date;
 }

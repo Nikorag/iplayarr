@@ -1,62 +1,74 @@
 <template>
-  <SettingsPageToolbar :icons="['filter', 'download']" :filter-options="availableFilters" :selected-filter="filter" :filter-enabled="filter != 'All'" @download="multipleImmediateDownload" @select-filter="selectFilter" />
-  <div v-if="!loading" class="inner-content scroll-x">
-    <table class="resultsTable">
-      <thead>
-        <tr>
-          <th>
-            <CheckInput v-model="allChecked" />
-          </th>
-          <th>Type</th>
-          <th>Title</th>
-          <th>Episode</th>
-          <th>Filename</th>
-          <th>Est. Size</th>
-          <th>Channel</th>
-          <th>First Broadcast</th>
-          <th>
-            <font-awesome-icon :icon="['fas', 'gears']" />
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="result of filteredResults" :key="result.pid" class="clickable">
-          <td>
-            <CheckInput v-model="result.checked" />
-          </td>
-          <td @click="download(result)">
-            <span :class="['pill', result.type]">
-              {{ result.type }}
-            </span>
-          </td>
-          <td @click="download(result)">
-            {{ result.title }}
-          </td>
-          <td @click="download(result)">
-            {{ result.episode ? `Series ${result.series}, Episode ${result.episode}` : result.episodeTitle }}
-          </td>
-          <td class="wrap" @click="download(result)">
-            {{ result.nzbName }}
-          </td>
-          <td @click="download(result)">
-            {{ formatStorageSize(result.size) }}
-          </td>
-          <td @click="download(result)">
-            <span :class="['pill', result.channel.replaceAll(' ', '')]">
-              {{ result.channel }}
-            </span>
-          </td>
-          <td @click="download(result)">
-            {{ formatDate(result.pubDate) }}
-          </td>
-          <td @click="immediateDownload(result)">
-            <font-awesome-icon :class="['clickable', result.downloading ? 'downloading' : '']" :icon="['fas', 'cloud-download']" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <LoadingIndicator v-if="loading" />
+    <SettingsPageToolbar
+        :icons="['filter', 'download']"
+        :filter-options="availableFilters"
+        :selected-filter="filter"
+        :filter-enabled="filter != 'All'"
+        @download="multipleImmediateDownload"
+        @select-filter="selectFilter"
+    />
+    <div v-if="!loading" class="inner-content scroll-x">
+        <table class="resultsTable">
+            <thead>
+                <tr>
+                    <th>
+                        <CheckInput v-model="allChecked" />
+                    </th>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Episode</th>
+                    <th>Filename</th>
+                    <th>Est. Size</th>
+                    <th>Channel</th>
+                    <th>First Broadcast</th>
+                    <th>
+                        <font-awesome-icon :icon="['fas', 'gears']" />
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="result of filteredResults" :key="result.pid" class="clickable">
+                    <td>
+                        <CheckInput v-model="result.checked" />
+                    </td>
+                    <td @click="download(result)">
+                        <span :class="['pill', result.type]">
+                            {{ result.type }}
+                        </span>
+                    </td>
+                    <td @click="download(result)">
+                        {{ result.title }}
+                    </td>
+                    <td @click="download(result)">
+                        {{
+                            result.episode ? `Series ${result.series}, Episode ${result.episode}` : result.episodeTitle
+                        }}
+                    </td>
+                    <td class="wrap" @click="download(result)">
+                        {{ result.nzbName }}
+                    </td>
+                    <td @click="download(result)">
+                        {{ formatStorageSize(result.size) }}
+                    </td>
+                    <td @click="download(result)">
+                        <span :class="['pill', result.channel.replaceAll(' ', '')]">
+                            {{ result.channel }}
+                        </span>
+                    </td>
+                    <td @click="download(result)">
+                        {{ formatDate(result.pubDate) }}
+                    </td>
+                    <td @click="immediateDownload(result)">
+                        <font-awesome-icon
+                            :class="['clickable', result.downloading ? 'downloading' : '']"
+                            :icon="['fas', 'cloud-download']"
+                        />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <LoadingIndicator v-if="loading" />
 </template>
 
 <script setup>
@@ -81,52 +93,62 @@ const filter = ref('All');
 const allChecked = ref(false);
 
 const filteredResults = computed(() => {
-    return filter.value == 'All' ? searchResults.value : searchResults.value.filter(({ type }) => type == filter.value.toUpperCase());
-})
+    return filter.value == 'All'
+        ? searchResults.value
+        : searchResults.value.filter(({ type }) => type == filter.value.toUpperCase());
+});
 
-watch(() => route.query.searchTerm, async (newSearchTerm) => {
-    if (newSearchTerm) {
-        filter.value = 'All';
-        loading.value = true;
-        searchResults.value = [];
-        searchTerm.value = newSearchTerm;
-        searchResults.value = (await ipFetch(`json-api/search?q=${searchTerm.value}`)).data;
-        loading.value = false;
-    }
-}, { immediate: true });
+watch(
+    () => route.query.searchTerm,
+    async (newSearchTerm) => {
+        if (newSearchTerm) {
+            filter.value = 'All';
+            loading.value = true;
+            searchResults.value = [];
+            searchTerm.value = newSearchTerm;
+            searchResults.value = (await ipFetch(`json-api/search?q=${searchTerm.value}`)).data;
+            loading.value = false;
+        }
+    },
+    { immediate: true }
+);
 
 const download = async (searchResult) => {
     router.push({ name: 'download', query: { json: JSON.stringify(searchResult) } });
-}
+};
 
 const immediateDownload = async ({ pid, nzbName, type }) => {
     const response = await ipFetch(`json-api/download?pid=${pid}&nzbName=${nzbName}&type=${type}`);
     if (response.ok) {
         router.push('/queue');
     }
-}
+};
 
-const multipleImmediateDownload = async() => {
+const multipleImmediateDownload = async () => {
     const selectedResults = filteredResults.value.filter((result) => result.checked);
     if (selectedResults.length > 0) {
-        if (await dialogService.confirm('Download', `Do you want to download ${selectedResults.length} items?`)){
+        if (await dialogService.confirm('Download', `Do you want to download ${selectedResults.length} items?`)) {
             loading.value = true;
-            for (const item of selectedResults){
+            for (const item of selectedResults) {
                 await immediateDownload(item);
             }
         }
     }
-}
+};
 
 const selectFilter = (option) => {
     filter.value = option;
-}
+};
 
-watch(allChecked, (newValue) => {
-    filteredResults.value.forEach((result) => {
-        result.checked = newValue;
-    });
-}, { immediate: true });
+watch(
+    allChecked,
+    (newValue) => {
+        filteredResults.value.forEach((result) => {
+            result.checked = newValue;
+        });
+    },
+    { immediate: true }
+);
 </script>
 
 <style lang="less" scoped>
@@ -158,9 +180,9 @@ watch(allChecked, (newValue) => {
                 padding: 8px;
                 border-top: 1px solid @table-border-color;
                 line-height: 1.52857143;
-                
+
                 &.wrap {
-                  word-break: break-word;
+                    word-break: break-word;
                 }
             }
         }

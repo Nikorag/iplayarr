@@ -3,7 +3,7 @@ import path from 'path';
 
 import { listFormat, progressRegex } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
-import { GetIPlayerExecutable } from '../types/GetIplayer/GetIPlayerExecutable';
+import { SpawnExecutable } from '../types/GetIplayer/SpawnExecutable';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { LogLine, LogLineLevel } from '../types/LogLine';
@@ -19,14 +19,14 @@ import socketService from './socketService';
 import synonymService from './synonymService';
 
 export class GetIplayerExecutableService {
-    async getIPlayerExec(): Promise<GetIPlayerExecutable> {
-        const fullExec: string = await configService.getParameter(IplayarrParameter.GET_IPLAYER_EXEC) as string;
+    async getIPlayerExec(): Promise<SpawnExecutable> {
+        const fullExec: string = (await configService.getParameter(IplayarrParameter.GET_IPLAYER_EXEC)) as string;
         const args: RegExpMatchArray = fullExec?.match(/(?:[^\s"]+|"[^"]*")+/g) ?? ['get_iplayer'];
 
         const exec: string = args.shift() as string;
 
         args.push('--encoding-console-out');
-        args.push('UTF-8')
+        args.push('UTF-8');
 
         const cacheLocation = process.env.CACHE_LOCATION;
         if (cacheLocation) {
@@ -36,28 +36,38 @@ export class GetIplayerExecutableService {
 
         return {
             exec,
-            args
-        }
+            args,
+        };
     }
 
     async #getQualityParam(): Promise<string> {
-        const videoQuality = await configService.getParameter(IplayarrParameter.VIDEO_QUALITY) as string;
+        const videoQuality = (await configService.getParameter(IplayarrParameter.VIDEO_QUALITY)) as string;
         return `--tv-quality=${videoQuality}`;
     }
 
-    async getAllDownloadParameters(pid: string): Promise<GetIPlayerExecutable> {
-        const downloadDir: string = await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR) as string;
-
+    async getAllDownloadParameters(pid: string, directory: string): Promise<SpawnExecutable> {
         const { exec, args } = await this.getIPlayerExec();
-        const additionalParamsString: string = await configService.getParameter(IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS) as string;
+        const additionalParamsString: string = (await configService.getParameter(
+            IplayarrParameter.ADDITIONAL_IPLAYER_DOWNLOAD_PARAMS
+        )) as string;
         const additionalParams: string[] = additionalParamsString ? additionalParamsString.split(' ') : [];
 
-        const allArgs: string[] = [...args, ...additionalParams, await this.#getQualityParam(), '--output', `${downloadDir}/${pid}`, '--overwrite', '--force', '--log-progress', `--pid=${pid}`];
+        const allArgs: string[] = [
+            ...args,
+            ...additionalParams,
+            await this.#getQualityParam(),
+            '--output',
+            directory,
+            '--overwrite',
+            '--force',
+            '--log-progress',
+            `--pid=${pid}`,
+        ];
 
         return {
             exec,
-            args: allArgs
-        }
+            args: allArgs,
+        };
     }
 
     async getSearchParameters(term: string, synonym?: Synonym) {
@@ -79,13 +89,13 @@ export class GetIplayerExecutableService {
 
         return {
             exec,
-            args: allArgs
-        }
+            args: allArgs,
+        };
     }
 
-    logProgress(pid: string, data : any) {
+    logProgress(pid: string, data: any) {
         console.log(data.toString());
-        const logLine: LogLine = { level: LogLineLevel.INFO, id: pid, message: data.toString(), timestamp: new Date() }
+        const logLine: LogLine = { level: LogLineLevel.INFO, id: pid, message: data.toString(), timestamp: new Date() };
         socketService.emit('log', logLine);
     }
 
@@ -96,20 +106,19 @@ export class GetIplayerExecutableService {
             const progressLine: string = progressLines.pop() as string;
             const match = progressRegex.exec(progressLine);
             if (match) {
-
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const [_, progress, size, speed, eta] = match;
                 const percentFactor = (100 - parseFloat(progress)) / 100;
-                const sizeLeft = parseFloat(size) * percentFactor;
 
+                const sizeLeft = size ? parseFloat(size) * percentFactor : undefined;
                 const deltaDetails: Partial<DownloadDetails> = {
                     uuid: pid,
                     progress: parseFloat(progress),
                     size: parseFloat(size),
                     speed: parseFloat(speed),
                     eta,
-                    sizeLeft
-                }
+                    sizeLeft,
+                };
 
                 return deltaDetails;
             }
@@ -118,7 +127,10 @@ export class GetIplayerExecutableService {
     }
 
     async processCompletedDownload(pid: string, code: number | null): Promise<void> {
-        const [downloadDir, completeDir] = await configService.getParameters(IplayarrParameter.DOWNLOAD_DIR, IplayarrParameter.COMPLETE_DIR) as string[];
+        const [downloadDir, completeDir] = (await configService.getParameters(
+            IplayarrParameter.DOWNLOAD_DIR,
+            IplayarrParameter.COMPLETE_DIR
+        )) as string[];
         if (code === 0) {
             const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
             if (queueItem) {
@@ -126,7 +138,7 @@ export class GetIplayerExecutableService {
                     const uuidPath = path.join(downloadDir, pid);
                     loggingService.debug(pid, `Looking for MP4 files in ${uuidPath}`);
                     const files = fs.readdirSync(uuidPath);
-                    const mp4File = files.find(file => file.endsWith('.mp4'));
+                    const mp4File = files.find((file) => file.endsWith('.mp4'));
 
                     if (mp4File) {
                         const oldPath = path.join(uuidPath, mp4File);
@@ -156,10 +168,11 @@ export class GetIplayerExecutableService {
         for (const line of lines) {
             if (line.startsWith('RESULT|:|')) {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom, epTitle] = line.split('|:|');
-                const [ title, episodeNum, seriesNum ] = parseEpisodeDetailStrings(rawTitle, episodeStr, seriesStr)
+                const [_, pid, rawTitle, seriesStr, episodeStr, number, channel, durationStr, onlineFrom, epTitle] =
+                    line.split('|:|');
+                const [title, episodeNum, seriesNum] = parseEpisodeDetailStrings(rawTitle, episodeStr, seriesStr);
                 const duration = durationStr != '' ? parseInt(durationStr) : undefined;
-                const [ type, episode, episodeTitle, series ] = calculateSeasonAndEpisode({
+                const [type, episode, episodeTitle, series] = calculateSeasonAndEpisode({
                     type: 'episode',
                     pid,
                     title: episodeNum != null || epTitle != '' ? epTitle : title,
@@ -168,12 +181,15 @@ export class GetIplayerExecutableService {
                         title,
                         subtitle: epTitle,
                     },
-                    parent: episodeNum != null || epTitle != '' ? {
-                        programme: {
-                            type: 'series',
-                            position: seriesNum
-                        }
-                    } : undefined
+                    parent:
+                        episodeNum != null || epTitle != ''
+                            ? {
+                                  programme: {
+                                      type: 'series',
+                                      position: seriesNum,
+                                  },
+                              }
+                            : undefined,
                 } as IPlayerProgramMetadata);
                 results.push({
                     pid,
@@ -186,16 +202,16 @@ export class GetIplayerExecutableService {
                     type,
                     size: duration == null || isNaN(duration) ? undefined : Math.floor(duration * sizeFactor),
                     pubDate: onlineFrom ? new Date(onlineFrom) : undefined,
-                    episodeTitle
+                    episodeTitle,
                 });
             }
         }
         return results;
     }
 
-    async processCompletedSearch(results : IPlayerSearchResult[], synonym? : Synonym) : Promise<IPlayerSearchResult[]> {
+    async processCompletedSearch(results: IPlayerSearchResult[], synonym?: Synonym): Promise<IPlayerSearchResult[]> {
         for (const result of results) {
-            const resultSynonym = synonym ?? await synonymService.getSynonym(result.title);
+            const resultSynonym = synonym ?? (await synonymService.getSynonym(result.title));
             result.nzbName = await createNZBName(result, resultSynonym);
         }
         return results;

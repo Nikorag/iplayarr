@@ -1,19 +1,19 @@
 <template>
-  <IPlayarrModal title="Select App">
-    <ListEditor v-slot="{ item }" :show-add="false" :items="apps">
-      <a @click.prevent="emit('selectApp', item)">
-        <div class="major">
-          <img class="appImg" :src="`/img/${item.type.toLowerCase()}.svg`">
-          <span class="appName">
-            {{ item.name }}
-          </span>
-        </div>
-        <div class="sub">
-          {{ item.url }}
-        </div>
-      </a>
-    </ListEditor>
-  </IPlayarrModal>
+    <IPlayarrModal title="Select App">
+        <ListEditor v-slot="{ item }" :show-add="false" :items="apps">
+            <a @click.prevent="emit('selectApp', item)">
+                <div class="major">
+                    <img class="appImg" :src="`/img/${item.type.toLowerCase()}.svg`" />
+                    <span class="appName">
+                        {{ item.name }}
+                    </span>
+                </div>
+                <div class="sub">
+                    {{ item.url }}
+                </div>
+            </a>
+        </ListEditor>
+    </IPlayarrModal>
 </template>
 
 <script setup>
@@ -38,25 +38,25 @@ onMounted(async () => {
         emit('close');
         return;
     }
-})
+});
 </script>
 
 <style lang="less" scoped>
 .major {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
 
-  .appImg {
-    width: 25px;
-  }
+    .appImg {
+        width: 25px;
+    }
 }
 
 .featureList {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
 }
 </style>

@@ -1,32 +1,32 @@
 <template>
-  <button v-for="item in items" :key="JSON.stringify(item)" class="listButton clickable">
-    <slot :item="item" />
-    <div class="actionContainer">
-      <button v-for="action in actions" :key="action[0]" class="clickable" @click="action[1](item)">
-        <font-awesome-icon :icon="['fas', action[0]]" />
-      </button>
-    </div>
-  </button>
-  <button v-if="showAdd" class="listButton listAddButton clickable" @click="emit('create')">
-    <div class="addButtonCenter">
-      <font-awesome-icon :icon="['fas', 'plus']" />
-    </div>
-  </button>
+    <button v-for="item in items" :key="JSON.stringify(item)" class="listButton clickable">
+        <slot :item="item" />
+        <div class="actionContainer">
+            <button v-for="action in actions" :key="action[0]" class="clickable" @click="action[1](item)">
+                <font-awesome-icon :icon="['fas', action[0]]" />
+            </button>
+        </div>
+    </button>
+    <button v-if="showAdd" class="listButton listAddButton clickable" @click="emit('create')">
+        <div class="addButtonCenter">
+            <font-awesome-icon :icon="['fas', 'plus']" />
+        </div>
+    </button>
 </template>
 
 <script setup>
 import { defineEmits, defineProps } from 'vue';
 
-const emit = defineEmits(['create'])
+const emit = defineEmits(['create']);
 
 defineProps({
     showAdd: {
         type: Boolean,
         required: false,
-        default: true
+        default: true,
     },
     items: Array,
-    actions: Array
+    actions: Array,
 });
 </script>
 

@@ -17,28 +17,28 @@ import SynonymsPage from '@/views/SynonymsPage.vue';
 const routes = [
     { path: '/', redirect: '/queue' },
     { path: '/queue', component: QueuePage },
-    { path: '/info', component: QueueInfoPage, name : 'queueInfo'},
+    { path: '/info', component: QueueInfoPage, name: 'queueInfo' },
     { path: '/logs', component: LogsPage },
     { path: '/about', component: AboutPage },
     { path: '/settings', component: SettingsPage },
     { path: '/synonyms', component: SynonymsPage },
     { path: '/login', component: LoginPage },
-    { path: '/search', component: SearchPage, name : 'search' },
-    { path: '/download', component: DownloadPage, name : 'download' },
-    { path: '/offSchedule', component: OffSchedulePage},
-    { path: '/apps', component: AppsPage}
+    { path: '/search', component: SearchPage, name: 'search' },
+    { path: '/download', component: DownloadPage, name: 'download' },
+    { path: '/offSchedule', component: OffSchedulePage },
+    { path: '/apps', component: AppsPage },
 ];
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
     scrollBehavior() {
-        return {top : 0, behaviour : 'smooth'};
-    }
+        return { top: 0, behaviour: 'smooth' };
+    },
 });
 
 router.beforeEach(async (to, _, next) => {
-    if (to.path == '/login'){
+    if (to.path == '/login') {
         return next();
     }
     const authState = inject('authState'); // Inject global state

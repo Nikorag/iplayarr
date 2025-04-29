@@ -60,7 +60,7 @@ describe('Redis Client Initialization', () => {
 
     it('should enable TLS if REDIS_SSL is true', async () => {
         process.env.REDIS_SSL = 'true';
-        
+
         await import('../../src/service/redisService');
         const Redis = (await import('ioredis')).default;
 
@@ -74,8 +74,10 @@ describe('Redis Client Initialization', () => {
         await import('../../src/service/redisService');
         const Redis = (await import('ioredis')).default;
 
-        expect(Redis).toHaveBeenCalledWith(expect.objectContaining({
-            password: 'secret',
-        }));
+        expect(Redis).toHaveBeenCalledWith(
+            expect.objectContaining({
+                password: 'secret',
+            })
+        );
     });
 });

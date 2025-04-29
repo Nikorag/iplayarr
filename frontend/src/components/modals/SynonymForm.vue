@@ -1,15 +1,43 @@
 <template>
-  <IPlayarrModal :title="`${action} Synonym`" :show-close="true" close-label="Cancel" :show-confirm="true" confirm-label="Save" @confirm="saveSynonym">
-    <TextInput v-model="form.from" name="From" tooltip="Incoming term from *arr" placeholder="Apprentice UK" icon-button="history" button-tooltip="Look at Search History" @action="openSearchHistory" />
-    <TextInput v-model="form.target" name="To" tooltip="Outgoing search to iPlayer" placeholder="Apprentice" />
-    <TextInput v-model="form.filenameOverride" name="Filename Override" tooltip="Optional Text for the filename" placeholder="The Apprentice UK" :brand-button="searchApp.type ? searchApp.type : undefined" :button-tooltip="searchApp.type ? `Lookup on ${searchApp.name}` : ''" @action="openArrLookup" />
-    <TextInput v-model="form.exemptions" name="Exemptions" tooltip="Exemptions (comma seperated)" placeholder="You're Fired!" />
-  </IPlayarrModal>
+    <IPlayarrModal
+        :title="`${action} Synonym`"
+        :show-close="true"
+        close-label="Cancel"
+        :show-confirm="true"
+        confirm-label="Save"
+        @confirm="saveSynonym"
+    >
+        <TextInput
+            v-model="form.from"
+            name="From"
+            tooltip="Incoming term from *arr"
+            placeholder="Apprentice UK"
+            icon-button="history"
+            button-tooltip="Look at Search History"
+            @action="openSearchHistory"
+        />
+        <TextInput v-model="form.target" name="To" tooltip="Outgoing search to iPlayer" placeholder="Apprentice" />
+        <TextInput
+            v-model="form.filenameOverride"
+            name="Filename Override"
+            tooltip="Optional Text for the filename"
+            placeholder="The Apprentice UK"
+            :brand-button="searchApp.type ? searchApp.type : undefined"
+            :button-tooltip="searchApp.type ? `Lookup on ${searchApp.name}` : ''"
+            @action="openArrLookup"
+        />
+        <TextInput
+            v-model="form.exemptions"
+            name="Exemptions"
+            tooltip="Exemptions (comma seperated)"
+            placeholder="You're Fired!"
+        />
+    </IPlayarrModal>
 </template>
 
 <script setup>
 import { defineEmits, defineProps, onMounted, ref } from 'vue';
-import { useModal } from 'vue-final-modal'
+import { useModal } from 'vue-final-modal';
 
 import dialogService from '@/lib/dialogService';
 
@@ -24,23 +52,23 @@ const props = defineProps({
     inputObj: {
         type: Object,
         required: false,
-        default: () => { }
+        default: () => {},
     },
 
     action: {
         type: String,
         required: false,
-        default: 'Create'
+        default: 'Create',
     },
 
-    inputApp: Object
-})
+    inputApp: Object,
+});
 
 const form = ref({
     id: undefined,
     from: '',
     target: '',
-    exemptions: ''
+    exemptions: '',
 });
 
 const searchApp = ref({});
@@ -48,8 +76,8 @@ const searchApp = ref({});
 onMounted(() => {
     form.value = {
         ...form.value,
-        ...props.inputObj
-    }
+        ...props.inputObj,
+    };
 
     if (props.inputApp) {
         searchApp.value = props.inputApp;
@@ -67,12 +95,12 @@ const saveSynonym = () => {
             from: '',
             target: '',
             exemptions: '',
-            filenameOverride: undefined
+            filenameOverride: undefined,
         };
     } else {
         dialogService.alert('Can\'t Save', 'Please fill in a To and From');
     }
-}
+};
 
 const openSearchHistory = () => {
     const formModal = useModal({
@@ -82,11 +110,11 @@ const openSearchHistory = () => {
                 form.value.from = history.term;
                 searchApp.value = app || {};
                 formModal.close();
-            }
-        }
+            },
+        },
     });
     formModal.open();
-}
+};
 
 const openArrLookup = () => {
     const formModal = useModal({
@@ -95,14 +123,18 @@ const openArrLookup = () => {
             app: searchApp.value,
             term: form.value.from,
             onError: (err) => {
-                dialogService.alert(`Error from ${searchApp.value.name}`, `Unable to lookup ${form.value.from}`, err.message);
+                dialogService.alert(
+                    `Error from ${searchApp.value.name}`,
+                    `Unable to lookup ${form.value.from}`,
+                    err.message
+                );
             },
             onSelect: (result) => {
                 form.value.filenameOverride = result.title;
                 formModal.close();
-            }
-        }
+            },
+        },
     });
     formModal.open();
-}
+};
 </script>

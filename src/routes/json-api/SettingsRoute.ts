@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 
-import { version } from '../../config/version.json'
+import { version } from '../../config/version.json';
 import configService, { ConfigMap } from '../../service/configService';
 import { IplayarrParameter } from '../../types/IplayarrParameters';
 import { qualityProfiles } from '../../types/QualityProfiles';
@@ -49,7 +49,7 @@ router.put('/', async (req: Request, res: Response) => {
     res.json(req.body);
 });
 
-router.get('/qualityProfiles', (_, res : Response) => {
+router.get('/qualityProfiles', (_, res: Response) => {
     res.json(qualityProfiles);
 });
 

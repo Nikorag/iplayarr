@@ -8,6 +8,7 @@ import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { Synonym } from '../types/Synonym';
 import { removeLastFourDigitNumber } from '../utils/Utils';
+import scheduleFacade from './scheduleFacade';
 
 interface SearchTerm {
     term: string;
@@ -18,7 +19,11 @@ class SearchFacade {
     searchCache: RedisCacheService<IPlayerSearchResult[]> = new RedisCacheService('search_cache', 300);
 
     async search(inputTerm: string, season?: number, episode?: number): Promise<IPlayerSearchResult[]> {
-        const service: AbstractSearchService = inputTerm == '*' ? getIplayerSearchService : await this.#getService();
+        if (inputTerm == '*') {
+            return scheduleFacade.getFeed();
+        }
+
+        const service = await this.#getService();
         const { term, synonym } = await this.#getTerm(inputTerm, season);
 
         let results: IPlayerSearchResult[] | undefined = await this.searchCache.get(term);

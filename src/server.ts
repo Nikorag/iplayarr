@@ -10,8 +10,8 @@ import ApiRoute from './routes/ApiRoute';
 import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
 import JsonApiRoute from './routes/JsonApiRoute';
 import loggingService from './service/loggingService';
-import scheduleService from './service/scheduleService';
 import socketService from './service/socketService';
+import taskService from './service/taskService';
 import { IplayarrParameter } from './types/IplayarrParameters';
 
 const isDebug = process.env.DEBUG == 'true';
@@ -65,4 +65,4 @@ server.listen(port, () => {
 });
 
 //Cron
-scheduleService.init();
+taskService.init();

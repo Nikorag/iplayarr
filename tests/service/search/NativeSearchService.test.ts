@@ -3,7 +3,7 @@ import axios from 'axios';
 import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
 import NativeSearchService from '../../../src/service/search/NativeSearchService';
 import { IPlayerSearchResult, VideoType } from '../../../src/types/IPlayerSearchResult';
-import { IPlayerEpisodesResponse } from '../../../src/types/responses/IPlayerMetadataResponse';
+import { IPlayerEpisodeMetadata } from '../../../src/types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile } from '../../../src/utils/Utils';
 
 jest.mock('axios');
@@ -29,18 +29,14 @@ describe('NativeSearchService', () => {
         // Mocking the getQualityProfile function
         (getQualityProfile as jest.Mock).mockResolvedValue({ sizeFactor: mockSizeFactor });
 
-        const episodesResponse: IPlayerEpisodesResponse = {
-            programme_episodes: {
-                elements: [
-                    {
-                        type: 'episode',
-                        id: '1234',
-                        title: 'Episode Title',
-                        release_date_time: '1990-13-01'
-                    }
-                ]
+        const episodesResponse: IPlayerEpisodeMetadata[] = [
+            {
+                type: 'episode',
+                id: '1234',
+                title: 'Episode Title',
+                release_date_time: '1990-13-01'
             }
-        };
+        ];
 
         // Mocking axios responses
         (axios.get as jest.Mock).mockResolvedValueOnce({
@@ -52,16 +48,13 @@ describe('NativeSearchService', () => {
             }
         });
 
-        (axios.get as jest.Mock).mockResolvedValueOnce({
-            status: 200,
-            data: episodesResponse,
-        });
+        (iplayerDetailsService.getSeriesEpisodes as jest.Mock).mockResolvedValue(episodesResponse);
 
         // Mocking episodeCacheService.findBrandForPid
         (iplayerDetailsService.findBrandForPid as jest.Mock).mockResolvedValue('testBrandPid');
 
         // Mocking iplayerDetailsService.details
-        (iplayerDetailsService.details as jest.Mock).mockResolvedValue([{ title: 'Test Title', pid: 'testPid', type: 'episode', firstBroadcast: '2025-01-01', runtime: 60 }]);
+        (iplayerDetailsService.detailsForEpisodeMetadata as jest.Mock).mockResolvedValue([{ title: 'Test Title', pid: 'testPid', type: 'episode', firstBroadcast: '2025-01-01', runtime: 60 }]);
 
         // Mocking createNZBName
         (createNZBName as jest.Mock).mockResolvedValue('testNZBName');

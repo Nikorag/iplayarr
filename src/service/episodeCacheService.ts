@@ -1,4 +1,3 @@
-import axios from 'axios';
 import lunr from 'lunr';
 import { v4 } from 'uuid';
 
@@ -6,7 +5,7 @@ import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QueuedStorage } from '../types/QueuedStorage';
 import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
-import { IPlayerChildrenResponse, IPlayerEpisodeMetadata } from '../types/responses/IPlayerMetadataResponse';
+import { IPlayerEpisodeMetadata } from '../types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerDetailsService from './iplayerDetailsService';
 

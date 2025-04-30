@@ -4,7 +4,7 @@ import episodeCacheService from '../../../src/service//episodeCacheService';
 import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
 import NativeSearchService from '../../../src/service/search/NativeSearchService';
 import { IPlayerSearchResult, VideoType } from '../../../src/types/IPlayerSearchResult';
-import { IPlayerChildrenResponse } from '../../../src/types/responses/IPlayerMetadataResponse';
+import { IPlayerEpisodesResponse } from '../../../src/types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile } from '../../../src/utils/Utils';
 
 jest.mock('axios');
@@ -24,22 +24,20 @@ describe('NativeSearchService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSynonym = { synonymKey: 'synonymValue' };
-        mockTerm = 'testTerm';
+        mockTerm = 'Test Term';
         mockSizeFactor = 1;
 
         // Mocking the getQualityProfile function
         (getQualityProfile as jest.Mock).mockResolvedValue({ sizeFactor: mockSizeFactor });
 
-        const childrenResponse : IPlayerChildrenResponse = {
-            children : {
-                page : 1,
-                total : 1,
-                programmes : [
+        const episodesResponse: IPlayerEpisodesResponse = {
+            programme_episodes: {
+                elements: [
                     {
                         type: 'episode',
-                        pid: '1234',
+                        id: '1234',
                         title: 'Episode Title',
-                        first_broadcast_date: '1990-13-01'
+                        release_date_time: '1990-13-01'
                     }
                 ]
             }
@@ -50,14 +48,14 @@ describe('NativeSearchService', () => {
             status: 200,
             data: {
                 new_search: {
-                    results: [{ id: 'testId' }],
+                    results: [{ id: 'testId', title: 'Test' }],
                 },
             }
         });
 
         (axios.get as jest.Mock).mockResolvedValueOnce({
             status: 200,
-            data: childrenResponse,
+            data: episodesResponse,
         });
 
         // Mocking episodeCacheService.findBrandForPid

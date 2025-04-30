@@ -64,4 +64,5 @@ export interface IPlayerEpisodeMetadata {
     id: string;
     type: 'episode' | 'brand' | 'series';
     release_date_time?: string
+    title: string
 }

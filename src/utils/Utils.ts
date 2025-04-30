@@ -81,7 +81,7 @@ export function removeAllQueryParams(str: string): string {
     return url.toString();
 }
 
-export function splitArrayIntoChunks(arr: any[], chunkSize: number) {
+export function splitArrayIntoChunks(arr: any[], chunkSize: number): any[][] {
     const chunks: any[] = [];
     for (let i = 0; i < arr.length; i += chunkSize) {
         chunks.push(arr.slice(i, i + chunkSize));

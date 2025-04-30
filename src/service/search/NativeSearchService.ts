@@ -6,10 +6,9 @@ import { searchResultLimit } from '../../constants/iPlayarrConstants';
 import { IPlayerDetails } from '../../types/IPlayerDetails';
 import { IPlayerSearchResult } from '../../types/IPlayerSearchResult';
 import { IPlayerNewSearchResponse, IPlayerNewSearchResult } from '../../types/responses/iplayer/IPlayerNewSearchResponse';
-import { IPlayerEpisodesResponse } from '../../types/responses/IPlayerMetadataResponse';
+import { IPlayerEpisodeMetadata, IPlayerEpisodesResponse } from '../../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../../types/Synonym';
 import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
-import episodeCacheService from '../episodeCacheService';
 import iplayerDetailsService from '../iplayerDetailsService';
 import AbstractSearchService from './AbstractSearchService';
 
@@ -30,19 +29,22 @@ class NativeSearchService implements AbstractSearchService {
             let infos: IPlayerDetails[] = [];
 
             for (const { ref } of lunrResults) {
-                const brandPid = await episodeCacheService.findBrandForPid(ref);
+                const brandPid = await iplayerDetailsService.findBrandForPid(ref);
                 if (brandPid) {
                     if (!pidLedger.includes(ref)) {
-                        const { data: { programme_episodes: { elements: seriesList } } }: AxiosResponse<IPlayerEpisodesResponse> = await axios.get(`https://ibl.api.bbci.co.uk/ibl/v1/programmes/${encodeURIComponent(brandPid)}/episodes?per_page=${searchResultLimit}`);
-                        const episodes = (await Promise.all(seriesList.filter(({ type }) => type == 'series').map(({ id }) => episodeCacheService.getSeriesEpisodes(id)))).flat();
-                        episodes.push(...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null).map(({ id }) => id));
+                        const seriesList: IPlayerEpisodeMetadata[] = await iplayerDetailsService.getSeriesEpisodes(brandPid);
+
+                        // Add all the series episodes to list
+                        const episodes = (await Promise.all(seriesList.filter(({ type }) => type == 'series').map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id)))).flat();
+                        episodes.push(...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null));
 
                         const chunks = splitArrayIntoChunks(episodes, 5);
-                        const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
-                            const acc = await accPromise; // Ensure previous results are awaited
-                            const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
-                            return [...acc, ...results];
-                        }, Promise.resolve([])); // Initialize accumulator as a resolved Promise
+
+                        const chunkInfos: IPlayerDetails[] = [];
+                        for (const chunk of chunks) {
+                            const results: IPlayerDetails[] = await iplayerDetailsService.detailsForEpisodeMetadata(chunk);
+                            chunkInfos.push(...results);
+                        }
 
                         infos = [...infos, ...chunkInfos];
                         pidLedger.push(ref);

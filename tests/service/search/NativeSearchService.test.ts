@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-import episodeCacheService from '../../../src/service//episodeCacheService';
 import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
 import NativeSearchService from '../../../src/service/search/NativeSearchService';
 import { IPlayerSearchResult, VideoType } from '../../../src/types/IPlayerSearchResult';
@@ -59,7 +58,7 @@ describe('NativeSearchService', () => {
         });
 
         // Mocking episodeCacheService.findBrandForPid
-        (episodeCacheService.findBrandForPid as jest.Mock).mockResolvedValue('testBrandPid');
+        (iplayerDetailsService.findBrandForPid as jest.Mock).mockResolvedValue('testBrandPid');
 
         // Mocking iplayerDetailsService.details
         (iplayerDetailsService.details as jest.Mock).mockResolvedValue([{ title: 'Test Title', pid: 'testPid', type: 'episode', firstBroadcast: '2025-01-01', runtime: 60 }]);

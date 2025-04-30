@@ -8,3 +8,4 @@ export const listFormat: string =
 export const timestampFile: string = 'iplayarr_timestamp';
 
 export const searchResultLimit: number = 150;
+export const pidRegex = /\/([a-z0-9]{8})(?:\/|$)/;

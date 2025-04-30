@@ -1,14 +1,25 @@
+import axios, { AxiosResponse } from 'axios';
+
+import { pidRegex, searchResultLimit } from '../constants/iPlayarrConstants';
 import { IPlayerDetails } from '../types/IPlayerDetails';
+import { IPlayerEpisodeMetadata, IPlayerEpisodesResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { calculateSeasonAndEpisode } from '../utils/Utils';
-import episodeCacheService from './episodeCacheService';
 
 class IPlayerDetailsService {
+    async detailsForEpisodeMetadata(episodes: IPlayerEpisodeMetadata[]): Promise<IPlayerDetails[]> {
+        return Promise.all(episodes.map(async (episode) => {
+            const details = await this.episodeDetails(episode.id);
+            details.firstBroadcast = episode.release_date_time; // Keep the release data from the metadata as it's more reliable
+            return details;
+        }));
+    }    
+
     async details(pids: string[]): Promise<IPlayerDetails[]> {
         return await Promise.all(pids.map((pid) => this.episodeDetails(pid)));
     }
 
     async episodeDetails(pid: string): Promise<IPlayerDetails> {
-        const { programme } = await episodeCacheService.getMetadata(pid);
+        const { programme } = await this.getMetadata(pid);
         const [type, episode, episodeTitle, series] = calculateSeasonAndEpisode(programme);
         return {
             pid,
@@ -27,6 +38,44 @@ class IPlayerDetailsService {
                 : undefined,
             type,
         };
+    }
+
+    async getMetadata(pid: string): Promise<IPlayerMetadataResponse> {
+        const { data }: { data: IPlayerMetadataResponse } = await axios.get(
+            `https://www.bbc.co.uk/programmes/${pid}.json`
+        );
+        return data;
+    }
+
+    async findBrandForPid(pid: string, checked: string[] = []): Promise<string | undefined> {
+        const { programme }: IPlayerMetadataResponse = await this.getMetadata(pid);
+        if (programme.type == 'brand') {
+            return programme.pid;
+        } else if (programme.parent) {
+            if (!checked.includes(programme.parent.programme.pid) && programme.parent.programme.pid != pid) {
+                return await this.findBrandForPid(programme.parent.programme.pid, [...checked, pid]);
+            }
+        }
+        return undefined;
+    }
+
+    async getSeriesEpisodes(pid: string): Promise<IPlayerEpisodeMetadata[]> {
+        try {
+            const response: AxiosResponse<IPlayerEpisodesResponse> = await axios.get(
+                `https://ibl.api.bbci.co.uk/ibl/v1/programmes/${encodeURIComponent(pid)}/episodes?per_page=${searchResultLimit}`
+            );
+            return response.data.programme_episodes.elements;
+        } catch {
+            return [];
+        }
+    }
+
+    async findBrandForUrl(url: string): Promise<string | undefined> {
+        const match = url.replace('/episodes', '').match(pidRegex);
+        if (match) {
+            const pid = match[1];
+            return await this.findBrandForPid(pid);
+        }
     }
 }
 

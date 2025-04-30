@@ -1,10 +1,10 @@
 import { Request, Response, Router } from 'express';
 
 import nzbFacade from '../facade/nzbFacade';
+import scheduleFacade from '../facade/scheduleFacade';
 import searchFacade from '../facade/searchFacade';
 import iplayerDetailsService from '../service/iplayerDetailsService';
 import queueService from '../service/queueService';
-import getIplayerSearchService from '../service/search/GetIplayerSearchService';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import AppsRoute from './json-api/AppsRoute';
@@ -56,7 +56,7 @@ router.get('/download', async (req: Request, res: Response) => {
 });
 
 router.get('/cache-refresh', async (_, res: Response) => {
-    getIplayerSearchService.refreshCache();
+    scheduleFacade.refreshCache();
     res.json({ status: true });
 });
 

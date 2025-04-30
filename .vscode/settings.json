@@ -18,5 +18,8 @@
     "jest.runMode": {
         "coverage": true,
         "type": "on-save"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
     }
 }

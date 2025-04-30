@@ -1,6 +1,5 @@
 import { spawn } from 'child_process';
 
-import downloadFacade from '../../facade/downloadFacade';
 import { IPlayerSearchResult } from '../../types/IPlayerSearchResult';
 import { Synonym } from '../../types/Synonym';
 import { getQualityProfile } from '../../utils/Utils';
@@ -59,25 +58,6 @@ class GetIplayerSearchService implements AbstractSearchService {
             }
         }
         return results;
-    }
-
-    async refreshCache () : Promise<void> {
-        const { exec, args } = await getIplayerExecutableService.getIPlayerExec();
-
-        //Refresh the cache
-        loggingService.debug(`Executing get_iplayer with args: ${[...args].join(' ')} --cache-rebuild`);
-        const refreshService = spawn(exec as string, [...args, '--cache-rebuild'], { shell: true });
-
-        refreshService.stdout.on('data', (data) => {
-            loggingService.debug(data.toString());
-        });
-
-        refreshService.stderr.on('data', (data) => {
-            loggingService.error(data.toString());
-        });
-
-        //Delete failed jobs
-        downloadFacade.cleanupFailedDownloads();
     }
 }
 

@@ -65,7 +65,7 @@ class NativeSearchService implements AbstractSearchService {
             }
 
             return await Promise.all(
-                infos.map((info: IPlayerDetails) => this.#createSearchResult(info.title, info, sizeFactor, synonym))
+                infos.map((info: IPlayerDetails) => this.createSearchResult(info.title, info, sizeFactor, synonym))
             );
         } else {
             return [];
@@ -76,7 +76,7 @@ class NativeSearchService implements AbstractSearchService {
         return results;
     }
 
-    async #createSearchResult(
+    async createSearchResult(
             term: string,
             details: IPlayerDetails,
             sizeFactor: number,

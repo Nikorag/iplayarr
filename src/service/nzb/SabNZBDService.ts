@@ -1,14 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 
-import { App } from '../types/App';
+import { App } from '../../types/App';
+import AbstractNZBService from './AbstractNZBService';
 
-const sabzbdService = {
-    getAddFileUrl: async ({ url, api_key }: App): Promise<string> => {
+class SabNZBDService implements AbstractNZBService {
+    getAddFileUrl({ url, api_key }: App): string {
         return `${url}/api?mode=addfile&cat=iplayer&priority=-100&apikey=${api_key}`;
-    },
+    }
 
-    testConnection: async (sabnzbdUrl: string, apikey: string): Promise<string | boolean> => {
+    async testConnection(sabnzbdUrl: string, { apikey }: any): Promise<string | boolean> {
         const url: string = `${sabnzbdUrl}/api?mode=queue&apikey=${apikey}`;
 
         try {
@@ -21,10 +22,10 @@ const sabzbdService = {
             }
             return false;
         }
-    },
+    }
 
-    addFile: async (app: App, files: Express.Multer.File[]): Promise<AxiosResponse> => {
-        const url = await sabzbdService.getAddFileUrl(app);
+    async addFile(app: App, files: Express.Multer.File[]): Promise<AxiosResponse> {
+        const url = this.getAddFileUrl(app);
 
         const formData = new FormData();
         if (files) {
@@ -43,7 +44,8 @@ const sabzbdService = {
         });
 
         return response;
-    },
-};
+    }
 
-export default sabzbdService;
+}
+
+export default new SabNZBDService();

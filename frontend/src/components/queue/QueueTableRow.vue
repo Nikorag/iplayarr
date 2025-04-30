@@ -87,7 +87,7 @@ const cancel = async (pid) => {
 };
 
 const deleteRow = async ({ pid, status }) => {
-    if (status == 'Complete' || status == 'Forwarded' || status == 'Cancelled') {
+    if (status == 'Complete' || status == 'Forwarded' || status == 'Cancelled' || status == 'Removed') {
         await trash(pid);
     } else {
         await cancel(pid);
@@ -105,6 +105,8 @@ const getDownloadIcon = ({ status }) => {
         return 'forward';
     } else if (status == 'Cancelled') {
         return 'xmark';
+    } else if (status == 'Removed') {
+        return 'check';    
     } else {
         return 'cloud';
     }
@@ -128,5 +130,8 @@ const getDeleteIcon = ({ status }) => {
 }
 .Cancelled {
     color: @error-color;
+}
+.Removed {
+    color: @success-color;
 }
 </style>

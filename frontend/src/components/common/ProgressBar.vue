@@ -48,5 +48,10 @@ defineProps({
             background-color: @error-color;
         }
     }
+        &.Removed {
+            .progress {
+                background-color: @success-color;
+            }
+        }
 }
 </style>

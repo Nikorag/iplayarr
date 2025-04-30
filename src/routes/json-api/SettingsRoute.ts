@@ -39,7 +39,7 @@ router.put('/', async (req: Request, res: Response) => {
         if (key == IplayarrParameter.AUTH_PASSWORD) {
             const existing = await configService.getParameter(IplayarrParameter.AUTH_PASSWORD);
             const hashed = md5(val);
-            if (existing != hashed) {
+            if (existing != hashed && existing != val) {
                 await configService.setParameter(key as IplayarrParameter, hashed);
             }
         } else {

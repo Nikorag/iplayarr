@@ -1,7 +1,7 @@
 import axios from 'axios';
 import FormData from 'form-data';
 
-import sabzbdService from '../../src/service/sabnzbdService';
+import sabzbdService from '../../src/service/nzb/SabNZBDService';
 import { App } from '../../src/types/App';
 
 jest.mock('axios');
@@ -19,7 +19,7 @@ describe('sabzbdService', () => {
 
     describe('getAddFileUrl', () => {
         it('should return correct addfile URL', async () => {
-            const url = await sabzbdService.getAddFileUrl(app);
+            const url = sabzbdService.getAddFileUrl(app);
             expect(url).toBe('http://localhost:8080/api?mode=addfile&cat=iplayer&priority=-100&apikey=mockapikey');
         });
     });
@@ -28,7 +28,7 @@ describe('sabzbdService', () => {
         it('should return true for 200 response', async () => {
             mockedAxios.get.mockResolvedValue({ status: 200 });
 
-            const result = await sabzbdService.testConnection(app.url, app.api_key as string);
+            const result = await sabzbdService.testConnection(app.url, { apikey: app.api_key });
             expect(result).toBe(true);
             expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:8080/api?mode=queue&apikey=mockapikey');
         });
@@ -36,7 +36,7 @@ describe('sabzbdService', () => {
         it('should return false for non-200 response', async () => {
             mockedAxios.get.mockResolvedValue({ status: 403 });
 
-            const result = await sabzbdService.testConnection(app.url, app.api_key as string);
+            const result = await sabzbdService.testConnection(app.url, { apikey: app.api_key });
             expect(result).toBe(false);
         });
 
@@ -44,7 +44,7 @@ describe('sabzbdService', () => {
             mockedAxios.get.mockRejectedValue({ isAxiosError: true, message: 'Network error' });
             mockedAxios.isAxiosError.mockReturnValue(true);
 
-            const result = await sabzbdService.testConnection(app.url, app.api_key as string);
+            const result = await sabzbdService.testConnection(app.url, { apikey: app.api_key });
             expect(result).toBe('Network error');
         });
 
@@ -52,7 +52,7 @@ describe('sabzbdService', () => {
             mockedAxios.get.mockRejectedValue(new Error('Some other error'));
             mockedAxios.isAxiosError.mockReturnValue(false);
 
-            const result = await sabzbdService.testConnection(app.url, app.api_key as string);
+            const result = await sabzbdService.testConnection(app.url, { apikey: app.api_key });
             expect(result).toBe(false);
         });
     });

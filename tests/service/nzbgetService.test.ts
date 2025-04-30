@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import nzbGetService from '../../src/service/nzbgetService';
+import nzbGetService from '../../src/service/nzb/NZBGetService';
 import { App } from '../../src/types/App';
 
 jest.mock('axios');
@@ -20,7 +20,7 @@ describe('nzbGetService', () => {
             const username = 'testuser';
             const password = 'testpassword';
 
-            const result = await nzbGetService.testConnection(inputUrl, username, password);
+            const result = await nzbGetService.testConnection(inputUrl, { username, password });
 
             expect(result).toBe(true);
             expect(mockedAxios.get).toHaveBeenCalledWith('http://testuser:testpassword@localhost:6789/jsonrpc/version');
@@ -35,7 +35,7 @@ describe('nzbGetService', () => {
             const username = 'testuser';
             const password = 'testpassword';
 
-            const result = await nzbGetService.testConnection(inputUrl, username, password);
+            const result = await nzbGetService.testConnection(inputUrl, { username, password });
 
             expect(result).toBe('Request failed');
             expect(mockedAxios.get).toHaveBeenCalledWith('http://testuser:testpassword@localhost:6789/jsonrpc/version');
@@ -50,7 +50,7 @@ describe('nzbGetService', () => {
             const username = 'testuser';
             const password = 'testpassword';
 
-            const result = await nzbGetService.testConnection(inputUrl, username, password);
+            const result = await nzbGetService.testConnection(inputUrl, { username, password });
 
             expect(result).toBe(false);
             expect(mockedAxios.get).toHaveBeenCalledWith('http://testuser:testpassword@localhost:6789/jsonrpc/version');
@@ -64,7 +64,7 @@ describe('nzbGetService', () => {
             const username = 'testuser';
             const password = 'testpassword';
 
-            const result = await nzbGetService.testConnection(inputUrl, username, password);
+            const result = await nzbGetService.testConnection(inputUrl, { username, password });
 
             expect(result).toBe(false);
             expect(mockedAxios.get).toHaveBeenCalledWith('http://testuser:testpassword@localhost:6789/jsonrpc/version');

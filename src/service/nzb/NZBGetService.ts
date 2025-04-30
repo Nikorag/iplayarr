@@ -1,11 +1,13 @@
 import axios, { AxiosResponse } from 'axios';
 import { v4 } from 'uuid';
 
-import { App } from '../types/App';
-import { NZBGetAppendRequest } from '../types/requests/nzbget/NZBGetAppendRequest';
+import { App } from '../../types/App';
+import { NZBGetAppendRequest } from '../../types/requests/nzbget/NZBGetAppendRequest';
+import AbstractNZBService from './AbstractNZBService';
 
-const nzbGetService = {
-    testConnection: async (inputUrl: string, username: string, password: string): Promise<string | boolean> => {
+class NZBGetService implements AbstractNZBService {
+
+    async testConnection(inputUrl: string, { username, password }: any): Promise<string | boolean> {
         const url = new URL(`${inputUrl}/jsonrpc`);
         url.username = username;
         url.password = password;
@@ -20,12 +22,9 @@ const nzbGetService = {
             }
             return false;
         }
-    },
+    }
 
-    addFile: async (
-        { url: inputUrl, username, password }: App,
-        files: Express.Multer.File[]
-    ): Promise<AxiosResponse> => {
+    async addFile({ url: inputUrl, username, password }: App, files: Express.Multer.File[]): Promise<AxiosResponse> {
         const url = `${inputUrl}/jsonrpc`;
 
         const file = files[0];
@@ -78,7 +77,7 @@ const nzbGetService = {
                 },
             } as unknown as AxiosResponse;
         }
-    },
-};
+    }
+}
 
-export default nzbGetService;
+export default new NZBGetService();

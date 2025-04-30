@@ -1,7 +1,10 @@
 export interface IPlayerNewSearchResponse {
     new_search: {
-        results: {
-            id: string;
-        }[];
+        results: IPlayerNewSearchResult[];
     };
+}
+
+export interface IPlayerNewSearchResult {
+    id: string,
+    title: string
 }

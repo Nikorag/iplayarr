@@ -33,7 +33,7 @@ class NativeSearchService implements AbstractSearchService {
                 const brandPid = await episodeCacheService.findBrandForPid(ref);
                 if (brandPid) {
                     if (!pidLedger.includes(ref)) {
-                        const { data: { programme_episodes: { elements: seriesList } } }: AxiosResponse<IPlayerEpisodesResponse> = await axios.get(`https://ibl.api.bbci.co.uk/ibl/v1/programmes/${encodeURIComponent(brandPid)}/episodes?per_page=200`);
+                        const { data: { programme_episodes: { elements: seriesList } } }: AxiosResponse<IPlayerEpisodesResponse> = await axios.get(`https://ibl.api.bbci.co.uk/ibl/v1/programmes/${encodeURIComponent(brandPid)}/episodes?per_page=${searchResultLimit}`);
                         const episodes = (await Promise.all(seriesList.filter(({ type }) => type == 'series').map(({ id }) => episodeCacheService.getSeriesEpisodes(id)))).flat();
                         episodes.push(...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null).map(({ id }) => id));
 

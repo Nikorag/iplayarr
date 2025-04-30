@@ -53,3 +53,16 @@ export interface IPlayerChildrenResponse {
         programmes: IPlayerProgramMetadata[];
     };
 }
+
+export interface IPlayerEpisodesResponse {
+    programme_episodes: {
+        elements: IPlayerEpisodeMetadata[];
+    }
+}
+
+export interface IPlayerEpisodeMetadata {
+    id: string;
+    type: 'episode' | 'brand' | 'series';
+    release_date_time?: string
+    title: string
+}

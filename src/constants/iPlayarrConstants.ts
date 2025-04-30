@@ -6,3 +6,6 @@ export const episodeRegex: RegExp = /^Episode (\d+)$/;
 export const listFormat: string =
     'RESULT|:|<pid>|:|<name>|:|<seriesnum>|:|<episodenum>|:|<index>|:|<channel>|:|<duration>|:|<available>|:|<episode>|:|';
 export const timestampFile: string = 'iplayarr_timestamp';
+
+export const searchResultLimit: number = 150;
+export const pidRegex = /\/([a-z0-9]{8})(?:\/|$)/;

@@ -25,11 +25,11 @@ class NativeScheduleService implements AbstractScheduleService {
         const pids = [...new Set(dupedPids.flat())];
 
         const chunks = splitArrayIntoChunks(pids, 5);
-        const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
-            const acc = await accPromise;
+        const chunkInfos: IPlayerDetails[] = [];
+        for (const chunk of chunks) {
             const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
-            return [...acc, ...results];
-        }, Promise.resolve([]));
+            chunkInfos.push(...results);
+        }
 
         const results: IPlayerSearchResult[] = await Promise.all(
             chunkInfos.map((info: IPlayerDetails) => NativeSearchService.createSearchResult(info.title, info, sizeFactor, undefined))

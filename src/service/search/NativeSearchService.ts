@@ -1,12 +1,14 @@
 import axios, { AxiosResponse } from 'axios';
+import { Index } from 'lunr';
+import lunr from 'lunr';
 
+import { searchResultLimit } from '../../constants/iPlayarrConstants';
 import { IPlayerDetails } from '../../types/IPlayerDetails';
 import { IPlayerSearchResult } from '../../types/IPlayerSearchResult';
-import { IPlayerNewSearchResponse } from '../../types/responses/iplayer/IPlayerNewSearchResponse';
-import { IPlayerChildrenResponse } from '../../types/responses/IPlayerMetadataResponse';
+import { IPlayerNewSearchResponse, IPlayerNewSearchResult } from '../../types/responses/iplayer/IPlayerNewSearchResponse';
+import { IPlayerEpisodeMetadata } from '../../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../../types/Synonym';
 import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
-import episodeCacheService from '../episodeCacheService';
 import iplayerDetailsService from '../iplayerDetailsService';
 import AbstractSearchService from './AbstractSearchService';
 
@@ -20,48 +22,42 @@ class NativeSearchService implements AbstractSearchService {
             const {
                 new_search: { results },
             } = response.data;
-            const brandPids: Set<string> = new Set();
+
+            const lunrResults: Index.Result[] = this.#indexAndReSearch(term, results);
+            const pidLedger: string[] = [];
+
             let infos: IPlayerDetails[] = [];
 
-            //Only get the first brand from iplayer
-            if (results.length > 0) {
-                const { id } = results[0];
-                const brandPid = await episodeCacheService.findBrandForPid(id);
+            for (const { ref } of lunrResults) {
+                const brandPid = await iplayerDetailsService.findBrandForPid(ref);
                 if (brandPid) {
-                    brandPids.add(brandPid);
+                    if (!pidLedger.includes(ref)) {
+                        const seriesList: IPlayerEpisodeMetadata[] = await iplayerDetailsService.getSeriesEpisodes(brandPid);
+
+                        // Add all the series episodes to list
+                        const episodes = (await Promise.all(seriesList.filter(({ type }) => type == 'series').map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id)))).flat();
+                        episodes.push(...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null));
+
+                        const chunks = splitArrayIntoChunks(episodes, 5);
+
+                        const chunkInfos: IPlayerDetails[] = [];
+                        for (const chunk of chunks) {
+                            const results: IPlayerDetails[] = await iplayerDetailsService.detailsForEpisodeMetadata(chunk);
+                            chunkInfos.push(...results);
+                        }
+
+                        infos = [...infos, ...chunkInfos];
+                        pidLedger.push(ref);
+                    }
                 } else {
-                    const pidInfos = await iplayerDetailsService.details([id]);
-                    infos = [...infos, ...pidInfos];
+                    const pidInfos = await iplayerDetailsService.details([ref]);
+                    pidInfos.forEach(info => infos.push(info));
                 }
-            }
 
-            for (const brandPid of brandPids) {
-                const {
-                    data: { children: seriesList },
-                }: { data: IPlayerChildrenResponse } = await axios.get(
-                    `https://www.bbc.co.uk/programmes/${encodeURIComponent(brandPid)}/children.json?limit=100`
-                );
-                const episodes = (
-                    await Promise.all(
-                        seriesList.programmes
-                            .filter(({ type }) => type == 'series')
-                            .map(({ pid }) => episodeCacheService.getSeriesEpisodes(pid))
-                    )
-                ).flat();
-                episodes.push(
-                    ...seriesList.programmes
-                        .filter(({ type, first_broadcast_date }) => type == 'episode' && first_broadcast_date != null)
-                        .map(({ pid }) => pid)
-                );
-
-                const chunks = splitArrayIntoChunks(episodes, 5);
-                const chunkInfos = await chunks.reduce(async (accPromise, chunk) => {
-                    const acc = await accPromise; // Ensure previous results are awaited
-                    const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
-                    return [...acc, ...results];
-                }, Promise.resolve([])); // Initialize accumulator as a resolved Promise
-
-                infos = [...infos, ...chunkInfos];
+                //Limit to only 150 results
+                if (infos.length >= searchResultLimit) {
+                    break;
+                }
             }
 
             return await Promise.all(
@@ -77,29 +73,41 @@ class NativeSearchService implements AbstractSearchService {
     }
 
     async createSearchResult(
-            term: string,
-            details: IPlayerDetails,
-            sizeFactor: number,
-            synonym?: Synonym
-        ): Promise<IPlayerSearchResult> {
-            return {
-                number: 0,
-                title: details.title,
-                channel: details.channel || '',
-                pid: details.pid,
-                request: {
-                    term,
-                    line: term,
-                },
-                episode: details.episode,
-                pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
-                series: details.series,
-                type: details.type,
-                size: details.runtime ? Math.floor(details.runtime * 60 * sizeFactor) : undefined,
-                nzbName: await createNZBName(details, synonym),
-                episodeTitle: details.episodeTitle,
-            };
-        }
+        term: string,
+        details: IPlayerDetails,
+        sizeFactor: number,
+        synonym?: Synonym
+    ): Promise<IPlayerSearchResult> {
+        return {
+            number: 0,
+            title: details.title,
+            channel: details.channel || '',
+            pid: details.pid,
+            request: {
+                term,
+                line: term,
+            },
+            episode: details.episode,
+            pubDate: details.firstBroadcast ? new Date(details.firstBroadcast) : undefined,
+            series: details.series,
+            type: details.type,
+            size: details.runtime ? Math.floor(details.runtime * 60 * sizeFactor) : undefined,
+            nzbName: await createNZBName(details, synonym),
+            episodeTitle: details.episodeTitle,
+        };
+    }
+
+    #indexAndReSearch(term: string, results: IPlayerNewSearchResult[]): Index.Result[] {
+        //Index them each and search again, iPlayer's search is WAY to fuzzy
+        const lunrIndex: lunr.Index = lunr(function (this: lunr.Builder) {
+            this.ref('pid');
+            this.field('pid');
+            this.field('title');
+
+            results.forEach(({ id: pid, title }) => this.add({ pid, title }))
+        });
+        return lunrIndex.search(term);
+    }
 }
 
 export default new NativeSearchService();

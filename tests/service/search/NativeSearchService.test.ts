@@ -1,10 +1,9 @@
 import axios from 'axios';
 
-import episodeCacheService from '../../../src/service//episodeCacheService';
 import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
 import NativeSearchService from '../../../src/service/search/NativeSearchService';
 import { IPlayerSearchResult, VideoType } from '../../../src/types/IPlayerSearchResult';
-import { IPlayerChildrenResponse } from '../../../src/types/responses/IPlayerMetadataResponse';
+import { IPlayerEpisodeMetadata } from '../../../src/types/responses/IPlayerMetadataResponse';
 import { createNZBName, getQualityProfile } from '../../../src/utils/Utils';
 
 jest.mock('axios');
@@ -24,47 +23,38 @@ describe('NativeSearchService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSynonym = { synonymKey: 'synonymValue' };
-        mockTerm = 'testTerm';
+        mockTerm = 'Test Term';
         mockSizeFactor = 1;
 
         // Mocking the getQualityProfile function
         (getQualityProfile as jest.Mock).mockResolvedValue({ sizeFactor: mockSizeFactor });
 
-        const childrenResponse : IPlayerChildrenResponse = {
-            children : {
-                page : 1,
-                total : 1,
-                programmes : [
-                    {
-                        type: 'episode',
-                        pid: '1234',
-                        title: 'Episode Title',
-                        first_broadcast_date: '1990-13-01'
-                    }
-                ]
+        const episodesResponse: IPlayerEpisodeMetadata[] = [
+            {
+                type: 'episode',
+                id: '1234',
+                title: 'Episode Title',
+                release_date_time: '1990-13-01'
             }
-        };
+        ];
 
         // Mocking axios responses
         (axios.get as jest.Mock).mockResolvedValueOnce({
             status: 200,
             data: {
                 new_search: {
-                    results: [{ id: 'testId' }],
+                    results: [{ id: 'testId', title: 'Test' }],
                 },
             }
         });
 
-        (axios.get as jest.Mock).mockResolvedValueOnce({
-            status: 200,
-            data: childrenResponse,
-        });
+        (iplayerDetailsService.getSeriesEpisodes as jest.Mock).mockResolvedValue(episodesResponse);
 
         // Mocking episodeCacheService.findBrandForPid
-        (episodeCacheService.findBrandForPid as jest.Mock).mockResolvedValue('testBrandPid');
+        (iplayerDetailsService.findBrandForPid as jest.Mock).mockResolvedValue('testBrandPid');
 
         // Mocking iplayerDetailsService.details
-        (iplayerDetailsService.details as jest.Mock).mockResolvedValue([{ title: 'Test Title', pid: 'testPid', type: 'episode', firstBroadcast: '2025-01-01', runtime: 60 }]);
+        (iplayerDetailsService.detailsForEpisodeMetadata as jest.Mock).mockResolvedValue([{ title: 'Test Title', pid: 'testPid', type: 'episode', firstBroadcast: '2025-01-01', runtime: 60 }]);
 
         // Mocking createNZBName
         (createNZBName as jest.Mock).mockResolvedValue('testNZBName');

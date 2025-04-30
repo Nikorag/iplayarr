@@ -63,9 +63,10 @@ function createHistoryEntry(completeDir: string, item: QueueEntry): SABNZBDHisto
 
 const actionDirectory: EndpointDirectory = {
     delete: async (req: Request, res: Response) => {
+        const archive = (await configService.getParameter(IplayarrParameter.ARCHIVE_ENABLED)) == 'true';
         const { value } = req.query as HistoryQuery;
         if (value) {
-            await historyService.removeHistory(value);
+            await historyService.removeHistory(value, archive);
             res.json({ status: true } as TrueFalseResponse);
         } else {
             res.json({ status: false } as TrueFalseResponse);

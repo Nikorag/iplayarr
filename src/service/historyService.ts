@@ -29,10 +29,10 @@ const historyService = {
         socketService.emit('history', history);
     },
 
-    addArchive: async (item: QueueEntry): Promise<void> => {
+    addArchive: async (item: QueueEntry, status: QueueEntryStatus = QueueEntryStatus.CANCELLED): Promise<void> => {
         const historyItem: QueueEntry = {
             ...item,
-            status: QueueEntryStatus.CANCELLED,
+            status,
             details: { ...item.details, eta: '', speed: 0, progress: 100 },
             process: undefined,
         };
@@ -42,11 +42,15 @@ const historyService = {
         socketService.emit('history', history);
     },
 
-    removeHistory: async (pid: string): Promise<void> => {
+    removeHistory: async (pid: string, archive: boolean = false): Promise<void> => {
         let history: QueueEntry[] = await historyService.getHistory();
+        const historyItem = history.find(({ pid: historyPid }) => historyPid === pid);
         history = history.filter(({ pid: historyPid }) => historyPid !== pid);
         await storage.setItem('history', history);
         socketService.emit('history', history);
+        if (historyItem && archive) {
+            historyService.addArchive(historyItem as QueueEntry, QueueEntryStatus.REMOVED);
+        }
     },
 };
 

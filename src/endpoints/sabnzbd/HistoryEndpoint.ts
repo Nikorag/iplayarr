@@ -30,7 +30,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     } else {
         let history: QueueEntry[] = await historyService.getHistory();
         history = history.filter(
-            ({ status }) => status != QueueEntryStatus.FORWARDED && status != QueueEntryStatus.CANCELLED
+            ({ status }) => status != QueueEntryStatus.FORWARDED && status != QueueEntryStatus.CANCELLED && status != QueueEntryStatus.REMOVED
         );
         const completeDir: string = (await configService.getParameter(IplayarrParameter.COMPLETE_DIR)) as string;
 

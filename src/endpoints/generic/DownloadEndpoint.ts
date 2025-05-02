@@ -10,12 +10,13 @@ export default async (req: Request, res: Response) => {
 
     const metadata: IPlayerMetadataResponse | undefined = await iplayerDetailsService.getMetadata(pid);
     let name: string = '';
-    const type: VideoType = await getType(metadata);
+    let type: VideoType = VideoType.TV;
     if (metadata?.programme.display_title) {
+        type = getType(metadata);
         const { title, subtitle } = metadata.programme.display_title;
-        name = `${title}${type == VideoType.TV && subtitle ? `.${subtitle}` : ''}`
-            .replaceAll('.', '_')
-            .replaceAll(' ', '.');
+        name = `${title}${type == VideoType.TV && subtitle ? `.${subtitle}` : ''}`;
+        name = name.replaceAll('.', '_')
+        name = name.replaceAll(' ', '.');
     }
 
     queueService.addToQueue(pid, name, type);

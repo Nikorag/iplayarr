@@ -5,7 +5,7 @@ import { Validator } from '../../src/validators/Validator';
 jest.mock('fs');
 
 class TestValidator extends Validator {
-    async validate(input: any) {
+    async validate() {
         return {};
     }
 }

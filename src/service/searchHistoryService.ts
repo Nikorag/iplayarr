@@ -1,20 +1,25 @@
-import { FixedFIFOQueue } from '../types/FixedFIFOQueue';
 import { SearchHistoryEntry } from '../types/SearchHistoryEntry';
+import { AbstractFIFOQueue } from '../types/utils/AbstractFIFOQueue';
+import { RedisFIFOQueue } from '../types/utils/RedisFIFOQueue';
 
-let history: FixedFIFOQueue<SearchHistoryEntry> = new FixedFIFOQueue(10);
+class SearchHistoryService {
+    history: AbstractFIFOQueue<SearchHistoryEntry>;
 
-const searchHistoryService = {
-    addItem: (entry: SearchHistoryEntry): void => {
-        history.enqueue(entry);
-    },
+    constructor() {
+        this.history = new RedisFIFOQueue('search-history', 10);;
+    }
 
-    getHistory: (): SearchHistoryEntry[] => {
-        return history.getItems();
-    },
+    addItem(entry: SearchHistoryEntry): void {
+        this.history.enqueue(entry);
+    }
 
-    clearHistory: (): void => {
-        history = new FixedFIFOQueue(10);
-    },
-};
+    async getHistory(): Promise<SearchHistoryEntry[]> {
+        return await this.history.getItems();
+    }
 
-export default searchHistoryService;
+    async clearHistory(): Promise<void> {
+        await this.history.clear();
+    }
+}
+
+export default new SearchHistoryService();

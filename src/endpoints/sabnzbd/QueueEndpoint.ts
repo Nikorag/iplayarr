@@ -1,5 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 
+import { EndpointDirectory } from '../../constants/EndpointDirectory';
 import configService from '../../service/configService';
 import historyService from '../../service/historyService';
 import queueService from '../../service/queueService';
@@ -14,19 +15,23 @@ import {
     SabNZBQueueEntry,
 } from '../../types/responses/sabnzbd/QueueResponse';
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse';
-import { EndpointDirectory } from '../EndpointDirectory';
+import { AbstractSabNZBDActionEndpoint, ActionQueryString } from './AbstractSabNZBDActionEndpoint';
 
-interface QueueQuery {
-    name?: string;
-    value?: string;
-}
 
-export default async (req: Request, res: Response, next: NextFunction) => {
-    const { name } = req.query as QueueQuery;
-    if (name && actionDirectory[name]) {
-        actionDirectory[name](req, res, next);
+const actionDirectory: EndpointDirectory = {
+    delete: async (req: Request, res: Response) => {
+        const archive = (await configService.getParameter(IplayarrParameter.ARCHIVE_ENABLED)) == 'true';
+        const { value } = req.query as ActionQueryString;
+        if (value) {
+            queueService.cancelItem(value, archive);
+            res.json({ status: true } as TrueFalseResponse);
+        } else {
+            res.json({ status: false } as TrueFalseResponse);
+        }
         return;
-    } else {
+    },
+
+    _default: async (req: Request, res: Response) => {
         const queue: QueueEntry[] = queueService.getQueue();
         const downloadQueue: QueueEntry[] = queue.filter(({ status }) => status == QueueEntryStatus.DOWNLOADING);
         const iplayerComplete = await historyService.getHistory();
@@ -39,7 +44,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
             slots: queue.map(convertEntries),
         } as SabNZBDQueueResponse;
         res.json({ queue: queueResponse });
-    }
+    },
 };
 
 function convertEntries(slot: QueueEntry, index: number): SabNZBQueueEntry {
@@ -56,16 +61,4 @@ function convertEntries(slot: QueueEntry, index: number): SabNZBQueueEntry {
     } as SabNZBQueueEntry;
 }
 
-const actionDirectory: EndpointDirectory = {
-    delete: async (req: Request, res: Response) => {
-        const archive = (await configService.getParameter(IplayarrParameter.ARCHIVE_ENABLED)) == 'true';
-        const { value } = req.query as QueueQuery;
-        if (value) {
-            queueService.cancelItem(value, archive);
-            res.json({ status: true } as TrueFalseResponse);
-        } else {
-            res.json({ status: false } as TrueFalseResponse);
-        }
-        return;
-    },
-};
+export default new AbstractSabNZBDActionEndpoint(actionDirectory).handler;

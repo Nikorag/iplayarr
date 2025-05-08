@@ -1,14 +1,14 @@
 import express, { Response } from 'express';
 import request from 'supertest';
 
-import { NewzNabEndpointDirectory } from '../../src/endpoints/EndpointDirectory';
+import { NewzNabEndpointDirectory } from '../../src/constants/EndpointDirectory';
 import router from '../../src/routes/ApiRoute';  // Update with the correct path to your router
 import configService from '../../src/service/configService';
 import { ApiError } from '../../src/types/responses/ApiResponse';
 
 // Mocking dependencies
 jest.mock('../../src/service/configService');
-jest.mock('../../src/endpoints/EndpointDirectory', () => ({
+jest.mock('../../src/constants/EndpointDirectory', () => ({
     SabNZBDEndpointDirectory: {
         someEndpoint: jest.fn(async (_, res: Response) => {
             res.status(200).json({ success: true });

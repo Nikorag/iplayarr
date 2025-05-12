@@ -38,7 +38,7 @@ router.delete('/', async (req: Request, res: Response) => {
 });
 
 router.get('/searchHistory', async (req: Request, res: Response) => {
-    const searchHistory = searchHistoryService.getHistory();
+    const searchHistory = await searchHistoryService.getHistory();
     res.json(searchHistory);
 });
 

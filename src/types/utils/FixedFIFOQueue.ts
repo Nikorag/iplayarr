@@ -1,4 +1,6 @@
-export class FixedFIFOQueue<T> {
+import { AbstractFIFOQueue } from './AbstractFIFOQueue';
+
+export class FixedFIFOQueue<T> implements AbstractFIFOQueue<T> {
     private queue: T[] = [];
     private maxSize: number;
 
@@ -6,30 +8,34 @@ export class FixedFIFOQueue<T> {
         this.maxSize = maxSize;
     }
 
-    enqueue(item: T): void {
+    async clear(): Promise<void> {
+        this.queue = [];
+    }
+
+    async enqueue(item: T): Promise<void> {
         if (this.queue.length >= this.maxSize) {
             this.queue.shift(); // Remove the oldest item
         }
         this.queue.push(item);
     }
 
-    dequeue(): T | undefined {
+    async dequeue(): Promise<T | undefined> {
         return this.queue.shift(); // Remove and return the oldest item
     }
 
-    peek(): T | undefined {
+    async peek(): Promise<T | undefined> {
         return this.queue[0]; // Check the oldest item without removing it
     }
 
-    size(): number {
+    async size(): Promise<number> {
         return this.queue.length;
     }
 
-    isEmpty(): boolean {
+    async isEmpty(): Promise<boolean> {
         return this.queue.length === 0;
     }
 
-    getItems(): T[] {
+    async getItems(): Promise<T[]> {
         return [...this.queue]; // Return a copy of the queue
     }
 }

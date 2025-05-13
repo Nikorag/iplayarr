@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 
+import arrFacade from '../../facade/arrFacade';
 import appService from '../../service/appService';
-import arrService from '../../service/arrService';
 import searchHistoryService from '../../service/searchHistoryService';
 import synonymService from '../../service/synonymService';
 import { App } from '../../types/App';
@@ -49,7 +49,7 @@ router.get('/lookup/:appId', async (req: Request, res: Response) => {
     const app: App | undefined = await appService.getApp(appId);
     if (app) {
         try {
-            const results: ArrLookupResponse[] = await arrService.search(app, term);
+            const results: ArrLookupResponse[] = await arrFacade.search(app, term);
             res.json(results);
             return;
         } catch (err: any) {

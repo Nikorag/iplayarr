@@ -1,5 +1,6 @@
 import { v4 } from 'uuid';
 
+import arrFacade from '../facade/arrFacade';
 import nzbFacade from '../facade/nzbFacade';
 import { App } from '../types/App';
 import { appCategories, AppFeature, appFeatures, AppType } from '../types/AppType';
@@ -7,7 +8,6 @@ import { IplayarrParameter } from '../types/IplayarrParameters';
 import { QueuedStorage } from '../types/QueuedStorage';
 import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
 import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';
-import arrService, { ArrConfig } from './arrService';
 import configService from './configService';
 import socketService from './socketService';
 
@@ -61,16 +61,9 @@ const appService = {
         let form = input;
         const features: AppFeature[] = appFeatures[form.type];
 
-        const arrConfig: ArrConfig = {
-            HOST: form.url,
-            API_KEY: form.api_key || '',
-            DOWNLOAD_CLIENT_ID: form.download_client?.id || undefined,
-            INDEXER_ID: form.indexer?.id || undefined,
-        };
-
         for (const feature of features) {
             try {
-                form = await createUpdateFeature[feature](form, arrConfig, allowCreate);
+                form = await createUpdateFeature[feature](form, allowCreate);
             } catch (err) {
                 throw err;
             }
@@ -103,7 +96,7 @@ const appService = {
             case AppType.PROWLARR:
             case AppType.RADARR:
             case AppType.SONARR: {
-                return await arrService.testConnection({ API_KEY: form.api_key as string, HOST: form.url });
+                return await arrFacade.testConnection({ api_key: form.api_key as string, url: form.url } as App);
             }
             case AppType.NZBGET:
             case AppType.SABNZBD: {
@@ -121,11 +114,10 @@ const appService = {
     },
 };
 
-const createUpdateFeature: Record<AppFeature, (form: App, arrConfig: ArrConfig, allowCreate: boolean) => Promise<App>> =
+const createUpdateFeature: Record<AppFeature, (form: App, allowCreate: boolean) => Promise<App>> =
     {
         [AppFeature.DOWNLOAD_CLIENT]: async (
             form: App,
-            arrConfig: ArrConfig,
             allowCreate: boolean = true
         ): Promise<App> => {
             const API_KEY: string = (await configService.getParameter(IplayarrParameter.API_KEY)) as string;
@@ -141,10 +133,9 @@ const createUpdateFeature: Record<AppFeature, (form: App, arrConfig: ArrConfig, 
                 };
 
                 try {
-                    const id = await arrService.createUpdateDownloadClient(
+                    const id = await arrFacade.upsertDownloadClient(
                         createDownloadClientForm,
-                        arrConfig,
-                        false,
+                        form,
                         allowCreate
                     );
                     form.download_client.id = id;
@@ -157,7 +148,7 @@ const createUpdateFeature: Record<AppFeature, (form: App, arrConfig: ArrConfig, 
             }
             return form;
         },
-        [AppFeature.INDEXER]: async (form: App, arrConfig: ArrConfig, allowCreate: boolean = true): Promise<App> => {
+    [AppFeature.INDEXER]: async (form: App, allowCreate: boolean = true): Promise<App> => {
             const API_KEY: string = (await configService.getParameter(IplayarrParameter.API_KEY)) as string;
 
             if (form.download_client?.id && form.indexer?.name) {
@@ -175,74 +166,7 @@ const createUpdateFeature: Record<AppFeature, (form: App, arrConfig: ArrConfig, 
                 };
 
                 try {
-                    const id = await arrService.createUpdateIndexer(createIndexerForm, arrConfig, allowCreate);
-                    form.indexer.id = id;
-                } catch (err: any) {
-                    throw {
-                        message: err.message,
-                        type: 'indexer', // Add the type
-                    };
-                }
-            }
-            return form;
-        },
-        [AppFeature.PROWLARR_DOWNLOAD_CLIENT]: async (
-            form: App,
-            arrConfig: ArrConfig,
-            allowCreate: boolean = true
-        ): Promise<App> => {
-            const API_KEY: string = (await configService.getParameter(IplayarrParameter.API_KEY)) as string;
-
-            if (form.download_client?.name) {
-                const createDownloadClientForm: CreateDownloadClientForm = {
-                    name: form.download_client.name,
-                    host: form.iplayarr.host as string,
-                    port: form.iplayarr.port as number,
-                    useSSL: form.iplayarr.useSSL,
-                    apiKey: API_KEY,
-                    tags: form.tags ?? [],
-                };
-
-                try {
-                    const id = await arrService.createUpdateDownloadClient(
-                        createDownloadClientForm,
-                        arrConfig,
-                        true,
-                        allowCreate
-                    );
-                    form.download_client.id = id;
-                } catch (err: any) {
-                    throw {
-                        message: err.message,
-                        type: 'download_client', // Add the type
-                    };
-                }
-            }
-            return form;
-        },
-        [AppFeature.PROWLARR_INDEXER]: async (
-            form: App,
-            arrConfig: ArrConfig,
-            allowCreate: boolean = true
-        ): Promise<App> => {
-            const API_KEY: string = (await configService.getParameter(IplayarrParameter.API_KEY)) as string;
-
-            if (form.download_client?.id && form.indexer?.name) {
-                const useSSL: boolean =
-                    typeof form.iplayarr.useSSL === 'boolean' ? form.iplayarr.useSSL : form.iplayarr.useSSL === 'true';
-                const createIndexerForm: CreateIndexerForm = {
-                    appId: form.id,
-                    name: form.indexer.name,
-                    downloadClientId: form.download_client.id,
-                    url: `http${useSSL ? 's' : ''}://${form.iplayarr.host}:${form.iplayarr.port}`,
-                    apiKey: API_KEY,
-                    categories: appCategories[form.type],
-                    priority: form.indexer.priority,
-                    tags: form.tags ?? [],
-                };
-
-                try {
-                    const id = await arrService.createUpdateProwlarrIndexer(createIndexerForm, arrConfig, allowCreate);
+                    const id = await arrFacade.upsertIndexer(createIndexerForm, form, allowCreate);
                     form.indexer.id = id;
                 } catch (err: any) {
                     throw {

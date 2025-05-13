@@ -1,4 +1,6 @@
-export interface CreateIndexerRequest {
+import { AbstractCreateIndexerRequest } from './AbstractCreateIndexerRequest';
+
+export interface CreateIndexerRequest extends AbstractCreateIndexerRequest {
     enableRss: boolean;
     enableAutomaticSearch: boolean;
     enableInteractiveSearch: boolean;
@@ -15,7 +17,6 @@ export interface CreateIndexerRequest {
     configContract: string;
     infoLink: string;
     tags: number[];
-    id: number;
 }
 
 export interface CreateIndexerRequestField {

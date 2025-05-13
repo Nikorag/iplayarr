@@ -26,11 +26,10 @@ jest.mock('../../src/types/QueuedStorage', () => {
     };
 });
 
-jest.mock('../../src/service/arrService', () => ({
+jest.mock('../../src/facade/arrFacade', () => ({
     testConnection: jest.fn(),
-    createUpdateDownloadClient: jest.fn(),
-    createUpdateIndexer: jest.fn(),
-    createUpdateProwlarrIndexer: jest.fn(),
+    upsertDownloadClient: jest.fn(),
+    upsertIndexer: jest.fn(),
 }));
 
 jest.mock('../../src/service/configService', () => ({

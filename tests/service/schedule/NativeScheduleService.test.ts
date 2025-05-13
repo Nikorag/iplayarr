@@ -12,7 +12,7 @@ jest.mock('axios');
 jest.mock('../../../src/service/configService');
 jest.mock('../../../src/service/iplayerDetailsService');
 jest.mock('../../../src/service/loggingService');
-jest.mock('../../../src/service/redisCacheService');
+jest.mock('../../../src/service/redis/redisCacheService');
 jest.mock('../../../src/service/search/NativeSearchService');
 jest.mock('../../../src/utils/Utils', () => ({
     ...jest.requireActual('../../../src/utils/Utils'),

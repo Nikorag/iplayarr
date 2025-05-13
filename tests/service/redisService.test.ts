@@ -23,7 +23,7 @@ describe('Redis Client Initialization', () => {
     it('should create Redis client with default options', async () => {
         process.env.REDIS_SSL = 'false';
 
-        const { redis } = await import('../../src/service/redisService');
+        const { redis } = await import('../../src/service/redis/redisService');
         const Redis = (await import('ioredis')).default;
 
         expect(Redis).toHaveBeenCalledWith({
@@ -43,7 +43,7 @@ describe('Redis Client Initialization', () => {
         process.env.REDIS_PORT = '6380';
         process.env.REDIS_SSL = 'false';
 
-        const { redis } = await import('../../src/service/redisService');
+        const { redis } = await import('../../src/service/redis/redisService');
         const Redis = (await import('ioredis')).default;
 
         expect(Redis).toHaveBeenCalledWith({
@@ -61,7 +61,7 @@ describe('Redis Client Initialization', () => {
     it('should enable TLS if REDIS_SSL is true', async () => {
         process.env.REDIS_SSL = 'true';
 
-        await import('../../src/service/redisService');
+        await import('../../src/service/redis/redisService');
         const Redis = (await import('ioredis')).default;
 
         expect(Redis).toHaveBeenCalledWith(expect.objectContaining({ tls: {} }));
@@ -71,7 +71,7 @@ describe('Redis Client Initialization', () => {
         process.env.REDIS_PASSWORD = 'secret';
         process.env.REDIS_SSL = 'false';
 
-        await import('../../src/service/redisService');
+        await import('../../src/service/redis/redisService');
         const Redis = (await import('ioredis')).default;
 
         expect(Redis).toHaveBeenCalledWith(

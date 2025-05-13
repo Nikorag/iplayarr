@@ -4,7 +4,7 @@ import session from 'express-session';
 import { v4 } from 'uuid';
 
 import configService from '../service/configService';
-import { redis } from '../service/redisService';
+import { redis } from '../service/redis/redisService';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import User from '../types/User';

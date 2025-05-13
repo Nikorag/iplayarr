@@ -1,7 +1,7 @@
-import { redis } from '../../src/service/redisService';
+import { redis } from '../../src/service/redis/redisService';
 import { QueuedStorage } from '../../src/types/QueuedStorage';
 
-jest.mock('../../src/service/redisService', () => ({
+jest.mock('../../src/service/redis/redisService', () => ({
     redis: {
         keys: jest.fn(),
         mget: jest.fn(),

@@ -12,7 +12,8 @@
         <p><a href="https://github.com/Nikorag">Nikorag</a></p>
         <div class="buttons">
             <div v-if="!hiddenSettings.HIDE_DONATE">
-                <a href="https://ko-fi.com/H2H01BK2VY" target="_blank"><img height="36"
+                <a href="https://ko-fi.com/H2H01BK2VY" target="_blank"><img
+height="36"
                         style="border: 0px; height: 36px" src="https://storage.ko-fi.com/cdn/kofi5.png?v=6"
                         alt="Buy Me a Coffee at ko-fi.com" /></a>
             </div>

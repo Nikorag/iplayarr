@@ -9,7 +9,7 @@ import { getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
 import configService from '../configService';
 import iplayerDetailsService from '../iplayerDetailsService';
 import loggingService from '../loggingService';
-import RedisCacheService from '../redisCacheService';
+import RedisCacheService from '../redis/redisCacheService';
 import NativeSearchService from '../search/NativeSearchService';
 import { AbstractScheduleService } from './AbstractScheduleService';
 

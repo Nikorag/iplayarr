@@ -96,7 +96,7 @@ const appService = {
             case AppType.PROWLARR:
             case AppType.RADARR:
             case AppType.SONARR: {
-                return await arrFacade.testConnection({ api_key: form.api_key as string, url: form.url } as App);
+                return await arrFacade.testConnection(form);
             }
             case AppType.NZBGET:
             case AppType.SABNZBD: {

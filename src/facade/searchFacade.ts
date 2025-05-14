@@ -1,5 +1,5 @@
 import configService from '../service/configService';
-import RedisCacheService from '../service/redisCacheService';
+import RedisCacheService from '../service/redis/redisCacheService';
 import AbstractSearchService from '../service/search/AbstractSearchService';
 import getIplayerSearchService from '../service/search/GetIplayerSearchService';
 import nativeSearchService from '../service/search/NativeSearchService';

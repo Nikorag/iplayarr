@@ -1,4 +1,4 @@
-import { redis } from '../../service/redisService'
+import { redis } from '../../service/redis/redisService'
 import { AbstractFIFOQueue } from './AbstractFIFOQueue';
 
 export class RedisFIFOQueue<T> implements AbstractFIFOQueue<T> {

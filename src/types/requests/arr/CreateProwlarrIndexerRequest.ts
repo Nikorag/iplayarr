@@ -1,6 +1,7 @@
+import { AbstractCreateIndexerRequest } from './AbstractCreateIndexerRequest';
 import { CreateIndexerRequestField } from './CreateIndexerRequest';
 
-export interface CreateProwlarrIndexerRequest {
+export interface CreateProwlarrIndexerRequest extends AbstractCreateIndexerRequest {
     indexerUrls: string[];
     legacyUrls: string[];
     definitionName: string;
@@ -29,7 +30,6 @@ export interface CreateProwlarrIndexerRequest {
     configContract: string;
     infoLink: string;
     tags: string[];
-    id?: number;
 }
 
 export interface ProwlarrIndexerCapabilities {

@@ -1,15 +1,19 @@
 import statisticsService from '../../../src/service/stats/StatisticsService';
+import { GrabHistoryEntry } from '../../../src/types/data/GrabHistoryEntry';
 import { SearchHistoryEntry } from '../../../src/types/data/SearchHistoryEntry';
+import { VideoType } from '../../../src/types/IPlayerSearchResult';
 import { FixedFIFOQueue } from '../../../src/types/utils/FixedFIFOQueue';
 
 describe('statisticsService', () => {
     // Clear history before each test run
     beforeEach(() => {
         statisticsService.searchHistory = new FixedFIFOQueue(10);
-        statisticsService.clearSearchHistory(); // Use clearHistory to reset the queue
+        statisticsService.clearSearchHistory();
+        statisticsService.grabHistory = new FixedFIFOQueue(10);
+        statisticsService.clearGrabHistory();
     });
 
-    it('should add items to the history queue', async () => {
+    it('should add items to the search history queue', async () => {
         const entry1: SearchHistoryEntry = { term: 'test1', results: 10, time: 1 };
         const entry2: SearchHistoryEntry = { term: 'test2', results: 15, time: 2 };
 
@@ -22,7 +26,7 @@ describe('statisticsService', () => {
         expect(history[1].term).toBe('test2');
     });
 
-    it('should respect the max size of the queue (10)', async () => {
+    it('should respect the max size of the search queue (10)', async () => {
         const maxSize = 10;
 
         // Add more than 10 entries
@@ -36,7 +40,7 @@ describe('statisticsService', () => {
         expect(history[0].term).toBe('test6'); // The oldest item should be the 6th item
     });
 
-    it('should return history in the correct order (FIFO)', async () => {
+    it('should return search history in the correct order (FIFO)', async () => {
         const entry1: SearchHistoryEntry = { term: 'test1', results: 10, time: 1 };
         const entry2: SearchHistoryEntry = { term: 'test2', results: 20, time: 2 };
 
@@ -48,7 +52,7 @@ describe('statisticsService', () => {
         expect(history[1].term).toBe('test2'); // The second added item
     });
 
-    it('should only return items up to the max size', async () => {
+    it('should only return search items up to the max size', async () => {
         const maxSize = 10;
 
         // Add more than the max size of the queue
@@ -62,7 +66,7 @@ describe('statisticsService', () => {
         expect(history[0].term).toBe('query6'); // The queue should discard old entries
     });
 
-    it('should clear history when clearHistory is called', async () => {
+    it('should clear search history when clearHistory is called', async () => {
         const entry1: SearchHistoryEntry = { term: 'test1', results: 10, time: 1 };
         const entry2: SearchHistoryEntry = { term: 'test2', results: 15, time: 2 };
 
@@ -73,6 +77,73 @@ describe('statisticsService', () => {
         statisticsService.clearSearchHistory();
 
         const history = await statisticsService.getSearchHistory();
+        expect(history).toHaveLength(0); // History should be empty
+    });
+
+    it('should add items to the grab history queue', async () => {
+        const entry1: GrabHistoryEntry = { pid: 'test1', nzbName: 'test1', time: 1, type: VideoType.TV };
+        const entry2: GrabHistoryEntry = { pid: 'test2', nzbName: 'test2', time: 1, type: VideoType.TV };
+
+        statisticsService.addGrab(entry1);
+        statisticsService.addGrab(entry2);
+
+        const history = await statisticsService.getGrabHistory();
+        expect(history).toHaveLength(2);
+        expect(history[0].pid).toBe('test1');
+        expect(history[1].pid).toBe('test2');
+    });
+
+    it('should respect the max size of the grab queue (10)', async () => {
+        const maxSize = 10;
+
+        // Add more than 10 entries
+        for (let i = 1; i <= 15; i++) {
+            const entry: GrabHistoryEntry = { pid: `test${i}`, nzbName: `test${i}`, time: i, type: VideoType.TV };
+            statisticsService.addGrab(entry);
+        }
+
+        const history = await statisticsService.getGrabHistory();
+        expect(history).toHaveLength(maxSize); // should only store 10 entries
+        expect(history[0].pid).toBe('test6'); // The oldest item should be the 6th item
+    });
+
+    it('should return grab history in the correct order (FIFO)', async () => {
+        const entry1: GrabHistoryEntry = { pid: 'test1', nzbName: 'test1', time: 1, type: VideoType.TV };
+        const entry2: GrabHistoryEntry = { pid: 'test2', nzbName: 'test2', time: 1, type: VideoType.TV };
+
+        statisticsService.addGrab(entry1);
+        statisticsService.addGrab(entry2);
+
+        const history = await statisticsService.getGrabHistory();
+        expect(history[0].pid).toBe('test1'); // The first added item
+        expect(history[1].pid).toBe('test2'); // The second added item
+    });
+
+    it('should only return grab items up to the max size', async () => {
+        const maxSize = 10;
+
+        // Add more than the max size of the queue
+        for (let i = 1; i <= 15; i++) {
+            const entry: GrabHistoryEntry = { pid: `test${i}`, nzbName: `test${i}`, time: i, type: VideoType.TV };
+            statisticsService.addGrab(entry);
+        }
+
+        const history = await statisticsService.getGrabHistory();
+        expect(history).toHaveLength(maxSize);
+        expect(history[0].pid).toBe('test6'); // The queue should discard old entries
+    });
+
+    it('should clear grab history when clearHistory is called', async () => {
+        const entry1: GrabHistoryEntry = { pid: 'test1', nzbName: 'test1', time: 1, type: VideoType.TV };
+        const entry2: GrabHistoryEntry = { pid: 'test2', nzbName: 'test2', time: 1, type: VideoType.TV };
+
+        statisticsService.addGrab(entry1);
+        statisticsService.addGrab(entry2);
+
+        // Clear history
+        statisticsService.clearGrabHistory();
+
+        const history = await statisticsService.getGrabHistory();
         expect(history).toHaveLength(0); // History should be empty
     });
 });

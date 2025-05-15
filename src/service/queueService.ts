@@ -29,7 +29,8 @@ const queueService = {
         StatisticsService.addGrab({
             pid,
             nzbName,
-            time: new Date().getTime()
+            time: new Date().getTime(),
+            type
         })
     },
 

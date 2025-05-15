@@ -75,7 +75,8 @@ describe('queueService', () => {
             expect(statisticsService.addGrab).toHaveBeenCalledWith({
                 pid: '123',
                 nzbName: 'Test NZB',
-                time: expect.any(Number)
+                time: expect.any(Number),
+                type: VideoType.TV,
             })
         });
     });

@@ -10,6 +10,7 @@
         <div class="chartRow">
             <PieChart :data="appGrabSeries" title="Grab Sources" />
             <LineChart :data="grabOverTimeSeries" title="Grabs" />
+            <PieChart :data="typeSeries" title="Grab Types" />
         </div>
     </div>
 </template>
@@ -37,6 +38,13 @@ const termSeries = computed(() => {
         return acc;
     }, {})
 });
+
+const typeSeries = computed(() => {
+    return grabHistory.value.reduce((acc, { type }) => {
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+    }, {})
+})
 
 const appSearchSeries = computed(() => {
     return createAppSourceSeries(searchHistory.value)

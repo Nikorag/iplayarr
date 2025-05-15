@@ -4,13 +4,11 @@ import request from 'supertest';
 import arrFacade from '../../../src/facade/arrFacade';
 import router from '../../../src/routes/json-api/SynonymsRoute'; // adjust path as needed
 import appService from '../../../src/service/appService';
-import statisticsService from '../../../src/service/stats/StatisticsService';
 import synonymService from '../../../src/service/synonymService';
 import { ApiError } from '../../../src/types/responses/ApiResponse';
 import { Synonym } from '../../../src/types/Synonym';
 
 jest.mock('../../../src/service/synonymService');
-jest.mock('../../../src/service/stats/StatisticsService');
 jest.mock('../../../src/service/appService');
 jest.mock('../../../src/facade/arrFacade');
 

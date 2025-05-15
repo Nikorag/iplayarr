@@ -2,7 +2,6 @@ import { Request, Response, Router } from 'express';
 
 import arrFacade from '../../facade/arrFacade';
 import appService from '../../service/appService';
-import statisticsService from '../../service/stats/StatisticsService';
 import synonymService from '../../service/synonymService';
 import { App } from '../../types/App';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';

@@ -35,4 +35,23 @@ describe('Statistics Routes', () => {
         });
     });
 
+    describe('GET /grabHistory', () => {
+        it('returns grab history', async () => {
+            const history = ['grab1', 'grab2'];
+            (statisticsService.getGrabHistory as jest.Mock).mockReturnValue(history);
+
+            const res = await request(expressApp).get('/grabHistory');
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual(history);
+        });
+
+        it('returns limited grab history', async () => {
+            const history = ['grab1', 'grab2'];
+            (statisticsService.getGrabHistory as jest.Mock).mockReturnValue(history);
+
+            const res = await request(expressApp).get('/grabHistory?limit=1');
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual([history[1]]);
+        });
+    });
 });

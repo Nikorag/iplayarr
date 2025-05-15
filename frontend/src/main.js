@@ -7,6 +7,7 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { createApp, reactive } from 'vue';
 import { createVfm } from 'vue-final-modal';
+import VueApexCharts from 'vue3-apexcharts';
 
 import App from './App.vue';
 import router from './router/router.js';
@@ -21,6 +22,8 @@ app.provide('authState', authState);
 
 const vfm = createVfm();
 app.use(vfm);
+
+app.use(VueApexCharts);
 
 app.component('FontAwesomeIcon', FontAwesomeIcon);
 app.use(router);

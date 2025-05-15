@@ -11,6 +11,7 @@ import AppsRoute from './json-api/AppsRoute';
 import OffScheduleRoute from './json-api/OffScheduleRoute';
 import QueueRoute from './json-api/QueueRoute';
 import SettingsRoute from './json-api/SettingsRoute';
+import StatisticsRoute from './json-api/StatisticsRoute';
 import SynonymsRoute from './json-api/SynonymsRoute';
 
 const router: Router = Router();
@@ -20,6 +21,7 @@ router.use('/synonym', SynonymsRoute);
 router.use('/queue', QueueRoute);
 router.use('/offSchedule', OffScheduleRoute);
 router.use('/apps', AppsRoute);
+router.use('/stats', StatisticsRoute);
 
 router.post('/nzb/test', async (req: Request, res: Response) => {
     const { NZB_URL, NZB_API_KEY, NZB_TYPE, NZB_USERNAME, NZB_PASSWORD } = req.body;

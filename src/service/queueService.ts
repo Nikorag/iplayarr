@@ -9,6 +9,7 @@ import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import configService from './configService';
 import historyService from './historyService';
 import socketService from './socketService';
+import StatisticsService from './stats/StatisticsService';
 
 let queue: QueueEntry[] = [];
 
@@ -24,6 +25,12 @@ const queueService = {
         };
         queue.push(queueEntry);
         queueService.moveQueue();
+
+        StatisticsService.addGrab({
+            pid,
+            nzbName,
+            time: new Date().getTime()
+        })
     },
 
     moveQueue: async (): Promise<void> => {

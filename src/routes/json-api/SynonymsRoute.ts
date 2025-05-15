@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 
 import arrFacade from '../../facade/arrFacade';
 import appService from '../../service/appService';
-import searchHistoryService from '../../service/searchHistoryService';
+import statisticsService from '../../service/stats/StatisticsService';
 import synonymService from '../../service/synonymService';
 import { App } from '../../types/App';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
@@ -35,11 +35,6 @@ router.delete('/', async (req: Request, res: Response) => {
     await synonymService.removeSynonym(id);
     const synonyms = await synonymService.getAllSynonyms();
     res.json(synonyms);
-});
-
-router.get('/searchHistory', async (req: Request, res: Response) => {
-    const searchHistory = await searchHistoryService.getHistory();
-    res.json(searchHistory);
 });
 
 router.get('/lookup/:appId', async (req: Request, res: Response) => {

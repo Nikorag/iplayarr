@@ -4,8 +4,11 @@ import downloadFacade from '../../src/facade/downloadFacade';
 import configService from '../../src/service/configService';
 import historyService from '../../src/service/historyService';
 import queueService from '../../src/service/queueService';
+import statisticsService from '../../src/service/stats/StatisticsService';
 import { VideoType } from '../../src/types/IPlayerSearchResult';
 import { QueueEntryStatus } from '../../src/types/responses/sabnzbd/QueueResponse';
+
+jest.mock('../../src/service/stats/StatisticsService');
 
 jest.mock('../../src/service/configService', () => ({
     __esModule: true,
@@ -68,6 +71,12 @@ describe('queueService', () => {
                 type: VideoType.TV,
                 appId: 'myApp',
             });
+
+            expect(statisticsService.addGrab).toHaveBeenCalledWith({
+                pid: '123',
+                nzbName: 'Test NZB',
+                time: expect.any(Number)
+            })
         });
     });
 

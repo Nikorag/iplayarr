@@ -4,13 +4,13 @@ import request from 'supertest';
 import arrFacade from '../../../src/facade/arrFacade';
 import router from '../../../src/routes/json-api/SynonymsRoute'; // adjust path as needed
 import appService from '../../../src/service/appService';
-import searchHistoryService from '../../../src/service/searchHistoryService';
+import statisticsService from '../../../src/service/stats/StatisticsService';
 import synonymService from '../../../src/service/synonymService';
 import { ApiError } from '../../../src/types/responses/ApiResponse';
 import { Synonym } from '../../../src/types/Synonym';
 
 jest.mock('../../../src/service/synonymService');
-jest.mock('../../../src/service/searchHistoryService');
+jest.mock('../../../src/service/stats/StatisticsService');
 jest.mock('../../../src/service/appService');
 jest.mock('../../../src/facade/arrFacade');
 
@@ -76,17 +76,6 @@ describe('Synonym and Lookup Routes', () => {
             expect(synonymService.removeSynonym).toHaveBeenCalledWith(id);
             expect(res.status).toBe(200);
             expect(res.body).toEqual(updatedSynonyms);
-        });
-    });
-
-    describe('GET /searchHistory', () => {
-        it('returns search history', async () => {
-            const history = ['search1', 'search2'];
-            (searchHistoryService.getHistory as jest.Mock).mockReturnValue(history);
-
-            const res = await request(expressApp).get('/searchHistory');
-            expect(res.status).toBe(200);
-            expect(res.body).toEqual(history);
         });
     });
 

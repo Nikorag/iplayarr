@@ -12,6 +12,7 @@ import QueueInfoPage from '@/views/QueueInfoPage.vue';
 import QueuePage from '@/views/QueuePage.vue';
 import SearchPage from '@/views/SearchPage.vue';
 import SettingsPage from '@/views/SettingsPage.vue';
+import StatisticsPage from '@/views/StatisticsPage.vue';
 import SynonymsPage from '@/views/SynonymsPage.vue';
 
 const routes = [
@@ -27,6 +28,7 @@ const routes = [
     { path: '/download', component: DownloadPage, name: 'download' },
     { path: '/offSchedule', component: OffSchedulePage },
     { path: '/apps', component: AppsPage },
+    { path: '/stats', component: StatisticsPage },
 ];
 
 const router = createRouter({

@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 import { Builder } from 'xml2js';
 
 import searchFacade from '../../facade/searchFacade';
-import searchHistoryService from '../../service/searchHistoryService';
+import statisticsService from '../../service/stats/StatisticsService';
+import { SearchHistoryEntry } from '../../types/data/SearchHistoryEntry';
 import { IPlayerSearchResult, VideoType } from '../../types/IPlayerSearchResult';
 import { NewzNabAttr, NewzNabSearchResponse } from '../../types/responses/newznab/NewzNabSearchResponse';
-import { SearchHistoryEntry } from '../../types/SearchHistoryEntry';
 import { createNZBDownloadLink, getBaseUrl } from '../../utils/Utils';
 
 interface SearchRequest {
@@ -33,8 +33,9 @@ export default async (req: Request, res: Response) => {
             appId: app,
             series: season,
             episode: ep,
+            time: new Date().getTime()
         };
-        searchHistoryService.addItem(historyEntry);
+        statisticsService.addSearch(historyEntry);
     }
 
     const date: Date = new Date();

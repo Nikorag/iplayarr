@@ -8,13 +8,11 @@
             <template v-if="globalSettings.NATIVE_SEARCH == 'false'">
                 <LeftHandNavLink label="Off Schedule" icon="calendar" path="/offSchedule" @option-clicked="closeLHN" />
                 <LeftHandNavLink
-                    label="Refresh Index"
-                    icon="address-book"
-                    :no-link="true"
-                    @option-clicked="refreshCache"
-                />
+label="Refresh Index" icon="address-book" :no-link="true"
+                    @option-clicked="refreshCache" />
             </template>
             <LeftHandNavLink label="Settings" icon="gears" path="/settings" @option-clicked="closeLHN" />
+            <LeftHandNavLink label="Statistics" icon="chart-bar" path="/stats" @option-clicked="closeLHN" />
             <LeftHandNavLink label="About" icon="circle-info" path="/about" @option-clicked="closeLHN" />
             <LeftHandNavLink label="Logout" icon="sign-out" :no-link="true" @option-clicked="logout" />
         </ul>

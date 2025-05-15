@@ -3,12 +3,12 @@ import { parseStringPromise } from 'xml2js';
 
 import SearchEndpoint from '../../../src/endpoints/newznab/SearchEndpoint';
 import searchFacade from '../../../src/facade/searchFacade';
-import searchHistoryService from '../../../src/service/searchHistoryService';
+import statisticsService from '../../../src/service/stats/StatisticsService';
 import { VideoType } from '../../../src/types/IPlayerSearchResult';
 import * as Utils from '../../../src/utils/Utils';
 
 jest.mock('../../../src/facade/searchFacade');
-jest.mock('../../../src/service/searchHistoryService');
+jest.mock('../../../src/service/stats/StatisticsService');
 jest.spyOn(Utils, 'getBaseUrl').mockReturnValue('http://localhost:3000');
 jest.spyOn(Utils, 'createNZBDownloadLink').mockImplementation(() => '/nzb/link.nzb');
 
@@ -49,7 +49,7 @@ describe('SearchEndpoint', () => {
         ];
 
         (searchFacade.search as jest.Mock).mockResolvedValue(fakeResults);
-        (searchHistoryService.addItem as jest.Mock).mockImplementation(() => { });
+        (statisticsService.addSearch as jest.Mock).mockImplementation(() => { });
 
         await SearchEndpoint(req as Request, res as Response);
 
@@ -65,12 +65,13 @@ describe('SearchEndpoint', () => {
         expect(parsed.rss.channel[0]).toHaveProperty('item');
 
         expect(searchFacade.search).toHaveBeenCalledWith('Test Show', '1', '2');
-        expect(searchHistoryService.addItem).toHaveBeenCalledWith({
+        expect(statisticsService.addSearch).toHaveBeenCalledWith({
             term: 'Test Show',
             results: 1,
             appId: 'radarr',
             series: '1',
             episode: '2',
+            time: expect.any(Number)
         });
     });
 
@@ -80,6 +81,6 @@ describe('SearchEndpoint', () => {
 
         await SearchEndpoint(req as Request, res as Response);
 
-        expect(searchHistoryService.addItem).not.toHaveBeenCalled();
+        expect(statisticsService.addSearch).not.toHaveBeenCalled();
     });
 });

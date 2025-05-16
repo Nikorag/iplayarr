@@ -33,7 +33,9 @@ onMounted(async () => {
 });
 
 const termSeries = computed(() => {
-    return searchHistory.value.reduce((acc, { term }) => {
+    return searchHistory.value
+        .map((search) => ({ ...search, term: search.term == '*' ? 'RSS Feed' : search.term }))
+        .reduce((acc, { term }) => {
         acc[term] = (acc[term] || 0) + 1;
         return acc;
     }, {})

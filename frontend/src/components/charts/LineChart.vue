@@ -28,7 +28,10 @@ const options = computed(() => ({
     chart: {
         type: 'line',
         background: 'transparent',
-        zoom: { enabled: false }
+        zoom: { enabled: false },
+        toolbar: {
+            show: false
+        }
     },
     title: {
         text: props.title,

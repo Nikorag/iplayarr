@@ -54,7 +54,7 @@ const apps = ref([]);
 const emit = defineEmits(['select']);
 
 onMounted(async () => {
-    searchHistory.value = (await ipFetch('json-api/stats/searchHistory?limit=10')).data;
+    searchHistory.value = (await ipFetch('json-api/stats/searchHistory?limit=10&filterRss=true')).data;
     apps.value = (await ipFetch('json-api/apps')).data;
 });
 

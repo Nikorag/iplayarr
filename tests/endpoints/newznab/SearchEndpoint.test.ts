@@ -74,13 +74,4 @@ describe('SearchEndpoint', () => {
             time: expect.any(Number)
         });
     });
-
-    it('skips history logging for wildcard search', async () => {
-        (req.query as any).q = '*';
-        (searchFacade.search as jest.Mock).mockResolvedValue([]);
-
-        await SearchEndpoint(req as Request, res as Response);
-
-        expect(statisticsService.addSearch).not.toHaveBeenCalled();
-    });
 });

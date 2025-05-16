@@ -33,6 +33,20 @@ describe('Statistics Routes', () => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual([history[1]]);
         });
+
+        it('returns filtered search history', async () => {
+            const filteredHistory = [{ 'term': 'search1' }, { 'term': 'search2' }]
+            const history = [...filteredHistory, { 'term': '*' }];
+            (statisticsService.getSearchHistory as jest.Mock).mockReturnValue(history);
+
+            const unfilteredRes = await request(expressApp).get('/searchHistory');
+            expect(unfilteredRes.status).toBe(200);
+            expect(unfilteredRes.body).toEqual(history);
+
+            const filteredRes = await request(expressApp).get('/searchHistory?filterRss=true');
+            expect(filteredRes.status).toBe(200);
+            expect(filteredRes.body).toEqual(filteredHistory);
+        });
     });
 
     describe('GET /grabHistory', () => {

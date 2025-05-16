@@ -26,17 +26,15 @@ export default async (req: Request, res: Response) => {
         results = results.filter(({ type }) => categoriesForType(type).some((category) => cat.includes(category)));
     }
 
-    if (searchTerm != '*') {
-        const historyEntry: SearchHistoryEntry = {
-            term: searchTerm,
-            results: results.length,
-            appId: app,
-            series: season,
-            episode: ep,
-            time: new Date().getTime()
-        };
-        statisticsService.addSearch(historyEntry);
-    }
+    const historyEntry: SearchHistoryEntry = {
+        term: searchTerm,
+        results: results.length,
+        appId: app,
+        series: season,
+        episode: ep,
+        time: new Date().getTime()
+    };
+    statisticsService.addSearch(historyEntry);
 
     const date: Date = new Date();
     date.setMinutes(date.getMinutes() - 720);

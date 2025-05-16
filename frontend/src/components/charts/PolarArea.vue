@@ -1,5 +1,5 @@
 <template>
-    <apexchart type="donut" :options="options" :series="processedData.series"></apexchart>
+    <apexchart type="polarArea" :options="options" :series="processedData.series"></apexchart>
 </template>
 
 <script setup>
@@ -27,12 +27,20 @@ const processedData = computed(() => {
 
 const options = computed(() => {
     return {
+        chart: {
+            type: 'polarArea',
+            background: 'transparent'
+        },
+        labels: processedData.value.labels,
         title: {
             text: props.title,
             style: {
                 fontSize: '20px',
-                color: '#ffffff' // Adjust for dark theme
+                color: '#ffffff'
             }
+        },
+        theme: {
+            mode: 'dark'
         },
         colors: [
             '#98003B',
@@ -42,15 +50,11 @@ const options = computed(() => {
             '#ce8191',
             '#A6A6A6'
         ],
-        theme: {
-            mode: 'dark' // Enables dark mode
+        stroke: {
+            colors: ['#fff']
         },
-        labels: processedData.value.labels,
-        dataLabels: {
-            enabled: false
-        },
-        chart: {
-            background: 'transparent'
+        fill: {
+            opacity: 0.8
         },
         legend: {
             position: 'right',
@@ -58,5 +62,5 @@ const options = computed(() => {
             height: 230,
         }
     };
-})
+});
 </script>

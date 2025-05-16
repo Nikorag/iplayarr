@@ -11,6 +11,7 @@ import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
 import JsonApiRoute from './routes/JsonApiRoute';
 import loggingService from './service/loggingService';
 import socketService from './service/socketService';
+import StatisticsService from './service/stats/StatisticsService';
 import taskService from './service/taskService';
 import { IplayarrParameter } from './types/IplayarrParameters';
 
@@ -62,6 +63,7 @@ socketService.registerIo(io);
 
 server.listen(port, () => {
     loggingService.log(`Server running at http://localhost:${port}`);
+    StatisticsService.setUptime();
 });
 
 //Cron

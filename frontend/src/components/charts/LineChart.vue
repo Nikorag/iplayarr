@@ -35,7 +35,6 @@ const options = computed(() => ({
     },
     title: {
         text: props.title,
-        align: 'center',
         style: {
             fontSize: '20px',
             color: '#ffffff'

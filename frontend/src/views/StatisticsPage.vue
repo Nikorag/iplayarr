@@ -51,16 +51,22 @@ const grabHistory = ref([]);
 const apps = ref([]);
 
 onMounted(async () => {
+    updateStats();
+
+    setInterval(() => {
+        uptime.value.uptime += 1000
+    }, 1000);
+
+    setInterval(updateStats, 180000);
+});
+
+async function updateStats() {
     searchHistory.value = (await ipFetch('json-api/stats/searchHistory')).data;
     grabHistory.value = (await ipFetch('json-api/stats/grabHistory')).data;
     apps.value = (await ipFetch('json-api/apps')).data;
     uptime.value = (await ipFetch('json-api/stats/uptime')).data;
     cacheSizes.value = (await ipFetch('json-api/stats/cacheSizes')).data;
-
-    setInterval(() => {
-        uptime.value.uptime += 1000
-    }, 1000)
-});
+}
 
 const termSeries = computed(() => {
     return searchHistory.value

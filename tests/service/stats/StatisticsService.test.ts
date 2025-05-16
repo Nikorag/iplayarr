@@ -155,7 +155,7 @@ describe('statisticsService', () => {
     });
 
     it('setUptime stores current timestamp in Redis', async () => {
-        const now = Date.now();
+        const now = 100;
         jest.spyOn(global.Date, 'now').mockReturnValueOnce(now);
 
         await statisticsService.setUptime();

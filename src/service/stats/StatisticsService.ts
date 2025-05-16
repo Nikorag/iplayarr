@@ -39,7 +39,7 @@ class StatisticsService {
     }
 
     async setUptime(): Promise<void> {
-        await redis.set('iplayarr_uptime', new Date().getTime());
+        await redis.set('iplayarr_uptime', Date.now());
     }
 
     async getUptime(): Promise<number> {

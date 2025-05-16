@@ -30,7 +30,8 @@ const queueService = {
             pid,
             nzbName,
             time: new Date().getTime(),
-            type
+            type,
+            appId
         })
     },
 

@@ -77,6 +77,7 @@ describe('queueService', () => {
                 nzbName: 'Test NZB',
                 time: expect.any(Number),
                 type: VideoType.TV,
+                appId: 'myApp'
             })
         });
     });

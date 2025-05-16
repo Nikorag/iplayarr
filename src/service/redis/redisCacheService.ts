@@ -38,4 +38,27 @@ export default class RedisCacheService<T> {
             await redis.del(keys);
         }
     }
+
+    static async getCacheSizeInMB(patterns: string[]): Promise<string> {
+        let totalBytes = 0;
+
+        for (const pattern of patterns) {
+            let cursor = '0';
+
+            do {
+                const [newCursor, keys] = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+                cursor = newCursor;
+
+                if (keys.length > 0) {
+                    const sizes = await Promise.all(
+                        keys.map(key => redis.memory('USAGE', key).catch(() => 0))
+                    );
+                    totalBytes += sizes.reduce((sum: any, size) => sum + (size || 0), 0);
+                }
+            } while (cursor !== '0');
+        }
+
+        const totalMB = totalBytes / (1024 * 1024);
+        return totalMB.toFixed(2);
+    }
 }

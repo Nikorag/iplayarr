@@ -68,4 +68,27 @@ describe('Statistics Routes', () => {
             expect(res.body).toEqual([history[1]]);
         });
     });
+
+    describe('GET /uptime', () => {
+        it('returns uptime', async () => {
+            const uptime = 100;
+            (statisticsService.getUptime as jest.Mock).mockReturnValue(uptime);
+
+            const res = await request(expressApp).get('/uptime');
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual({ uptime });
+        });
+    });
+
+    describe('GET /cacheSizes', () => {
+        it('returns cacheSizes', async () => {
+            const cacheSizes = { search: 100, schedule: 500 };
+
+            (statisticsService.getCacheSizes as jest.Mock).mockReturnValue(cacheSizes);
+
+            const res = await request(expressApp).get('/cacheSizes');
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual(cacheSizes);
+        });
+    });
 });

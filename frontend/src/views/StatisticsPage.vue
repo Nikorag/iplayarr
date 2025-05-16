@@ -1,14 +1,35 @@
 <template>
     <div class="inner-content">
+        <legend>Server</legend>
+        <div class="chartRow">
+            <div class="textDisplay">
+                <h2>Uptime</h2>
+                <span class="textValue">
+                    {{ msToTime(uptime.uptime) }}
+                </span>
+            </div>
+            <div class="textDisplay">
+                <h2>Search Cache Size</h2>
+                <span class="textValue">
+                    {{ cacheSizes.search }}MB
+                </span>
+            </div>
+            <div class="textDisplay">
+                <h2>Schedule Cache Size</h2>
+                <span class="textValue">
+                    {{ cacheSizes.schedule }}MB
+                </span>
+            </div>
+        </div>
         <legend>Search Statistics</legend>
         <div class="chartRow">
             <PieChart :data="termSeries" title="Search Terms" />
-            <PieChart :data="appSearchSeries" title="Search Sources" />
+            <PolarArea :data="appSearchSeries" title="Search Sources" />
             <LineChart :data="searchOverTimeSeries" title="Searchs" />
         </div>
         <legend>Grab Statistics</legend>
         <div class="chartRow">
-            <PieChart :data="appGrabSeries" title="Grab Sources" />
+            <PolarArea :data="appGrabSeries" title="Grab Sources" />
             <LineChart :data="grabOverTimeSeries" title="Grabs" />
             <PieChart :data="typeSeries" title="Grab Types" />
         </div>
@@ -16,12 +37,15 @@
 </template>
 
 <script setup>
-import { computed,onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import LineChart from '@/components/charts/LineChart.vue';
 import PieChart from '@/components/charts/PieChart.vue';
+import PolarArea from '@/components/charts/PolarArea.vue';
 import { ipFetch } from '@/lib/ipFetch';
 
+const uptime = ref({ uptime: 0 });
+const cacheSizes = ref([]);
 const searchHistory = ref([]);
 const grabHistory = ref([]);
 const apps = ref([]);
@@ -30,15 +54,21 @@ onMounted(async () => {
     searchHistory.value = (await ipFetch('json-api/stats/searchHistory')).data;
     grabHistory.value = (await ipFetch('json-api/stats/grabHistory')).data;
     apps.value = (await ipFetch('json-api/apps')).data;
+    uptime.value = (await ipFetch('json-api/stats/uptime')).data;
+    cacheSizes.value = (await ipFetch('json-api/stats/cacheSizes')).data;
+
+    setInterval(() => {
+        uptime.value.uptime += 1000
+    }, 1000)
 });
 
 const termSeries = computed(() => {
     return searchHistory.value
         .map((search) => ({ ...search, term: search.term == '*' ? 'RSS Feed' : search.term }))
         .reduce((acc, { term }) => {
-        acc[term] = (acc[term] || 0) + 1;
-        return acc;
-    }, {})
+            acc[term] = (acc[term] || 0) + 1;
+            return acc;
+        }, {})
 });
 
 const typeSeries = computed(() => {
@@ -113,6 +143,16 @@ function toMilliseconds(timestamp) {
     return timestamp;
 }
 
+function msToTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+
+    return `${hours}:${minutes}:${seconds}`;
+}
+
+
 </script>
 
 <style lang="less">
@@ -122,7 +162,7 @@ function toMilliseconds(timestamp) {
     justify-content: center;
     gap: 2rem;
 
-    .vue-apexcharts {
+    >div {
         flex: 1 1 300px; // base size, but flexible
         max-width: 30%; // up to 3 in a row
         min-width: 280px;
@@ -131,6 +171,12 @@ function toMilliseconds(timestamp) {
         @media (max-width: @mobile-breakpoint) {
             max-width: 100%;
         }
+&.textDisplay {
+    .textValue {
+        font-size: 60px;
+        font-weight: 300;
+    }
+}
     }
 }
 </style>

@@ -17,4 +17,14 @@ router.get('/grabHistory', async (req: Request, res: Response) => {
     res.json(limit ? grabHistory.slice(limit * -1) : grabHistory);
 });
 
+router.get('/uptime', async (_, res: Response) => {
+    const uptime = await statisticsService.getUptime();
+    res.json({ uptime });
+});
+
+router.get('/cacheSizes', async (_, res: Response) => {
+    const cacheSizes = await statisticsService.getCacheSizes();
+    res.json(cacheSizes);
+});
+
 export default router;

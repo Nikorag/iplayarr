@@ -1,4 +1,7 @@
 <template>
+    <SettingsPageToolbar
+:icons="['filter']" :filter-enabled="filter != null" :filter-options="availableFilters"
+        :selected-filter="selectedFilter" @select-filter="selectFilter" />
     <div class="inner-content">
         <legend>Server</legend>
         <div class="chartRow">
@@ -42,6 +45,7 @@ import { computed, onMounted, ref } from 'vue';
 import LineChart from '@/components/charts/LineChart.vue';
 import PieChart from '@/components/charts/PieChart.vue';
 import PolarArea from '@/components/charts/PolarArea.vue';
+import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 import { ipFetch } from '@/lib/ipFetch';
 
 const uptime = ref({ uptime: 0 });
@@ -49,6 +53,13 @@ const cacheSizes = ref([]);
 const searchHistory = ref([]);
 const grabHistory = ref([]);
 const apps = ref([]);
+
+const filter = ref(null);
+const availableFilters = ref(['ALL', 'EXCLUDE RSS']);
+
+const selectedFilter = computed(() => {
+    return filter.value == null ? 'ALL' : filter.value;
+});
 
 onMounted(async () => {
     updateStats();
@@ -61,7 +72,7 @@ onMounted(async () => {
 });
 
 async function updateStats() {
-    searchHistory.value = (await ipFetch('json-api/stats/searchHistory')).data;
+    searchHistory.value = (await ipFetch(`json-api/stats/searchHistory${filter.value == 'EXCLUDE RSS' ? '?filterRss=true' : ''}`)).data;
     grabHistory.value = (await ipFetch('json-api/stats/grabHistory')).data;
     apps.value = (await ipFetch('json-api/apps')).data;
     uptime.value = (await ipFetch('json-api/stats/uptime')).data;
@@ -158,6 +169,10 @@ function msToTime(ms) {
     return `${hours}:${minutes}:${seconds}`;
 }
 
+const selectFilter = (option) => {
+    filter.value = option == 'ALL' ? null : option;
+    updateStats();
+};
 
 </script>
 

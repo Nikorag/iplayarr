@@ -7,15 +7,27 @@ import { calculateSeasonAndEpisode } from '../utils/Utils';
 
 class IPlayerDetailsService {
     async detailsForEpisodeMetadata(episodes: IPlayerEpisodeMetadata[]): Promise<IPlayerDetails[]> {
-        return Promise.all(episodes.map(async (episode) => {
-            const details = await this.episodeDetails(episode.id);
-            details.firstBroadcast = episode.release_date_time; // Keep the release data from the metadata as it's more reliable
-            return details;
-        }));
-    }    
+        const results = await Promise.allSettled(
+            episodes.map(async (episode) => {
+                const details = await this.episodeDetails(episode.id);
+                details.firstBroadcast = episode.release_date_time;
+                return details;
+            })
+        );
+
+        return results
+            .filter(result => result.status === 'fulfilled')
+            .map((result: PromiseFulfilledResult<IPlayerDetails>) => result.value);
+    }
 
     async details(pids: string[]): Promise<IPlayerDetails[]> {
-        return await Promise.all(pids.map((pid) => this.episodeDetails(pid)));
+        const results = await Promise.allSettled(
+            pids.map(pid => this.episodeDetails(pid))
+        );
+
+        return results
+            .filter(result => result.status === 'fulfilled')
+            .map((result: PromiseFulfilledResult<IPlayerDetails>) => result.value);
     }
 
     async episodeDetails(pid: string): Promise<IPlayerDetails> {

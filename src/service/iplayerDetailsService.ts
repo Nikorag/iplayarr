@@ -61,7 +61,7 @@ class IPlayerDetailsService {
 
     async findBrandForPid(pid: string, checked: string[] = []): Promise<string | undefined> {
         const { programme }: IPlayerMetadataResponse = await this.getMetadata(pid);
-        if (programme.type == 'brand') {
+        if (programme?.type == 'brand') {
             return programme.pid;
         } else if (programme.parent) {
             if (!checked.includes(programme.parent.programme.pid) && programme.parent.programme.pid != pid) {

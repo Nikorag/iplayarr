@@ -40,12 +40,5 @@ jobs:
 
             - uses: hrishikesh-kadam/setup-lcov@v1
 
-            - name: Coverage Report
-              uses: kefasjw/lcov-pull-request-report@v1
-              with:
-                  lcov-file: coverage/lcov.info
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  changed-files-minimum-coverage: 40
-
             - name: Coveralls
               uses: coverallsapp/github-action@v2

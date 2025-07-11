@@ -6,28 +6,20 @@
                     <img src="/iplayarr.png" alt="Logo" />
                     <p class="desktopOnly">iPlayarr</p>
                 </RouterLink>
-                <font-awesome-icon
-                    v-if="authState.user"
-                    class="mobileOnly clickable burgerMenu"
-                    :icon="['fas', 'bars']"
-                    @click="toggleLeftHandNav"
-                />
+                <font-awesome-icon v-if="authState.user" class="mobileOnly clickable burgerMenu" :icon="['fas', 'bars']"
+                    @click="toggleLeftHandNav" />
             </div>
         </div>
         <div class="middle">
             <div v-if="authState.user" class="searchPanel">
                 <font-awesome-icon :icon="['fas', 'search']" />
-                <input v-model="searchTerm" class="searchBox" type="text" placeholder="Search" @keyup.enter="search" />
+                <input v-model="searchTerm" class="searchBox" type="text" placeholder="Search or Download Url"
+                    @keyup.enter="search" />
             </div>
         </div>
         <div class="right">
-            <a
-                v-if="!hiddenSettings.HIDE_DONATE"
-                href="https://ko-fi.com/nikorag"
-                aria-label="Donate"
-                class="desktopOnly donateLink"
-                target="_blank"
-            >
+            <a v-if="!hiddenSettings.HIDE_DONATE" href="https://ko-fi.com/nikorag" aria-label="Donate"
+                class="desktopOnly donateLink" target="_blank">
                 <font-awesome-icon v-if="authState.user" class="desktopOnly clickable" :icon="['fas', 'heart']" />
             </a>
             <a href="https://github.com/Nikorag/iplayarr" class="desktopOnly" aria-label="GitHub" target="_blank">
@@ -40,16 +32,30 @@
 <script setup>
 import { defineExpose, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { getPidFromBBCUrl } from '@/lib/utils';
+import { ipFetch } from '@/lib/ipFetch';
+import dialogService from '@/lib/dialogService';
 
 const router = useRouter();
 
+// const globalSettings = inject('globalSettings');
 const toggleLeftHandNav = inject('toggleLeftHandNav');
 const hiddenSettings = inject('hiddenSettings');
 const authState = inject('authState');
 const searchTerm = ref('');
 
-const search = () => {
-    router.push({ name: 'search', query: { searchTerm: searchTerm.value } });
+const search = async () => {
+    const pid = getPidFromBBCUrl(searchTerm.value);
+    if (pid) {
+        const { ok, data } = await ipFetch(`json-api/download?pid=${pid}`, 'GET');
+        if (ok) {
+            searchTerm.value = '';
+        } else {
+            dialogService.alert('Download Error', data.message);
+        }
+    } else {
+        router.push({ name: 'search', query: { searchTerm: searchTerm.value } });
+    }
 };
 
 const clearSearch = () => {

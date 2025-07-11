@@ -2,6 +2,14 @@ export const getHost = () => {
     return process.env.NODE_ENV != 'production' ? `http://${window.location.hostname}:4404` : '';
 };
 
+export const getPidFromBBCUrl = (url) => {
+    if (!url) {
+        return undefined;
+    }
+    const match = url.match(/https:\/\/www\.bbc\.co\.uk\/iplayer\/[^?]+\/(m[0-9a-z]{7})\/[^?]+/);
+    return match ? match[1] : undefined;
+}
+
 export const formatStorageSize = (mb) => {
     if (mb) {
         if (mb >= 1024) {

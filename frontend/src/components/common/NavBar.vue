@@ -6,19 +6,22 @@
                     <img src="/iplayarr.png" alt="Logo" />
                     <p class="desktopOnly">iPlayarr</p>
                 </RouterLink>
-                <font-awesome-icon v-if="authState.user" class="mobileOnly clickable burgerMenu" :icon="['fas', 'bars']"
+                <font-awesome-icon
+v-if="authState.user" class="mobileOnly clickable burgerMenu" :icon="['fas', 'bars']"
                     @click="toggleLeftHandNav" />
             </div>
         </div>
         <div class="middle">
             <div v-if="authState.user" class="searchPanel">
                 <font-awesome-icon :icon="['fas', 'search']" />
-                <input v-model="searchTerm" class="searchBox" type="text" placeholder="Search or Download Url"
+                <input
+v-model="searchTerm" class="searchBox" type="text" placeholder="Search or Download Url"
                     @keyup.enter="search" />
             </div>
         </div>
         <div class="right">
-            <a v-if="!hiddenSettings.HIDE_DONATE" href="https://ko-fi.com/nikorag" aria-label="Donate"
+            <a
+v-if="!hiddenSettings.HIDE_DONATE" href="https://ko-fi.com/nikorag" aria-label="Donate"
                 class="desktopOnly donateLink" target="_blank">
                 <font-awesome-icon v-if="authState.user" class="desktopOnly clickable" :icon="['fas', 'heart']" />
             </a>
@@ -32,9 +35,10 @@
 <script setup>
 import { defineExpose, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getPidFromBBCUrl } from '@/lib/utils';
-import { ipFetch } from '@/lib/ipFetch';
+
 import dialogService from '@/lib/dialogService';
+import { ipFetch } from '@/lib/ipFetch';
+import { getPidFromBBCUrl } from '@/lib/utils';
 
 const router = useRouter();
 

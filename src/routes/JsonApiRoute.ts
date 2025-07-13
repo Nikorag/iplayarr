@@ -5,8 +5,9 @@ import scheduleFacade from '../facade/scheduleFacade';
 import searchFacade from '../facade/searchFacade';
 import iplayerDetailsService from '../service/iplayerDetailsService';
 import queueService from '../service/queueService';
-import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
+import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
+import { IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import AppsRoute from './json-api/AppsRoute';
 import OffScheduleRoute from './json-api/OffScheduleRoute';
 import QueueRoute from './json-api/QueueRoute';
@@ -52,7 +53,37 @@ router.get('/details', async (req: Request, res: Response) => {
 });
 
 router.get('/download', async (req: Request, res: Response) => {
-    const { pid, nzbName, type } = req.query as any;
+    const { pid } = req.query as any;
+    let { nzbName, type } = req.query as any;
+
+    if (!nzbName || !type) {
+        try {
+            const metadata: IPlayerMetadataResponse | undefined = await iplayerDetailsService.getMetadata(pid);
+            if (!metadata?.programme.display_title) {
+                res.status(500).json({ error: ApiError.INTERNAL_ERROR, message: 'Unable to find episode details' } as ApiResponse);
+                return;
+            }
+            if (!type) {
+                if (metadata.programme.categories) {
+                    const formatCategory = metadata.programme.categories.find(({ type }) => type == 'format');
+                    if (formatCategory && formatCategory.key == 'films') {
+                        type = VideoType.MOVIE;
+                    }
+                }
+                type = VideoType.TV;
+            }
+            if (!nzbName) {
+                const { title, subtitle } = metadata.programme.display_title!;
+                nzbName = `${title}${type == VideoType.TV && subtitle ? `.${subtitle}` : ''}`;
+                nzbName = nzbName.replaceAll('.', '_')
+                nzbName = nzbName.replaceAll(' ', '.');
+            }
+        } catch {
+            res.status(500).json({ error: ApiError.INTERNAL_ERROR, message: 'Unable to find episode details' } as ApiResponse);
+            return;
+        }
+    }
+
     queueService.addToQueue(pid, nzbName, type);
     res.json({ status: true });
 });

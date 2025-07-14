@@ -4,6 +4,7 @@ import Handlebars from 'handlebars';
 import { deromanize } from 'romans';
 
 import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
+import appService from '../service/appService';
 import configService from '../service/configService';
 import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
 import { IplayarrParameter } from '../types/IplayarrParameters';
@@ -62,17 +63,26 @@ export function md5(input: string): string {
     return crypto.createHash('md5').update(input).digest('hex');
 }
 
-export function createNZBDownloadLink(
+export async function createNZBDownloadLink(
+    req: Request,
     { pid, nzbName, type }: IPlayerSearchResult,
     apiKey: string,
     app?: string
-): string {
-    return `/api?mode=nzb-download&pid=${pid}&nzbName=${nzbName}&type=${type}&apikey=${apiKey}${app ? `&app=${app}` : ''}`;
+): Promise<string> {
+    let baseUrl: string = getBaseUrl(req);
+    if (app) {
+        const appObj = await appService.getApp(app);
+        if (appObj) {
+            baseUrl = `${appObj.iplayarr.useSSL ? 'https' : 'http'}://${appObj.iplayarr.host}:${appObj.iplayarr.port}`;
+        }
+    }
+    return `${baseUrl}/api?mode=nzb-download&pid=${pid}&nzbName=${nzbName}&type=${type}&apikey=${apiKey}${app ? `&app=${app}` : ''}`;
 }
 
 export async function getQualityProfile(): Promise<QualityProfile> {
     const videoQuality = (await configService.getParameter(IplayarrParameter.VIDEO_QUALITY)) as string;
-    return qualityProfiles.find(({ id }) => id == videoQuality) as QualityProfile;
+    const profile = qualityProfiles.find(({ id }) => id == videoQuality) as QualityProfile;
+    return profile ? profile : qualityProfiles.find(({ quality }) => quality === 'hd') as QualityProfile;
 }
 
 export function removeAllQueryParams(str: string): string {

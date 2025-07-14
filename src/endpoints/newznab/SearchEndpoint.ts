@@ -6,7 +6,7 @@ import statisticsService from '../../service/stats/StatisticsService';
 import { SearchHistoryEntry } from '../../types/data/SearchHistoryEntry';
 import { IPlayerSearchResult, VideoType } from '../../types/IPlayerSearchResult';
 import { NewzNabAttr, NewzNabSearchResponse } from '../../types/responses/newznab/NewzNabSearchResponse';
-import { createNZBDownloadLink, getBaseUrl } from '../../utils/Utils';
+import { createNZBDownloadLink } from '../../utils/Utils';
 
 interface SearchRequest {
     q: string;
@@ -41,16 +41,10 @@ export default async (req: Request, res: Response) => {
 
     const pubDate: string = date.toUTCString().replace('GMT', '+0000');
 
-    const searchResponse: NewzNabSearchResponse = {
-        $: {
-            version: '1.0',
-            'xmlns:atom': 'http://www.w3.org/2005/Atom',
-            'xmlns:newznab': 'http://www.newznab.com/DTD/2010/feeds/attributes/',
-        },
-        channel: {
-            'atom:link': { $: { rel: 'self', type: 'application/rss+xml' } },
-            title: 'iPlayarr',
-            item: results.map((result) => ({
+    const items = await Promise.all(
+        results.map(async (result) => {
+            const downloadLink = await createNZBDownloadLink(req, result, req.query.apikey as string, app);
+            return {
                 title: result.nzbName,
                 description: result.nzbName,
                 guid: `https://www.bbc.co.uk/iplayer/episodes/${result.pid}`,
@@ -64,15 +58,28 @@ export default async (req: Request, res: Response) => {
                     { $: { name: 'files', value: '1' } },
                     { $: { name: 'grabs', value: '0' } },
                 ],
-                link: `${getBaseUrl(req)}${createNZBDownloadLink(result, req.query.apikey as string, app)}`,
+                link: downloadLink,
                 enclosure: {
                     $: {
-                        url: `${getBaseUrl(req)}${createNZBDownloadLink(result, req.query.apikey as string, app)}`,
+                        url: downloadLink,
                         length: result.size ? String(result.size * 1048576) : '2147483648',
                         type: 'application/x-nzb',
                     },
                 },
-            })),
+            };
+        })
+    );
+
+    const searchResponse: NewzNabSearchResponse = {
+        $: {
+            version: '1.0',
+            'xmlns:atom': 'http://www.w3.org/2005/Atom',
+            'xmlns:newznab': 'http://www.newznab.com/DTD/2010/feeds/attributes/',
+        },
+        channel: {
+            'atom:link': { $: { rel: 'self', type: 'application/rss+xml' } },
+            title: 'iPlayarr',
+            item: items,
         },
     } as NewzNabSearchResponse;
 

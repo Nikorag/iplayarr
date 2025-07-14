@@ -10,7 +10,7 @@ import * as Utils from '../../../src/utils/Utils';
 jest.mock('../../../src/facade/searchFacade');
 jest.mock('../../../src/service/stats/StatisticsService');
 jest.spyOn(Utils, 'getBaseUrl').mockReturnValue('http://localhost:3000');
-jest.spyOn(Utils, 'createNZBDownloadLink').mockImplementation(() => '/nzb/link.nzb');
+jest.spyOn(Utils, 'createNZBDownloadLink').mockImplementation(() => Promise.resolve('/nzb/link.nzb'));
 
 describe('SearchEndpoint', () => {
     let req: Partial<Request>;

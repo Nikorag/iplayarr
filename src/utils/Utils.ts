@@ -81,7 +81,8 @@ export async function createNZBDownloadLink(
 
 export async function getQualityProfile(): Promise<QualityProfile> {
     const videoQuality = (await configService.getParameter(IplayarrParameter.VIDEO_QUALITY)) as string;
-    return qualityProfiles.find(({ id }) => id == videoQuality) as QualityProfile;
+    const profile = qualityProfiles.find(({ id }) => id == videoQuality) as QualityProfile;
+    return profile ? profile : qualityProfiles.find(({ quality }) => quality === 'hd') as QualityProfile;
 }
 
 export function removeAllQueryParams(str: string): string {

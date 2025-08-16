@@ -1,12 +1,12 @@
 // __tests__/NativeScheduleService.test.ts
 import axios from 'axios';
 
-import * as Utils from '../../../src/utils/Utils';
 import configService from '../../../src/service/configService';
 import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
 import loggingService from '../../../src/service/loggingService';
 import NativeScheduleService from '../../../src/service/schedule/NativeScheduleService';
 import NativeSearchService from '../../../src/service/search/NativeSearchService';
+import * as Utils from '../../../src/utils/Utils';
 
 jest.mock('axios');
 jest.mock('../../../src/service/configService');

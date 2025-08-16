@@ -16,8 +16,6 @@ import { Synonym } from '../types/Synonym';
 
 const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\/._-]/g;
 
-import { formatBytes } from './formatters';
-
 export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails, synonym?: Synonym) {
     const templateKey: IplayarrParameter =
         result.type == VideoType.MOVIE

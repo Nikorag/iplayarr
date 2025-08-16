@@ -1,6 +1,9 @@
 import { Request } from 'express';
 
+import appService from '../../src/service/appService';
 import configService from '../../src/service/configService';
+import { App } from '../../src/types/App';
+import { AppType } from '../../src/types/AppType';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';
 import { IPlayerMetadataResponse } from '../../src/types/responses/IPlayerMetadataResponse';
@@ -20,20 +23,12 @@ import p00bp2rm from '../data/p00bp2rm.json';
 import p0fq3s31 from '../data/p0fq3s31.json';
 
 jest.mock('../../src/service/configService');
+jest.mock('../../src/service/appService');
 const mockedConfigService = jest.mocked(configService);
+const mockedAppService = jest.mocked(appService);
 
 describe('Utils', () => {
-    describe('formatBytes', () => {
-        it('formats bytes correctly', () => {
-            expect(Utils.formatBytes(0)).toBe('0 Bytes');
-            expect(Utils.formatBytes(1024)).toBe('1 KB');
-            expect(Utils.formatBytes(1048576)).toBe('1 MB');
-        });
-
-        it('returns without unit when unit = false', () => {
-            expect(Utils.formatBytes(1024, false)).toBe('1');
-        });
-    });
+    
 
     describe('md5', () => {
         it('returns correct md5 hash', () => {
@@ -54,19 +49,41 @@ describe('Utils', () => {
     });
 
     describe('createNZBDownloadLink', () => {
-        it('builds download link correctly with and without app', () => {
+        it('builds download link correctly with and without app', async () => {
             const base: IPlayerSearchResult = {
                 pid: '123',
                 nzbName: 'test.nzb',
                 type: VideoType.MOVIE,
             } as IPlayerSearchResult;
 
-            expect(Utils.createNZBDownloadLink(base, 'apikey')).toBe(
-                '/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey'
+            const req = {
+                protocol: 'http',
+                hostname: 'localhost',
+                socket: {
+                    localPort: 4404
+                }
+            } as unknown as Request
+
+            await expect(Utils.createNZBDownloadLink(req, base, 'apikey')).resolves.toBe(
+                'http://localhost:4404/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey'
             );
 
-            expect(Utils.createNZBDownloadLink(base, 'apikey', 'radarr')).toBe(
-                '/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey&app=radarr'
+            // Mock appService.getApp to return an app
+            const mockApp: App = {
+                id: 'radarr-id',
+                name: 'Radarr',
+                type: AppType.RADARR,
+                url: 'http://radarr.example.com:7878',
+                iplayarr: {
+                    host: 'iplayarr.example.com',
+                    port: 443,
+                    useSSL: true
+                }
+            } as App;
+            mockedAppService.getApp.mockResolvedValue(mockApp);
+
+            await expect(Utils.createNZBDownloadLink(req, base, 'apikey', 'radarr')).resolves.toBe(
+                'https://iplayarr.example.com:443/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey&app=radarr'
             );
         });
     });
@@ -406,5 +423,6 @@ describe('Utils', () => {
         mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) =>
             Promise.resolve(configService.defaultConfigMap[parameter])
         );
+        mockedAppService.getApp.mockClear();
     });
 });

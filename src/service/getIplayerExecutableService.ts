@@ -131,19 +131,22 @@ export class GetIplayerExecutableService {
             IplayarrParameter.DOWNLOAD_DIR,
             IplayarrParameter.COMPLETE_DIR
         )) as string[];
+
+        const outputFormat = await configService.getParameter(IplayarrParameter.OUTPUT_FORMAT)
+
         if (code === 0) {
             const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
             if (queueItem) {
                 try {
                     const uuidPath = path.join(downloadDir, pid);
-                    loggingService.debug(pid, `Looking for MP4 files in ${uuidPath}`);
+                    loggingService.debug(pid, `Looking for Video files in ${uuidPath}`);
                     const files = fs.readdirSync(uuidPath);
-                    const mp4File = files.find((file) => file.endsWith('.mp4'));
+                    const videoFile = files.find((file) => file.endsWith('.mp4') || file.endsWith('.mkv'));
 
-                    if (mp4File) {
-                        const oldPath = path.join(uuidPath, mp4File);
-                        loggingService.debug(pid, `Found MP4 file ${oldPath}`);
-                        const newPath = path.join(completeDir, `${queueItem?.nzbName}.mp4`);
+                    if (videoFile) {
+                        const oldPath = path.join(uuidPath, videoFile);
+                        loggingService.debug(pid, `Found Video file ${oldPath}`);
+                        const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
                         loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
 
                         fs.copyFileSync(oldPath, newPath);

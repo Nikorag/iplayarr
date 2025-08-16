@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { Builder } from 'xml2js';
 
+import configService from '../../service/configService';
+import { IplayarrParameter } from '../../types/IplayarrParameters';
 import { VideoType } from '../../types/IPlayerSearchResult';
 import { NZBFileResponse, NZBMetaEntry } from '../../types/responses/newznab/NZBFileResponse';
 
@@ -16,6 +18,8 @@ export default async (req: Request, res: Response) => {
 
     const date: Date = new Date();
     date.setMinutes(date.getMinutes() - 720);
+
+    const outputFormat = await configService.getParameter(IplayarrParameter.OUTPUT_FORMAT);
 
     const builder: Builder = new Builder({
         headless: true,
@@ -58,7 +62,7 @@ export default async (req: Request, res: Response) => {
             $: {
                 poster: 'iplayer@bbc.com',
                 date: date.getTime(),
-                subject: `${nzbName}.mp4`,
+                subject: `${nzbName}.${outputFormat}`,
             },
             groups: {
                 group: ['alt.binaries.example'],

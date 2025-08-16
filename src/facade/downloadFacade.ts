@@ -48,18 +48,20 @@ class DownloadFacade {
     async #processComplete(pid: string, directory: string, code: any, service : AbstractDownloadService): Promise<void> {
         const completeDir = (await configService.getParameter(IplayarrParameter.COMPLETE_DIR)) as string;
 
+        const outputFormat = await configService.getParameter(IplayarrParameter.OUTPUT_FORMAT);
+
         if (code === 0) {
             const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
             if (queueItem) {
                 try {
-                    loggingService.debug(pid, `Looking for MP4 files in ${directory}`);
+                    loggingService.debug(pid, `Looking for video files in ${directory}`);
                     const files = fs.readdirSync(directory);
-                    const mp4File = files.find((file) => file.endsWith('.mp4'));
+                    const videoFile = files.find((file) => file.endsWith('.mp4') || file.endsWith('.mkv'));
 
-                    if (mp4File) {
-                        const oldPath = path.join(directory, mp4File);
-                        loggingService.debug(pid, `Found MP4 file ${oldPath}`);
-                        const newPath = path.join(completeDir, `${queueItem?.nzbName}.mp4`);
+                    if (videoFile) {
+                        const oldPath = path.join(directory, videoFile);
+                        loggingService.debug(pid, `Found video file ${oldPath}`);
+                        const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
                         loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
 
                         fs.copyFileSync(oldPath, newPath);

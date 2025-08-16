@@ -103,6 +103,15 @@
                 :options="downloadClients"
             />
 
+            <SelectInput
+                v-model="config.OUTPUT_FORMAT"
+                :advanced="true"
+                name="Output Format?"
+                tooltip="Which Output Format to use"
+                :error="validationErrors.config?.OUTPUT_FORMAT"
+                :options="outputFormats"
+            />
+
             <InfoBar>
                 Looking for NZB Passthrough? Check the <RouterLink to="/apps"> Apps </RouterLink> section
             </InfoBar>
@@ -162,6 +171,11 @@ const trueOrFalse = ref([
 const downloadClients = ref([
     { key: 'GET_IPLAYER', value: 'get_iplayer' },
     { key: 'YTDLP', value: 'yt-dlp (Experimental)' },
+]);
+
+const outputFormats = ref([
+    { key: 'mp4', value: 'MP4' },
+    { key: 'mkv', value: 'MKV' },
 ]);
 
 const saveEnabled = computed(() => {

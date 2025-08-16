@@ -71,7 +71,8 @@ describe('sabnzbdActionEndpoint', () => {
             ];
 
             (historyService.getHistory as jest.Mock).mockResolvedValue(queueEntries);
-            (configService.getParameter as jest.Mock).mockResolvedValue('/complete');
+            (configService.getParameter as jest.Mock).mockResolvedValueOnce('/complete');
+            (configService.getParameter as jest.Mock).mockResolvedValueOnce('mp4');
 
             await handler(req as Request, res as Response, next);
 

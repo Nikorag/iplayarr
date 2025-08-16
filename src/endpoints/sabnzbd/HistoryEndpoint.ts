@@ -38,28 +38,30 @@ const actionDirectory: EndpointDirectory = {
         );
         const completeDir: string = (await configService.getParameter(IplayarrParameter.COMPLETE_DIR)) as string;
 
+        const outputFormat = await configService.getParameter(IplayarrParameter.OUTPUT_FORMAT) as string;
+
         const historyObject: SabNZBDHistoryResponse = {
             ...historySkeleton,
             slots: history
                 .filter(({ status }) => status != QueueEntryStatus.FORWARDED)
-                .map((item) => createHistoryEntry(completeDir, item)),
+                .map((item) => createHistoryEntry(completeDir, item, outputFormat)),
         } as SabNZBDHistoryResponse;
         res.json({ history: historyObject });
     }
 };
 
-function createHistoryEntry(completeDir: string, item: QueueEntry): SABNZBDHistoryEntryResponse {
+function createHistoryEntry(completeDir: string, item: QueueEntry, outputFormat: string): SABNZBDHistoryEntryResponse {
     return {
         ...historyEntrySkeleton,
         duplicate_key: item.pid,
         size: formatBytes((item.details?.size as number) * sizeFactor),
         nzb_name: `${item.nzbName}.nzb`,
-        storage: `${completeDir}/${item.nzbName}.mp4`,
+        storage: `${completeDir}/${item.nzbName}.${outputFormat}`,
         completed: (item.details?.size as number) * sizeFactor,
         downloaded: (item.details?.size as number) * sizeFactor,
         nzo_id: item.pid,
-        path: `${completeDir}/${item.nzbName}.mp4`,
-        name: `${item.nzbName}.mp4`,
+        path: `${completeDir}/${item.nzbName}.${outputFormat}`,
+        name: `${item.nzbName}.${outputFormat}`,
         url: `${item.nzbName}.nzb`,
         bytes: (item.details?.size as number) * sizeFactor,
     } as SABNZBDHistoryEntryResponse;

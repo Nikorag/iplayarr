@@ -13,7 +13,7 @@ import {
 } from '../../types/responses/sabnzbd/HistoryResponse';
 import { QueueEntryStatus } from '../../types/responses/sabnzbd/QueueResponse';
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse';
-import { formatBytes } from '../../utils/Utils';
+import { formatBytes } from '../../utils/formatters';
 import { AbstractSabNZBDActionEndpoint, ActionQueryString } from './AbstractSabNZBDActionEndpoint';
 
 const sizeFactor: number = 1048576;

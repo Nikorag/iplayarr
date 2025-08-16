@@ -16,15 +16,7 @@ import { Synonym } from '../types/Synonym';
 
 const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\/._-]/g;
 
-export function formatBytes(bytes: number, unit: boolean = true, decimals: number = 2): string {
-    if (bytes === 0) return '0 Bytes';
-
-    const k: number = 1024;
-    const sizes: string[] = ['Bytes', 'KB', 'MB', 'G', 'TB', 'PB'];
-    const i: number = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + (unit ? ' ' + sizes[i] : '');
-}
+import { formatBytes } from './formatters';
 
 export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails, synonym?: Synonym) {
     const templateKey: IplayarrParameter =

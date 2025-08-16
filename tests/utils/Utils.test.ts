@@ -28,17 +28,7 @@ const mockedConfigService = jest.mocked(configService);
 const mockedAppService = jest.mocked(appService);
 
 describe('Utils', () => {
-    describe('formatBytes', () => {
-        it('formats bytes correctly', () => {
-            expect(Utils.formatBytes(0)).toBe('0 Bytes');
-            expect(Utils.formatBytes(1024)).toBe('1 KB');
-            expect(Utils.formatBytes(1048576)).toBe('1 MB');
-        });
-
-        it('returns without unit when unit = false', () => {
-            expect(Utils.formatBytes(1024, false)).toBe('1');
-        });
-    });
+    
 
     describe('md5', () => {
         it('returns correct md5 hash', () => {

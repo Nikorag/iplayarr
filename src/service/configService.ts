@@ -43,6 +43,7 @@ const configService = {
         NATIVE_SEARCH: 'true',
         ARCHIVE_ENABLED: 'false',
         DOWNLOAD_CLIENT: 'GET_IPLAYER',
+        OUTPUT_FORMAT: 'mp4'
     } as ConfigMap,
 
     getParameter: async (parameter: IplayarrParameter): Promise<string | undefined> => {

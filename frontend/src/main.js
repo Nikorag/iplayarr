@@ -1,3 +1,4 @@
+import './assets/styles/global.less';
 import './registerServiceWorker';
 import 'vue-final-modal/style.css';
 

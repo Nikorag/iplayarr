@@ -2,8 +2,8 @@ body {
     padding: 0px;
     margin: 0px;
     font-family: 'Roboto', 'open sans', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-    color: @primary-text-color;
-    background-color: @page-background-color;
+    color: var(--primary-text-color);
+    background-color: var(--page-background-color);
     min-height: 100vh;
 }
 
@@ -41,7 +41,7 @@ body {
 
 legend {
     font-size: 21px;
-    border-bottom: 1px solid @primary-text-color;
+    border-bottom: 1px solid var(--primary-text-color);
     line-height: 32.1px;
     margin-bottom: 21px;
 
@@ -68,52 +68,52 @@ legend {
     font-size: 11px;
     border-radius: 2px;
     display: inline-block;
-    background-color: @warn-color;
-    border-color: @warn-color;
-    color: @warn-text-color;
+    background-color: var(--warn-color);
+    border-color: var(--warn-color);
+    color: var(--warn-text-color);
     text-align: center;
 
     &.TV {
-        background-color: @primary-color;
-        border-color: @primary-color;
-        color: @primary-text-color;
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: var(--primary-text-color);
     }
 
     &.MOVIE {
-        background-color: @error-color;
-        border-color: @error-color;
-        color: @error-text-color;
+        background-color: var(--error-color);
+        border-color: var(--error-color);
+        color: var(--error-text-color);
     }
 
     &.primary {
-        background-color: @primary-color;
-        border-color: @primary-color;
-        color: @primary-text-color;
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: var(--primary-text-color);
     }
 
     &.warn {
-        background-color: @warn-color;
-        border-color: @warn-color;
-        color: @primary-text-color;
+        background-color: var(--warn-color);
+        border-color: var(--warn-color);
+        color: var(--primary-text-color);
     }
 
     &.success {
-        background-color: @success-color;
-        border-color: @success-color;
-        color: @primary-text-color;
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+        color: var(--primary-text-color);
     }
 
     &.error {
-        background-color: @error-color;
-        border-color: @error-color;
-        color: @error-text-color;
+        background-color: var(--error-color);
+        border-color: var(--error-color);
+        color: var(--error-text-color);
     }
 
     &.grey,
     &.UNKNOWN {
-        background-color: @grey-pill-background-color;
-        border-color: @grey-pill-background-color;
-        color: @primary-text-color;
+        background-color: var(--grey-pill-background-color);
+        border-color: var(--grey-pill-background-color);
+        color: var(--primary-text-color);
     }
 }
 
@@ -139,7 +139,7 @@ button:focus {
 .iplayarr-modal-content {
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 10px @primary-box-shadow;
+    box-shadow: 0 4px 10px var(--primary-box-shadow);
 
     .modal-inner {
         overflow-y: auto;
@@ -154,7 +154,7 @@ button:focus {
     }
 
     width: fit-content;
-    background-color: @nav-background-color;
+    background-color: var(--nav-background-color);
 
     @media (max-width: @mobile-breakpoint) {
         padding-top: 3rem;
@@ -184,22 +184,22 @@ button:focus {
         }
 
         button {
-            background-color: @settings-button-background-color;
-            border: 1px solid @settings-button-border-color;
+            background-color: var(--settings-button-background-color);
+            border: 1px solid var(--settings-button-border-color);
             padding: 6px 16px;
             font-size: 14px;
-            color: @primary-text-color;
+            color: var(--primary-text-color);
             border-radius: 4px;
             margin-left: 1rem;
             cursor: pointer;
 
             &.cancel {
-                background-color: @error-color;
+                background-color: var(--error-color);
             }
 
             &:hover:not(:disabled) {
-                border-color: @settings-button-hover-border-color;
-                background-color: @settings-button-hover-background-color;
+                border-color: var(--settings-button-hover-border-color);
+                background-color: var(--settings-button-hover-background-color);
             }
         }
     }

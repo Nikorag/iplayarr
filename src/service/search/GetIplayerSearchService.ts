@@ -12,6 +12,7 @@ class GetIplayerSearchService implements AbstractSearchService {
     async search(term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> {
         const { sizeFactor } = await getQualityProfile();
         return new Promise(async (resolve, reject) => {
+            const awaitingPromises: Promise<void>[] = [];
             const results: IPlayerSearchResult[] = [];
             const { exec, args } = await getIplayerExecutableService.getSearchParameters(term, synonym);
 
@@ -20,12 +21,13 @@ class GetIplayerSearchService implements AbstractSearchService {
 
             searchProcess.stdout.on('data', (data) => {
                 loggingService.debug(data.toString().trim());
-                const chunkResults: IPlayerSearchResult[] = getIplayerExecutableService.parseResults(
+                awaitingPromises.push(getIplayerExecutableService.parseResults(
                     term,
                     data,
                     sizeFactor
-                );
-                chunkResults.forEach((chunk) => results.push(chunk));
+                ).then((chunkResults: IPlayerSearchResult[]) => {
+                    chunkResults.forEach((chunk) => results.push(chunk));
+                }));
             });
 
             searchProcess.stderr.on('data', (data) => {
@@ -34,6 +36,7 @@ class GetIplayerSearchService implements AbstractSearchService {
 
             searchProcess.on('close', async (code) => {
                 if (code === 0) {
+                    await Promise.all(awaitingPromises);
                     resolve(await getIplayerExecutableService.processCompletedSearch(results, synonym));
                 } else {
                     reject(new Error(`Process exited with code ${code}`));

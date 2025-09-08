@@ -242,12 +242,12 @@ describe('GetIplayerExecutableService', () => {
     });
 
     describe('parseResults', () => {
-        it('should correctly parse search results and return structured data', () => {
+        it('should correctly parse search results and return structured data', async () => {
             const mockTerm = 'test';
             const mockData = 'RESULT|:|12345|:|test title|:| |:| |:|1|:|BBC|:|120|:|2021-01-01|:|episode title';
             const mockSizeFactor = 1;
 
-            const results = service.parseResults(mockTerm, mockData, mockSizeFactor);
+            const results = await service.parseResults(mockTerm, mockData, mockSizeFactor);
 
             expect(results).toHaveLength(1);
             expect(results[0]).toHaveProperty('pid', '12345');

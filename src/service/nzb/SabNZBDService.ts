@@ -9,8 +9,8 @@ class SabNZBDService implements AbstractNZBService {
         return `${url}/api?mode=addfile&cat=iplayer&priority=-100&apikey=${api_key}`;
     }
 
-    async testConnection(sabnzbdUrl: string, { apikey }: any): Promise<string | boolean> {
-        const url: string = `${sabnzbdUrl}/api?mode=queue&apikey=${apikey}`;
+    async testConnection(sabnzbdUrl: string, { apiKey }: any): Promise<string | boolean> {
+        const url: string = `${sabnzbdUrl}/api?mode=queue&apikey=${apiKey}`;
 
         try {
             const response = await axios.get(url);

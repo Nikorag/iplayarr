@@ -20,7 +20,7 @@ describe('sabzbdService', () => {
     describe('getAddFileUrl', () => {
         it('should return correct addfile URL', async () => {
             const url = sabzbdService.getAddFileUrl(app);
-            expect(url).toBe('http://localhost:8080/api?mode=addfile&cat=iplayer&priority=-100&apiKey=mockapiKey');
+            expect(url).toBe('http://localhost:8080/api?mode=addfile&cat=iplayer&priority=-100&apikey=mockapiKey');
         });
     });
 
@@ -30,7 +30,7 @@ describe('sabzbdService', () => {
 
             const result = await sabzbdService.testConnection(app.url, { apiKey: app.api_key });
             expect(result).toBe(true);
-            expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:8080/api?mode=queue&apiKey=mockapiKey');
+            expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:8080/api?mode=queue&apikey=mockapiKey');
         });
 
         it('should return false for non-200 response', async () => {
@@ -70,7 +70,7 @@ describe('sabzbdService', () => {
             const response = await sabzbdService.addFile(app, [file]);
 
             expect(mockedAxios.post).toHaveBeenCalledWith(
-                'http://localhost:8080/api?mode=addfile&cat=iplayer&priority=-100&apiKey=mockapiKey',
+                'http://localhost:8080/api?mode=addfile&cat=iplayer&priority=-100&apikey=mockapiKey',
                 expect.any(FormData),
                 expect.objectContaining({
                     headers: expect.objectContaining({

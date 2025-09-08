@@ -6,6 +6,7 @@ import { deromanize } from 'romans';
 import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
 import appService from '../service/appService';
 import configService from '../service/configService';
+import SkyhookService from '../service/skyhook/SkyhookService';
 import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerDetails } from '../types/IPlayerDetails';
@@ -118,9 +119,9 @@ export function getPotentialRoman(str: string): number {
     })();
 }
 
-export function calculateSeasonAndEpisode(
+export async function calculateSeasonAndEpisode(
     programme: IPlayerProgramMetadata
-): [type: VideoType, episode?: number, episodeTitle?: string, series?: number] {
+): Promise<[type: VideoType, episode?: number, episodeTitle?: string, series?: number]> {
     const parent = programme.parent?.programme;
 
     // Determine series number from the title, falling back to position values within JSON if unsuccessful
@@ -133,14 +134,14 @@ export function calculateSeasonAndEpisode(
             ? 0
             : undefined;
     const notSpecialOrMovie = (estimatedSeries ?? 0) > 0;
-    const series =
+    let series =
         parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count
             ? 0
             : estimatedSeries;
 
     // Determine episode from title, falling back to positions and counts if unsuccessful and not a special
     const episodeMatch = programme.title?.match(episodeRegex);
-    const episode = episodeMatch
+    let episode = episodeMatch
         ? parseInt(episodeMatch[1])
         : notSpecialOrMovie
           ? (programme.position ?? 0)
@@ -151,6 +152,16 @@ export function calculateSeasonAndEpisode(
     // Determine episode title if not a movie
     const episodeTitle =
         episode != null ? (notSpecialOrMovie ? programme.title : programme.display_title?.subtitle) : undefined;
+
+    // Now, if we're 0/0 - look it up with skyhook.
+    if (series === 0 && episode === 0 && episodeTitle) {
+        const seriesTitle = programme.display_title?.title ?? programme.title;
+        const skyhookResult = await SkyhookService.lookupSeriesDetails(seriesTitle, episodeTitle);
+        if (skyhookResult) {
+            series = skyhookResult.series ?? series;
+            episode = skyhookResult.episode ?? episode;
+        }
+    }
 
     const type = series != null && episode != null ? VideoType.TV : VideoType.MOVIE;
     return [type, episode, episodeTitle, series];

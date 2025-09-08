@@ -2,6 +2,7 @@ import { Request } from 'express';
 
 import appService from '../../src/service/appService';
 import configService from '../../src/service/configService';
+import SkyhookService from '../../src/service/skyhook/SkyhookService';
 import { App } from '../../src/types/App';
 import { AppType } from '../../src/types/AppType';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
@@ -24,8 +25,10 @@ import p0fq3s31 from '../data/p0fq3s31.json';
 
 jest.mock('../../src/service/configService');
 jest.mock('../../src/service/appService');
+jest.mock('../../src/service/skyhook/SkyhookService');
 const mockedConfigService = jest.mocked(configService);
 const mockedAppService = jest.mocked(appService);
+const mockedSkyhookService = jest.mocked(SkyhookService);
 
 describe('Utils', () => {
     
@@ -377,25 +380,25 @@ describe('Utils', () => {
 
     describe('calculateSeasonAndEpisode', () => {
         describe('episodes', () => {
-            it('series episode', async () => assertSeasonAndEpisode(m0029c0g, [VideoType.TV, 1, 'Episode 1', 3]));
+            it('series episode', async () => await assertSeasonAndEpisode(m0029c0g, [VideoType.TV, 1, 'Episode 1', 3]));
             it('roman numerals series', async () =>
-                assertSeasonAndEpisode(p00bp2rm, [VideoType.TV, 5, 'Dimension Jump', 4]));
-            it('yearly series', async () => assertSeasonAndEpisode(m001zh50, [VideoType.TV, 1, 'Episode 1', 2024]));
-            it('no series', async () => assertSeasonAndEpisode(m002b3cb, [VideoType.TV, 0, '13/04/2025', 0]));
+                await assertSeasonAndEpisode(p00bp2rm, [VideoType.TV, 5, 'Dimension Jump', 4]));
+            it('yearly series', async () => await assertSeasonAndEpisode(m001zh50, [VideoType.TV, 1, 'Episode 1', 2024]));
+            it('no series', async () => await assertSeasonAndEpisode(m002b3cb, [VideoType.TV, 0, '13/04/2025', 0]));
 
             describe('specials', () => {
                 it('with no series', async () =>
-                    assertSeasonAndEpisode(m0026fkl, [VideoType.TV, 0, 'Christmas Special 2024', 0]));
+                    await assertSeasonAndEpisode(m0026fkl, [VideoType.TV, 0, 'Christmas Special 2024', 0]));
                 it('only one in series', async () =>
-                    assertSeasonAndEpisode(p0fq3s31, [VideoType.TV, 0, 'The Promised Land', 13]));
+                    await assertSeasonAndEpisode(p0fq3s31, [VideoType.TV, 0, 'The Promised Land', 13]));
                 it('episode before series', async () =>
-                    assertSeasonAndEpisode(m001zh3r, [VideoType.TV, 0, 'RHS: Countdown to Chelsea', 2024]));
+                    await assertSeasonAndEpisode(m001zh3r, [VideoType.TV, 0, 'RHS: Countdown to Chelsea', 2024]));
                 it('episode within series', async () =>
-                    assertSeasonAndEpisode(m001zr9t, [VideoType.TV, 0, 'Highlights', 2024]));
+                    await assertSeasonAndEpisode(m001zr9t, [VideoType.TV, 0, 'Highlights', 2024]));
                 it('episode after series', async () =>
-                    assertSeasonAndEpisode(b0211hsl, [VideoType.TV, 0, 'Red Button Special', 0]));
+                    await assertSeasonAndEpisode(b0211hsl, [VideoType.TV, 0, 'Red Button Special', 0]));
                 it('from series of specials', async () =>
-                    assertSeasonAndEpisode(m000jbtq, [
+                    await assertSeasonAndEpisode(m000jbtq, [
                         VideoType.TV,
                         0,
                         'Your Chelsea Flower Show, Making the Most of Your Time',
@@ -406,20 +409,21 @@ describe('Utils', () => {
 
         describe('movies', () => {
             it('standalone', async () =>
-                assertSeasonAndEpisode(m001kscd, [VideoType.MOVIE, undefined, undefined, undefined]));
+                await assertSeasonAndEpisode(m001kscd, [VideoType.MOVIE, undefined, undefined, undefined]));
             it('sequel', async () =>
-                assertSeasonAndEpisode(b008m7xk, [VideoType.MOVIE, undefined, undefined, undefined]));
+                await assertSeasonAndEpisode(b008m7xk, [VideoType.MOVIE, undefined, undefined, undefined]));
         });
 
-        const assertSeasonAndEpisode = (
+        const assertSeasonAndEpisode = async (
             metadata: unknown,
             expected: [VideoType, number | undefined, string | undefined, number | undefined]
         ) => {
-            expect(Utils.calculateSeasonAndEpisode((metadata as IPlayerMetadataResponse).programme)).toEqual(expected);
+            expect(await Utils.calculateSeasonAndEpisode((metadata as IPlayerMetadataResponse).programme)).toEqual(expected);
         };
     });
 
     beforeEach(() => {
+        mockedSkyhookService.lookupSeriesDetails.mockResolvedValue(undefined);
         mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) =>
             Promise.resolve(configService.defaultConfigMap[parameter])
         );

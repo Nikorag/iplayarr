@@ -165,7 +165,7 @@ export class GetIplayerExecutableService {
         queueService.removeFromQueue(pid);
     }
 
-    parseResults(term: string, data: any, sizeFactor: number): IPlayerSearchResult[] {
+    async parseResults(term: string, data: any, sizeFactor: number): Promise<IPlayerSearchResult[]> {
         const results: IPlayerSearchResult[] = [];
         const lines: string[] = data.toString().split('\n');
         for (const line of lines) {
@@ -175,7 +175,7 @@ export class GetIplayerExecutableService {
                     line.split('|:|');
                 const [title, episodeNum, seriesNum] = parseEpisodeDetailStrings(rawTitle, episodeStr, seriesStr);
                 const duration = durationStr != '' ? parseInt(durationStr) : undefined;
-                const [type, episode, episodeTitle, series] = calculateSeasonAndEpisode({
+                const [type, episode, episodeTitle, series] = await calculateSeasonAndEpisode({
                     type: 'episode',
                     pid,
                     title: episodeNum != null || epTitle != '' ? epTitle : title,

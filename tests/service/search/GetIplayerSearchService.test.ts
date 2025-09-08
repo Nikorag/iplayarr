@@ -25,7 +25,7 @@ describe('GetIplayerSearchService', () => {
         // Reset mocks
         jest.clearAllMocks();
         mockSearchParameters.mockResolvedValue({ exec: 'get_iplayer', args: ['--search', 'term'] });
-        mockParseResults.mockReturnValue([{ pid: 1, title: 'Test Result' }]);
+        mockParseResults.mockResolvedValue([{ pid: 1, title: 'Test Result' }]);
         mockProcessCompletedSearch.mockResolvedValue([{ pid: 1, title: 'Test Result' }]);
         mockSearchEpisodeCache.mockResolvedValue([]);
         getIplayerExecutableService.getSearchParameters = mockSearchParameters;

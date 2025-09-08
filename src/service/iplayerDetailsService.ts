@@ -32,7 +32,7 @@ class IPlayerDetailsService {
 
     async episodeDetails(pid: string): Promise<IPlayerDetails> {
         const { programme } = await this.getMetadata(pid);
-        const [type, episode, episodeTitle, series] = calculateSeasonAndEpisode(programme);
+        const [type, episode, episodeTitle, series] = await calculateSeasonAndEpisode(programme);
         return {
             pid,
             title: programme.display_title?.title ?? programme.title,

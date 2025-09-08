@@ -2,6 +2,7 @@ import { Request } from 'express';
 
 import appService from '../../src/service/appService';
 import configService from '../../src/service/configService';
+import SkyhookService from '../../src/service/skyhook/SkyhookService';
 import { App } from '../../src/types/App';
 import { AppType } from '../../src/types/AppType';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
@@ -24,8 +25,10 @@ import p0fq3s31 from '../data/p0fq3s31.json';
 
 jest.mock('../../src/service/configService');
 jest.mock('../../src/service/appService');
+jest.mock('../../src/service/skyhook/SkyhookService');
 const mockedConfigService = jest.mocked(configService);
 const mockedAppService = jest.mocked(appService);
+const mockedSkyhookService = jest.mocked(SkyhookService);
 
 describe('Utils', () => {
     
@@ -420,6 +423,7 @@ describe('Utils', () => {
     });
 
     beforeEach(() => {
+        mockedSkyhookService.lookupSeriesDetails.mockResolvedValue(undefined);
         mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) =>
             Promise.resolve(configService.defaultConfigMap[parameter])
         );

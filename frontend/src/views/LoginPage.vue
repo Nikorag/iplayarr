@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted,ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import dialogService from '@/lib/dialogService';
@@ -97,6 +97,14 @@ const submitForgot = async () => {
     dialogService.alert('Reset Password', 'If the code is correct, the password will be reset!');
     forgot.value = false;
 };
+
+//Check if already logged in
+onMounted(async () => {
+    const response = await ipFetch('auth/me');
+    if (response.ok) {
+        router.push('/queue');
+    }
+});
 </script>
 
 <style lang="less" scoped>

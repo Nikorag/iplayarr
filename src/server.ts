@@ -32,6 +32,7 @@ if (isDebug) {
 }
 
 // Session and Auth
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 addAuthMiddleware(app);
 app.use('/auth', AuthRoute);

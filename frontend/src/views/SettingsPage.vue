@@ -119,14 +119,14 @@
 
         <legend class="sub">Authentication</legend>
         <SelectInput
-                v-model="config.AUTH_ENABLED"
+                v-model="config.AUTH_TYPE"
                 :advanced="false"
                 name="Authentication Enabled?"
-                tooltip="Enable Authentication for iPlayArr."
-                :error="validationErrors.config?.AUTH_ENABLED"
-                :options="trueOrFalse"
+                tooltip="Enable Authentication for iPlayarr."
+                :error="validationErrors.config?.AUTH_TYPE"
+                :options="authTypes"
             />
-        <template v-if="config.AUTH_ENABLED == 'true'">
+        <template v-if="config.AUTH_TYPE == 'form'">
             <TextInput
                 v-model="config.AUTH_USERNAME"
                 name="Username"
@@ -141,6 +141,48 @@
                 :error="validationErrors.config?.AUTH_PASSWORD"
             />
         </template>
+        <template v-if="config.AUTH_TYPE == 'oidc'">
+            <InfoBar>
+                OIDC Callback URL must be set to: <strong>{{ config.OIDC_CALLBACK_HOST }}/auth/oidc/callback</strong>
+            </InfoBar>
+            <TextInput
+                v-model="config.OIDC_CONFIG_URL"
+                name="OIDC Configuration URL"
+                tooltip="The OIDC Configuration URL."
+                :error="validationErrors.config?.OIDC_CONFIG_URL"
+            />
+            <TextInput
+                v-model="config.OIDC_CALLBACK_HOST"
+                name="OIDC Callback Host"
+                tooltip="http://iplayarr.example.com"
+                :error="validationErrors.config?.OIDC_CALLBACK_HOST"
+            />
+            <TextInput
+                v-model="config.OIDC_CLIENT_ID"
+                name="OIDC Client ID"
+                tooltip="The OIDC Client ID."
+                :error="validationErrors.config?.OIDC_CLIENT_ID"
+            />
+            <TextInput
+                v-model="config.OIDC_CLIENT_SECRET"
+                name="OIDC Client Secret"
+                tooltip="The OIDC Client Secret."
+                type-override="password"
+                :error="validationErrors.config?.OIDC_CLIENT_SECRET"
+            />
+            <TextInput
+                v-model="config.OIDC_ALLOWED_EMAILS"
+                name="OIDC Allowed Emails"
+                tooltip="Comma-separated list of allowed email addresses."
+                :error="validationErrors.config?.OIDC_ALLOWED_EMAILS"
+            />
+            <div class="button-container">
+                <button class="test-button" @click="testOIDC">
+                    <span v-if="!oidcTested"> Test OIDC </span>
+                    <span v-else><font-awesome-icon class="test-success" :icon="['fas', 'check']" /></span>
+                </button>
+            </div>
+        </template>
     </div>
     <LoadingIndicator v-if="loading" />
 </template>
@@ -150,6 +192,7 @@ import { v4 } from 'uuid';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { useModal } from 'vue-final-modal';
 import { onBeforeRouteLeave } from 'vue-router';
+import { getHost } from '@/lib/utils';
 
 import SelectInput from '@/components/common/form/SelectInput.vue';
 import TextInput from '@/components/common/form/TextInput.vue';
@@ -178,6 +221,12 @@ const trueOrFalse = ref([
     { key: 'false', value: 'Disabled' },
 ]);
 
+const authTypes = ref([
+    { key: 'form', value: 'Form' },
+    { key: 'oidc', value: 'OpenID Connect (OIDC)' },
+    { key: 'none', value: 'No Authentication' },
+]);
+
 const downloadClients = ref([
     { key: 'GET_IPLAYER', value: 'get_iplayer' },
     { key: 'YTDLP', value: 'yt-dlp (Experimental)' },
@@ -191,6 +240,9 @@ const outputFormats = ref([
 const saveEnabled = computed(() => {
     return configChanges.value;
 });
+
+const oidcTested = ref(false);
+let oidcChannel;
 
 onMounted(async () => {
     const [configResponse, qpResponse] = await Promise.all([
@@ -209,12 +261,34 @@ onMounted(async () => {
         config,
         () => {
             configChanges.value = true;
+            oidcTested.value = false;
         },
         { deep: true }
     );
+
+    oidcChannel = new BroadcastChannel('oidc-test');
+    oidcChannel.onmessage = (event) => {
+        if (event.data && event.data.type === 'oidc-test-result') {
+            oidcTested.value = event.data.success;
+            dialogService.alert(
+                'OIDC Test Result',
+                event.data.success ? `OIDC test succeeded for ${event.data.email}!` : `OIDC test failed: ${event.data.error || 'Unknown error'}`
+            );
+        }
+    };
 });
 
 const saveConfig = async () => {
+    if (config.value.AUTH_TYPE == 'oidc' && !oidcTested.value) {
+        if (
+            !(await dialogService.confirm(
+                'OIDC Not Tested',
+                'You have not tested your OIDC configuration. Are you sure you want to save without testing?'
+            ))
+        ) {
+            return;
+        }
+    }
     loading.value = true;
     if (configChanges.value) {
         validationErrors.value.config = {};
@@ -283,6 +357,40 @@ onBeforeRouteLeave(async (_, __, next) => {
     }
     next();
 });
+
+const testOIDC = () => {
+    // Create a form element
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${getHost()}/auth/oidc/test`; // Change to your actual endpoint
+    form.target = '_blank';
+
+    // Add OIDC config fields as hidden inputs
+    [
+        'OIDC_CONFIG_URL',
+        'OIDC_CALLBACK_HOST',
+        'OIDC_CLIENT_ID',
+        'OIDC_CLIENT_SECRET',
+        'OIDC_ALLOWED_EMAILS'
+    ].forEach(key => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = config.value[key] || '';
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    //alert(form.outerHTML)
+
+    // Use requestSubmit if available, fallback to submit
+    form.submit();
+
+    // Remove the form after a short delay to ensure the request is sent
+    setTimeout(() => {
+        document.body.removeChild(form);
+    }, 1000);
+};
 </script>
 
 <style lang="less">

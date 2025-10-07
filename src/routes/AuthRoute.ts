@@ -3,6 +3,7 @@ import { Express, NextFunction, Request, Response, Router } from 'express';
 import session from 'express-session';
 import { v4 } from 'uuid';
 
+import OIDCService from '../service/auth/OIDCService';
 import configService from '../service/configService';
 import { redis } from '../service/redis/redisService';
 import { IplayarrParameter } from '../types/IplayarrParameters';
@@ -13,6 +14,8 @@ import { md5 } from '../utils/Utils';
 declare module 'express-session' {
     interface SessionData {
         user: User;
+        codeVerifier?: string;
+        state?: string;
     }
 }
 
@@ -44,11 +47,11 @@ export const addAuthMiddleware = (app: Express) => {
     );
 
     app.use('/json-api/*', async (req: Request, res: Response, next: NextFunction) => {
-        const [authEnabled, username] = await Promise.all([
-            configService.getParameter(IplayarrParameter.AUTH_ENABLED),
+        const [authType, username] = await Promise.all([
+            configService.getParameter(IplayarrParameter.AUTH_TYPE),
             configService.getParameter(IplayarrParameter.AUTH_USERNAME),
         ]);
-        if (authEnabled == 'false') {
+        if (authType == 'none') {
             req.session.user = { username: username || 'admin' };
         }
         if (!req.session?.user) {
@@ -58,6 +61,82 @@ export const addAuthMiddleware = (app: Express) => {
         next();
     });
 };
+
+router.get('/method', async (req: Request, res: Response) => {
+    const authType = await configService.getParameter(IplayarrParameter.AUTH_TYPE);
+    res.json({ message: authType });
+});
+
+router.get('/oidc/login', async (req: Request, res: Response) => {
+    const authType = await configService.getParameter(IplayarrParameter.AUTH_TYPE);
+    if (authType != 'oidc') {
+        res.status(400).json({ error: ApiError.OIDC_NOT_ENABLED } as ApiResponse);
+        return;
+    }
+
+    const url = await OIDCService.getAuthURL(req);
+
+    res.json({ url });
+});
+
+router.post('/oidc/test', async (req: Request, res: Response) => {
+    const { OIDC_CONFIG_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_CALLBACK_HOST } = req.body;
+    const authUrl = await OIDCService.testConnection(req, OIDC_CONFIG_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_CALLBACK_HOST);
+    res.redirect(authUrl);
+});
+
+router.get('/oidc/callback', async (req: Request, res: Response) => {
+    const allowedEmailsList = await configService.getParameter(IplayarrParameter.OIDC_ALLOWED_EMAILS) as string;
+    const allowedEmails = allowedEmailsList.split(',').map(email => email.trim().toLowerCase());
+    const code = req.query.code as string;
+    const codeVerifier = req.session.codeVerifier;
+
+    if (!code || !codeVerifier) {
+        res.status(400).json({ error: ApiError.INVALID_INPUT } as ApiResponse);
+        return;
+    }
+
+    const stateParam = req.query.state as string;
+    const stateData = JSON.parse(Buffer.from(stateParam, 'base64url').toString());
+    const isTest = stateData.mode === 'test';
+    const email: string | undefined = isTest ?
+        await OIDCService.getUserEmail(req, stateData.details.configUrl, stateData.details.clientId, stateData.details.clientSecret) :
+        await OIDCService.validateUser(req);
+    const validUser = email && allowedEmails.includes(email.toLowerCase());
+
+
+
+    if (isTest) {
+        res.send(`
+    <html>
+      <body>
+        <script>
+          const channel = new BroadcastChannel('oidc-test');
+          channel.postMessage({
+            type: 'oidc-test-result',
+            success: ${validUser}, // true or false
+            email: "${email}"
+          });
+          setTimeout(() => window.close(), 500);
+        </script>
+        <p>You can close this tab.</p>
+      </body>
+    </html>
+`);
+        return;
+    }
+
+    if (!validUser) {
+        res.status(401).json({ error: ApiError.INVALID_CREDENTIALS } as ApiResponse);
+        return;
+    } else {
+        req.session.user = { username: email };
+        const host = process.env.DEBUG == 'true' ? `${req.protocol}://${req.headers.host?.split(':')[0]}:8080` : '';
+        res.redirect(`${host}/queue`);
+        return;
+    }
+});
+
 
 router.post('/login', async (req: Request, res: Response) => {
     const [AUTH_USERNAME, AUTH_PASSWORD] = await Promise.all([
@@ -82,11 +161,11 @@ router.get('/logout', (req, res) => {
 });
 
 router.get('/me', async (req: Request, res: Response) => {
-    const [authEnabled, username] = await Promise.all([
-        configService.getParameter(IplayarrParameter.AUTH_ENABLED),
+    const [authType, username] = await Promise.all([
+        configService.getParameter(IplayarrParameter.AUTH_TYPE),
         configService.getParameter(IplayarrParameter.AUTH_USERNAME),
     ]);
-    if (authEnabled == 'false') {
+    if (authType == 'none') {
         req.session.user = { username: username || 'admin' };
     }
     if (!req.session?.user) {

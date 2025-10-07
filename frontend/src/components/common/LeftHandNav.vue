@@ -14,7 +14,7 @@ label="Refresh Index" icon="address-book" :no-link="true"
             <LeftHandNavLink label="Settings" icon="gears" path="/settings" @option-clicked="closeLHN" />
             <LeftHandNavLink label="Statistics" icon="chart-bar" path="/stats" @option-clicked="closeLHN" />
             <LeftHandNavLink label="About" icon="circle-info" path="/about" @option-clicked="closeLHN" />
-            <LeftHandNavLink v-if="globalSettings.AUTH_ENABLED != 'false'" label="Logout" icon="sign-out" :no-link="true" @option-clicked="logout" />
+            <LeftHandNavLink v-if="globalSettings.AUTH_TYPE != 'none'" label="Logout" icon="sign-out" :no-link="true" @option-clicked="logout" />
         </ul>
         <div class="floor">
             <div v-if="globalSettings.NATIVE_SEARCH == 'false'">

@@ -118,19 +118,29 @@
         </template>
 
         <legend class="sub">Authentication</legend>
-        <TextInput
-            v-model="config.AUTH_USERNAME"
-            name="Username"
-            tooltip="The Login Username."
-            :error="validationErrors.config?.AUTH_USERNAME"
-        />
-        <TextInput
-            v-model="config.AUTH_PASSWORD"
-            name="Password"
-            tooltip="The Login Password."
-            type-override="password"
-            :error="validationErrors.config?.AUTH_PASSWORD"
-        />
+        <SelectInput
+                v-model="config.AUTH_ENABLED"
+                :advanced="false"
+                name="Authentication Enabled?"
+                tooltip="Enable Authentication for iPlayArr."
+                :error="validationErrors.config?.AUTH_ENABLED"
+                :options="trueOrFalse"
+            />
+        <template v-if="config.AUTH_ENABLED == 'true'">
+            <TextInput
+                v-model="config.AUTH_USERNAME"
+                name="Username"
+                tooltip="The Login Username."
+                :error="validationErrors.config?.AUTH_USERNAME"
+            />
+            <TextInput
+                v-model="config.AUTH_PASSWORD"
+                name="Password"
+                tooltip="The Login Password."
+                type-override="password"
+                :error="validationErrors.config?.AUTH_PASSWORD"
+            />
+        </template>
     </div>
     <LoadingIndicator v-if="loading" />
 </template>

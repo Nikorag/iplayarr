@@ -43,7 +43,14 @@ export const addAuthMiddleware = (app: Express) => {
         })
     );
 
-    app.use('/json-api/*', (req: Request, res: Response, next: NextFunction) => {
+    app.use('/json-api/*', async (req: Request, res: Response, next: NextFunction) => {
+        const [authEnabled, username] = await Promise.all([
+            configService.getParameter(IplayarrParameter.AUTH_ENABLED),
+            configService.getParameter(IplayarrParameter.AUTH_USERNAME),
+        ]);
+        if (authEnabled == 'false') {
+            req.session.user = { username: username || 'admin' };
+        }
         if (!req.session?.user) {
             res.status(401).json({ error: ApiError.NOT_AUTHORISED } as ApiResponse);
             return;
@@ -59,7 +66,6 @@ router.post('/login', async (req: Request, res: Response) => {
     ]);
     const { username, password } = req.body;
 
-    // Replace this with actual authentication logic
     if (username === AUTH_USERNAME && md5(password) === AUTH_PASSWORD) {
         req.session.user = { username };
         res.json({ status: true });
@@ -75,7 +81,14 @@ router.get('/logout', (req, res) => {
     });
 });
 
-router.get('/me', (req: Request, res: Response) => {
+router.get('/me', async (req: Request, res: Response) => {
+    const [authEnabled, username] = await Promise.all([
+        configService.getParameter(IplayarrParameter.AUTH_ENABLED),
+        configService.getParameter(IplayarrParameter.AUTH_USERNAME),
+    ]);
+    if (authEnabled == 'false') {
+        req.session.user = { username: username || 'admin' };
+    }
     if (!req.session?.user) {
         res.status(401).json({ error: ApiError.NOT_AUTHORISED } as ApiResponse);
         return;

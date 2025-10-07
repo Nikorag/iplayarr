@@ -192,7 +192,6 @@ import { v4 } from 'uuid';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { useModal } from 'vue-final-modal';
 import { onBeforeRouteLeave } from 'vue-router';
-import { getHost } from '@/lib/utils';
 
 import SelectInput from '@/components/common/form/SelectInput.vue';
 import TextInput from '@/components/common/form/TextInput.vue';
@@ -202,6 +201,7 @@ import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 import UpdateAppDialog from '@/components/modals/UpdateAppDialog.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
+import { getHost } from '@/lib/utils';
 
 const loading = ref(false);
 let originalApiKey = undefined;

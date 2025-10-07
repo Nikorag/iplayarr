@@ -1,7 +1,6 @@
 import Handlebars from 'handlebars';
 
 import nzbFacade from '../facade/nzbFacade';
-import OIDCService from '../service/auth/OIDCService';
 import { FilenameTemplateContext } from '../types/FilenameTemplateContext';
 import { Validator } from './Validator';
 

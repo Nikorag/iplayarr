@@ -63,8 +63,8 @@
 import { onMounted,ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import dialogService from '@/lib/dialogService';
 import InfoBar from '@/components/common/InfoBar.vue';
+import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 
 const router = useRouter();

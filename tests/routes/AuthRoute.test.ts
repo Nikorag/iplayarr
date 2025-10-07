@@ -12,6 +12,7 @@ import * as Utils from '../../src/utils/Utils';
 jest.mock('../../src/service/configService');
 jest.spyOn(Utils, 'md5').mockReturnValue('hashed');
 jest.mock('uuid', () => ({ v4: () => 'mock-token' }));
+jest.mock('openid-client', () => { });
 
 describe('AuthRoute', () => {
     let app: express.Express;

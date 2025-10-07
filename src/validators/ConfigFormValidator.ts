@@ -58,6 +58,23 @@ export class ConfigFormValidator extends Validator {
                 validatorError['NZB_PASSWORD'] = response as string;
             }
         }
+        if (input.AUTH_TYPE === 'oidc') {
+            if (!validatorError['OIDC_CONFIG_URL']) {
+                validatorError['OIDC_CONFIG_URL'] = 'Please provide a valid OIDC configuration URL';
+            }
+            if (!input.OIDC_CLIENT_ID) {
+                validatorError['OIDC_CLIENT_ID'] = 'Please provide a valid OIDC client ID';
+            }
+            if (!input.OIDC_CLIENT_SECRET) {
+                validatorError['OIDC_CLIENT_SECRET'] = 'Please provide a valid OIDC client secret';
+            }
+            if (!input.OIDC_CALLBACK_HOST) {
+                validatorError['OIDC_CALLBACK_HOST'] = 'Please provide a valid OIDC callback host';
+            }
+            if (!input.OIDC_ALLOWED_EMAILS || input.OIDC_ALLOWED_EMAILS.length === 0) {
+                validatorError['OIDC_ALLOWED_EMAILS'] = 'Please provide at least one allowed email';
+            }
+        }
         return validatorError;
     }
 

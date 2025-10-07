@@ -4,6 +4,7 @@ export enum ApiError {
     INVALID_INPUT = 'Invalid Input',
     INTERNAL_ERROR = 'Internal Error',
     INVALID_CREDENTIALS = 'Invalid Credentials',
+    OIDC_NOT_ENABLED = 'OIDC Not Enabled',
 }
 
 export interface ApiResponse {

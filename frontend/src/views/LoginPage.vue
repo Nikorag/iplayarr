@@ -1,4 +1,7 @@
 <template>
+    <InfoBar v-if="loginMethod === 'oidc'">
+        OIDC Authentication is in Beta, please report any issues you find. If you find yourself locked out, please adjust the AUTH_TYPE property in the redis key <pre style="display: inline-block;">config</pre>
+    </InfoBar>
     <div class="login-content">
         <div>
             <div class="panel">
@@ -7,27 +10,30 @@
                 </div>
                 <div v-if="!forgot" class="panel-body">
                     <div class="sign-in">SIGN IN TO CONTINUE</div>
-                    <div class="form-group">
-                        <input
-                            v-model="loginForm.username"
-                            type="email"
-                            class="form-input"
-                            placeholder="Username"
-                            @keyup.enter="login"
-                        />
-                    </div>
-                    <div class="form-group">
-                        <input
-                            v-model="loginForm.password"
-                            type="password"
-                            class="form-input"
-                            placeholder="Password"
-                            @keyup.enter="login"
-                        />
-                    </div>
-                    <div class="forgot-container">
-                        <a href="#" @click="showForgot">Forgot your password?</a>
-                    </div>
+                    <template v-if="loginMethod === 'form'">
+                        <div class="form-group">
+                            <input
+                                v-model="loginForm.username"
+                                type="email"
+                                class="form-input"
+                                placeholder="Username"
+                                @keyup.enter="login"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <input
+                                v-model="loginForm.password"
+                                type="password"
+                                class="form-input"
+                                placeholder="Password"
+                                @keyup.enter="login"
+                            />
+                        </div>
+                    
+                        <div class="forgot-container">
+                            <a href="#" @click="showForgot">Forgot your password?</a>
+                        </div>
+                    </template>
                     <button type="button" class="button" @click="login">Login</button>
                     <div v-if="error" id="login-failed" class="login-failed">Incorrect Username or Password</div>
                 </div>
@@ -57,10 +63,13 @@
 import { onMounted,ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+import InfoBar from '@/components/common/InfoBar.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 
 const router = useRouter();
+
+const loginMethod = ref('form');
 
 const loginForm = ref({
     username: '',
@@ -75,11 +84,16 @@ const error = ref(false);
 const forgot = ref(false);
 
 const login = async () => {
-    const response = await ipFetch('auth/login', 'POST', loginForm.value);
-    if (response.ok) {
-        router.push('/queue');
-    } else {
-        error.value = true;
+    if (loginMethod.value == 'form'){
+        const response = await ipFetch('auth/login', 'POST', loginForm.value);
+        if (response.ok) {
+            router.push('/queue');
+        } else {
+            error.value = true;
+        }
+    } else if (loginMethod.value === 'oidc'){
+        const {data : oidcResponse} = await ipFetch('auth/oidc/login');
+        window.location.href = oidcResponse.url;
     }
 };
 
@@ -98,11 +112,14 @@ const submitForgot = async () => {
     forgot.value = false;
 };
 
-//Check if already logged in
+//Check if already logged in, then check for OIDC and redirect
 onMounted(async () => {
     const response = await ipFetch('auth/me');
     if (response.ok) {
         router.push('/queue');
+    } else {
+        const {data : methodResponse} = await ipFetch('auth/method');
+        loginMethod.value = methodResponse.message;
     }
 });
 </script>

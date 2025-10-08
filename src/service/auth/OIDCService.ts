@@ -35,13 +35,14 @@ class OIDCService {
     }
 
     async getAuthURL(req: Request): Promise<string | undefined> {
-        const [configUrl, clientId, clientSecret] = (await configService.getParameters(
+        const [configUrl, clientId, clientSecret, callbackHost] = (await configService.getParameters(
             IplayarrParameter.OIDC_CONFIG_URL,
             IplayarrParameter.OIDC_CLIENT_ID,
-            IplayarrParameter.OIDC_CLIENT_SECRET
+            IplayarrParameter.OIDC_CLIENT_SECRET,
+            IplayarrParameter.OIDC_CALLBACK_HOST
         )) as string[];
 
-        return await this.getUserEmail(req, configUrl, clientId, clientSecret);
+        return await this.testConnection(req, configUrl, clientId, clientSecret, callbackHost);
     }
 
     async getUserEmail(req: Request, configUrl: string, clientId: string, clientSecret: string): Promise<string | undefined> {

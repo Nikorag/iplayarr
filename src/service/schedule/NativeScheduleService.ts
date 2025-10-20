@@ -14,11 +14,13 @@ import NativeSearchService from '../search/NativeSearchService';
 import { AbstractScheduleService } from './AbstractScheduleService';
 
 class NativeScheduleService implements AbstractScheduleService {
-    scheduleCache: RedisCacheService<IPlayerSearchResult[]> = new RedisCacheService('schedule_cache', 2700);
-    cacheTime: RedisCacheService<number> = new RedisCacheService('schedule_cache_time', 2700);
+    scheduleCache: RedisCacheService<IPlayerSearchResult[]> = new RedisCacheService('schedule_cache', 5400);
+    cacheTime: RedisCacheService<number> = new RedisCacheService('schedule_cache_time', 5400);
+    caching: boolean = false;
+
 
     async refreshCache(): Promise<void> {
-        const { sizeFactor } = await getQualityProfile();
+	const { sizeFactor } = await getQualityProfile();
 
         const rssHours: string = (await configService.getParameter(IplayarrParameter.RSS_FEED_HOURS)) as string;
         const dupedPids = await Promise.all(ChannelSchedule.map(channel => this.getChannelPids(channel, rssHours)));
@@ -30,7 +32,7 @@ class NativeScheduleService implements AbstractScheduleService {
         const barLength = 20;
 
         await Promise.all(
-            chunks.map(async (chunk, i) => {
+            chunks.map(async (chunk) => {
                 try {
                     const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
                     chunkInfos.push(...results);
@@ -58,7 +60,10 @@ class NativeScheduleService implements AbstractScheduleService {
         const lastCachedEpoch = await this.cacheTime.get('last_cached');
 
         if (!lastCachedEpoch || (lastCachedEpoch + 2700 * 1000) < Date.now()) {
-            await this.refreshCache();
+            if (!this.caching) {
+	        this.caching = true;
+                this.refreshCache().then(() => this.caching = false);
+	    }
         }
 
         const results = await this.scheduleCache.get('schedule');

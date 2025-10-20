@@ -10,11 +10,11 @@ import ApiRoute from './routes/ApiRoute';
 import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
 import JsonApiRoute from './routes/JsonApiRoute';
 import loggingService from './service/loggingService';
+import { redis } from './service/redis/redisService';
 import socketService from './service/socketService';
 import StatisticsService from './service/stats/StatisticsService';
 import taskService from './service/taskService';
 import { IplayarrParameter } from './types/IplayarrParameters';
-import { redis } from './service/redis/redisService';
 
 const isDebug = process.env.DEBUG == 'true';
 
@@ -43,8 +43,8 @@ app.get('/ping', async (_req: Request, res: Response) => {
     try {
         await redis.ping();
         res.json({ status: 'OK' });
-    } catch (error) {
-        res.status(503).json({ status: 'ERROR', message: 'Redis unavailable' });
+    } catch (error : any) {
+        res.status(503).json({ status: 'ERROR', message: `Redis error - ${error?.message}`});
     }
 });
 

@@ -1,12 +1,37 @@
+import 'winston-daily-rotate-file';
+
+import winston from 'winston';
+
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import configService from './configService';
 import socketService from './socketService';
 
+const transport = new winston.transports.DailyRotateFile({
+    dirname: process.env.LOG_DIR || './logs',
+    filename: 'iplayarr-%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '20m',
+    maxFiles: '14d',
+});
+
+const fileLogger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.printf(({ timestamp, level, message }) => {
+            return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
+        })
+    ),
+    transports: [transport],
+});
+
 const loggingService = {
     log: (...params: any[]) => {
         console.log(...params);
         const message = joinOrReturn(params);
+        fileLogger.info(message);
         const logLine: LogLine = { level: LogLineLevel.INFO, id: 'INFO', message, timestamp: new Date() };
         socketService.emit('log', logLine);
     },
@@ -14,6 +39,7 @@ const loggingService = {
     error: (...params: any[]) => {
         console.error(params);
         const message = joinOrReturn(params);
+        fileLogger.error(message);
         const logLine: LogLine = { level: LogLineLevel.ERROR, id: 'ERROR', message, timestamp: new Date() };
         socketService.emit('log', logLine);
     },
@@ -23,6 +49,7 @@ const loggingService = {
             const message = joinOrReturn(params);
             if (debug && debug.toLowerCase() == 'true') {
                 console.log(...params);
+                fileLogger.debug(message);
                 const logLine: LogLine = { level: LogLineLevel.DEBUG, id: 'DEBUG', message, timestamp: new Date() };
                 socketService.emit('log', logLine);
             }

@@ -26,10 +26,25 @@ class NativeScheduleService implements AbstractScheduleService {
 
         const chunks = splitArrayIntoChunks(pids, 5);
         const chunkInfos: IPlayerDetails[] = [];
-        for (const chunk of chunks) {
-            const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
-            chunkInfos.push(...results);
-        }
+        let completed = 0;
+        const barLength = 20;
+
+        await Promise.all(
+            chunks.map(async (chunk, i) => {
+                try {
+                    const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
+                    chunkInfos.push(...results);
+                } catch (error) {
+                    loggingService.error(`Error fetching details for chunk ${chunk}: ${error}`);
+                }
+                // Progress bar logging (after each chunk finishes)
+                completed++;
+                const percent = Math.round((completed / chunks.length) * 100);
+                const filledLength = Math.round((barLength * completed) / chunks.length);
+                const bar = '█'.repeat(filledLength) + '-'.repeat(barLength - filledLength);
+                loggingService.log(`Progress: [${bar}] ${percent}% (${completed}/${chunks.length})`);
+            })
+        );
 
         const results: IPlayerSearchResult[] = await Promise.all(
             chunkInfos.map((info: IPlayerDetails) => NativeSearchService.createSearchResult(info.title, info, sizeFactor, undefined))

@@ -14,6 +14,7 @@ import socketService from './service/socketService';
 import StatisticsService from './service/stats/StatisticsService';
 import taskService from './service/taskService';
 import { IplayarrParameter } from './types/IplayarrParameters';
+import { redis } from './service/redis/redisService';
 
 const isDebug = process.env.DEBUG == 'true';
 
@@ -36,6 +37,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 addAuthMiddleware(app);
 app.use('/auth', AuthRoute);
+
+// Healthcheck endpoint (unauthenticated)
+app.get('/ping', async (_req: Request, res: Response) => {
+    try {
+        await redis.ping();
+        res.json({ status: 'OK' });
+    } catch (error) {
+        res.status(503).json({ status: 'ERROR', message: 'Redis unavailable' });
+    }
+});
 
 app.use(express.static(path.join(process.cwd(), 'frontend', 'dist')));
 

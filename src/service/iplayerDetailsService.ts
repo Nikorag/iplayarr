@@ -53,10 +53,15 @@ class IPlayerDetailsService {
     }
 
     async getMetadata(pid: string): Promise<IPlayerMetadataResponse> {
-        const { data }: { data: IPlayerMetadataResponse } = await axios.get(
-            `https://www.bbc.co.uk/programmes/${pid}.json`
-        );
-        return data;
+        try {
+            const { data }: { data: IPlayerMetadataResponse } = await axios.get(
+                `https://www.bbc.co.uk/programmes/${pid}.json`
+            );
+            return data;
+        } catch (error) {
+            console.error(`Error fetching metadata for PID ${pid}: ${error}`);
+            throw error;
+        }
     }
 
     async findBrandForPid(pid: string, checked: string[] = []): Promise<string | undefined> {

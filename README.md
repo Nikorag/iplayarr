@@ -46,6 +46,7 @@ The simplest way to use iPlayarr is via Docker:
 docker run -d --name iplayarr \
   -v ./cache:/data \
   -v ./config:/config \
+  -v ./logs:/logs \
   -v /path/to/incomplete:/incomplete \
   -v /path/to/complete:/complete \
   --env-file=env-file \
@@ -60,6 +61,7 @@ docker build -t iplayarr .
 docker run -d --name iplayarr \
   -v ./cache:/data \
   -v ./config:/config \
+  -v ./logs:/logs \
   -v /path/to/incomplete:/incomplete \
   -v /path/to/complete:/complete \
   --env-file=env-file \
@@ -86,6 +88,7 @@ services:
       - "/mnt/media:/mnt/media"
       - "./cache:/data"
       - "./config:/config"
+      - "./logs:/logs"
 ```
 
 You can pre-set the following environment variables, or you can set them in the Settings menu once the container is up.

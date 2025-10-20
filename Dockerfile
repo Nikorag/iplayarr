@@ -58,5 +58,7 @@ COPY . .
 RUN npm run build:both
 RUN rm -rf /app/src /app/frontend/src
 
+ENV LOG_DIR=/logs
+
 ENTRYPOINT [ "./docker_entry.sh" ]
 CMD ["npm", "run", "start"]

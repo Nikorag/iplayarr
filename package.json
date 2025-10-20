@@ -42,6 +42,8 @@
         "socket.io": "^4.8.1",
         "uuid": "^11.0.5",
         "vue-router": "^4.5.0",
+        "winston": "^3.18.3",
+        "winston-daily-rotate-file": "^5.0.0",
         "xml2js": "^0.6.2"
     },
     "devDependencies": {

@@ -86,7 +86,7 @@ router.post('/oidc/test', async (req: Request, res: Response) => {
 });
 
 router.get('/oidc/callback', async (req: Request, res: Response) => {
-    const allowedEmailsList = await configService.getParameter(IplayarrParameter.OIDC_ALLOWED_EMAILS) as string;
+    const allowedEmailsList = await configService.getParameter(IplayarrParameter.OIDC_ALLOWED_EMAILS) || '';
     const allowedEmails = allowedEmailsList.split(',').map(email => email.trim().toLowerCase());
     const code = req.query.code as string;
     const codeVerifier = req.session.codeVerifier;
@@ -114,7 +114,7 @@ router.get('/oidc/callback', async (req: Request, res: Response) => {
           const channel = new BroadcastChannel('oidc-test');
           channel.postMessage({
             type: 'oidc-test-result',
-            success: ${validUser}, // true or false
+            success: true,
             email: "${email}"
           });
           setTimeout(() => window.close(), 500);

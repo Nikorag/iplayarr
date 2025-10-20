@@ -59,7 +59,7 @@ export class ConfigFormValidator extends Validator {
             }
         }
         if (input.AUTH_TYPE === 'oidc') {
-            if (!validatorError['OIDC_CONFIG_URL']) {
+            if (!input.OIDC_CONFIG_URL) {
                 validatorError['OIDC_CONFIG_URL'] = 'Please provide a valid OIDC configuration URL';
             }
             if (!input.OIDC_CLIENT_ID) {

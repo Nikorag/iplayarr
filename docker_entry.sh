@@ -40,7 +40,7 @@ else
     exit 1
 fi
 
-if [ -n "$LOGS_DIR" ] && [ -d "$LOG_DIR" ]; then
+if [ -n "$LOG_DIR" ] && [ -d "$LOG_DIR" ]; then
     chown -R "${EXISTING_USER}":"${GROUPNAME}" "${LOG_DIR}" || { echo "Failed to change ownership of ${LOG_DIR} to ${PUID}:${PGID}"; exit 1; }
 else
     echo "LOG_DIR is not set or does not exist"

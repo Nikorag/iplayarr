@@ -19,7 +19,7 @@ RUN apk --update add \
 # Symlink AtomicParsley
 RUN ln -s `which atomicparsley` /usr/local/bin/AtomicParsley
 
-RUN mkdir -p /data/output /data/config /config /data /node-persist /app/frontend
+RUN mkdir -p /data/output /data/config /config /data /node-persist /app/frontend /logs
 
 WORKDIR /iplayer
 

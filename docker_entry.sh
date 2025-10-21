@@ -40,5 +40,12 @@ else
     exit 1
 fi
 
+if [ -n "$LOGS_DIR" ] && [ -d "$LOG_DIR" ]; then
+    chown -R "${EXISTING_USER}":"${GROUPNAME}" "${LOG_DIR}" || { echo "Failed to change ownership of ${LOG_DIR} to ${PUID}:${PGID}"; exit 1; }
+else
+    echo "LOG_DIR is not set or does not exist"
+    exit 1
+fi
+
 find /app -name "node_modules" -prune -o \! -user "$PUID" \! -group "$PGID" -exec chown "${EXISTING_USER}":"${GROUPNAME}" {} +
 exec su-exec "$EXISTING_USER" "$@"

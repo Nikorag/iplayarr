@@ -10,7 +10,7 @@
         "serve:frontend": "cd frontend && npm run serve",
         "start": "node -r tsconfig-paths/register dist/src/server.js",
         "dev": "cross-env DEBUG=true concurrently \"nodemon src/server.ts\" \"npm run serve:frontend\"",
-        "test": "jest --collectCoverageFrom 'src/**/*.{js,ts}'",
+        "test": "cross-env NODE_ENV=test jest --collectCoverageFrom 'src/**/*.{js,ts}'",
         "test:watch": "jest --watch",
         "lint": "eslint . --ext .ts",
         "lint:fix": "npm run lint -- --fix",

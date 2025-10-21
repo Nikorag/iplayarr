@@ -4,6 +4,7 @@ import configService from '../../src/service/configService';
 import { GetIplayerExecutableService } from '../../src/service/getIplayerExecutableService';
 import historyService from '../../src/service/historyService';
 import queueService from '../../src/service/queueService';
+import SkyhookService from '../../src/service/skyhook/SkyhookService';
 import socketService from '../../src/service/socketService';
 import synonymService from '../../src/service/synonymService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
@@ -17,7 +18,9 @@ jest.mock('../../src/service/loggingService');
 jest.mock('../../src/service/queueService');
 jest.mock('../../src/service/socketService');
 jest.mock('../../src/service/synonymService');
+jest.mock('../../src/service/skyhook/SkyhookService');
 const mockedSynonymService = jest.mocked(synonymService);
+const mockedSkyhookService = jest.mocked(SkyhookService);
 jest.mock('fs');
 jest.mock('path');
 
@@ -246,6 +249,7 @@ describe('GetIplayerExecutableService', () => {
             const mockTerm = 'test';
             const mockData = 'RESULT|:|12345|:|test title|:| |:| |:|1|:|BBC|:|120|:|2021-01-01|:|episode title';
             const mockSizeFactor = 1;
+            mockedSkyhookService.lookupSeriesDetails.mockResolvedValue({ series: 1, episode: 1 });
 
             const results = await service.parseResults(mockTerm, mockData, mockSizeFactor);
 

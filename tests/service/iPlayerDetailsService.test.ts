@@ -61,14 +61,14 @@ describe('iplayerDetailsService', () => {
         const spy = jest.spyOn(iplayerDetailsService, 'episodeDetails').mockResolvedValueOnce({ pid: '1' } as any);
         const result = await iplayerDetailsService.details(['1']);
         expect(result).toEqual([{ pid: '1' }]);
-        expect(spy).toHaveBeenCalledWith('1');
+        expect(spy).toHaveBeenCalledWith('1', expect.anything());
     });
 
     it('detailsForEpisodeMetadata uses release_date_time override', async () => {
         const episode: IPlayerEpisodeMetadata = {
             id: 'b1234567', release_date_time: '2024-01-01',
             type: 'episode',
-            title: 'Episode Title'
+            title: 'Episode Title'  
         };
         jest.spyOn(iplayerDetailsService, 'episodeDetails').mockResolvedValueOnce({ pid: 'b1234567' } as any);
         const result = await iplayerDetailsService.detailsForEpisodeMetadata([episode]);

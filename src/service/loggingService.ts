@@ -1,13 +1,16 @@
 import 'winston-daily-rotate-file';
 
 import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import configService from './configService';
 import socketService from './socketService';
 
-const transport = new winston.transports.DailyRotateFile({
+const isTest = process.env.NODE_ENV === 'test';
+
+const transport = isTest ? {} : new winston.transports.DailyRotateFile({
     dirname: process.env.LOG_DIR || './logs',
     filename: 'iplayarr-%DATE%.log',
     datePattern: 'YYYY-MM-DD',
@@ -16,7 +19,9 @@ const transport = new winston.transports.DailyRotateFile({
     maxFiles: '14d',
 });
 
-const fileLogger = winston.createLogger({
+const fileLogger = isTest
+    ? { info: () => { }, error: () => { }, debug: () => { } } :
+    winston.createLogger({
     level: 'info',
     format: winston.format.combine(
         winston.format.timestamp(),
@@ -24,7 +29,7 @@ const fileLogger = winston.createLogger({
             return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
         })
     ),
-    transports: [transport],
+        transports: [transport as DailyRotateFile],
 });
 
 const loggingService = {

@@ -1,11 +1,14 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { Axios, AxiosResponse } from 'axios';
 
 import { pidRegex, searchResultLimit } from '../constants/iPlayarrConstants';
 import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerEpisodeMetadata, IPlayerEpisodesResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { calculateSeasonAndEpisode } from '../utils/Utils';
+import RedisCacheService from './redis/redisCacheService';
 
 class IPlayerDetailsService {
+    metadataCache: RedisCacheService<IPlayerMetadataResponse> = new RedisCacheService('metadata_cache', 86400); // 24 hours
+
     async detailsForEpisodeMetadata(episodes: IPlayerEpisodeMetadata[]): Promise<IPlayerDetails[]> {
         const results = await Promise.allSettled(
             episodes.map(async (episode) => {
@@ -20,9 +23,9 @@ class IPlayerDetailsService {
             .map((result: PromiseFulfilledResult<IPlayerDetails>) => result.value);
     }
 
-    async details(pids: string[]): Promise<IPlayerDetails[]> {
+    async details(pids: string[], axiosInstance: Axios = axios): Promise<IPlayerDetails[]> {
         const results = await Promise.allSettled(
-            pids.map(pid => this.episodeDetails(pid))
+            pids.map(pid => this.episodeDetails(pid, axiosInstance))
         );
 
         return results
@@ -30,8 +33,8 @@ class IPlayerDetailsService {
             .map((result: PromiseFulfilledResult<IPlayerDetails>) => result.value);
     }
 
-    async episodeDetails(pid: string): Promise<IPlayerDetails> {
-        const { programme } = await this.getMetadata(pid);
+    async episodeDetails(pid: string, axiosInstance: Axios = axios): Promise<IPlayerDetails> {
+        const { programme } = await this.getMetadata(pid, axiosInstance);
         const [type, episode, episodeTitle, series] = await calculateSeasonAndEpisode(programme);
         return {
             pid,
@@ -52,12 +55,12 @@ class IPlayerDetailsService {
         };
     }
 
-    async getMetadata(pid: string): Promise<IPlayerMetadataResponse> {
+    async getMetadata(pid: string, axiosInstance: Axios = axios): Promise<IPlayerMetadataResponse> {
         try {
-            const { data }: { data: IPlayerMetadataResponse } = await axios.get(
-                `https://www.bbc.co.uk/programmes/${pid}.json`
-            );
-            return data;
+            return await this.metadataCache.getOr(pid, async () => {
+                const response: { data: IPlayerMetadataResponse } = await axiosInstance.get(`https://www.bbc.co.uk/programmes/${pid}.json`);
+                return response.data;
+            });
         } catch (error) {
             console.error(`Error fetching metadata for PID ${pid}: ${error}`);
             throw error;

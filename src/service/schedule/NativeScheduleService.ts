@@ -1,5 +1,7 @@
 import axios from 'axios';
+import https from 'https';
 import { JSDOM } from 'jsdom';
+import pLimit from 'p-limit';
 
 import { ChannelDefinition, ChannelSchedule } from '../../constants/ChannelSchedule';
 import { IplayarrParameter } from '../../types/IplayarrParameters';
@@ -31,22 +33,29 @@ class NativeScheduleService implements AbstractScheduleService {
         let completed = 0;
         const barLength = 20;
 
+        // Create a single axios instance with keep-alive agent
+        const agent = new https.Agent({ keepAlive: true });
+        const axiosInstance = axios.create({ httpsAgent: agent })
+
+        const chunkLimit = pLimit(10);
         await Promise.all(
-            chunks.map(async (chunk) => {
+            chunks.map(chunk => chunkLimit(async () => {
                 try {
-                    const results: IPlayerDetails[] = await iplayerDetailsService.details(chunk);
+                    const results = await iplayerDetailsService.details(chunk, axiosInstance);
                     chunkInfos.push(...results);
                 } catch (error) {
                     loggingService.error(`Error fetching details for chunk ${chunk}: ${error}`);
                 }
-                // Progress bar logging (after each chunk finishes)
+
                 completed++;
                 const percent = Math.round((completed / chunks.length) * 100);
                 const filledLength = Math.round((barLength * completed) / chunks.length);
                 const bar = '█'.repeat(filledLength) + '-'.repeat(barLength - filledLength);
                 loggingService.log(`Progress: [${bar}] ${percent}% (${completed}/${chunks.length})`);
-            })
+            }))
         );
+
+        loggingService.log(`Fetched details for ${chunkInfos.length} programmes.`);
 
         const results: IPlayerSearchResult[] = await Promise.all(
             chunkInfos.map((info: IPlayerDetails) => NativeSearchService.createSearchResult(info.title, info, sizeFactor, undefined))
@@ -61,9 +70,9 @@ class NativeScheduleService implements AbstractScheduleService {
 
         if (!lastCachedEpoch || (lastCachedEpoch + 2700 * 1000) < Date.now()) {
             if (!this.caching) {
-	        this.caching = true;
+                this.caching = true;
                 this.refreshCache().then(() => this.caching = false);
-	    }
+            }
         }
 
         const results = await this.scheduleCache.get('schedule');

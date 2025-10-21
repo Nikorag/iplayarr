@@ -9,6 +9,17 @@ export default class RedisCacheService<T> {
         this.ttl = ttl;
     }
 
+    async getOr(key: string, fetchFunction: (key: string) => Promise<T>): Promise<T> {
+        const cached = await this.get(key);
+        if (cached) {
+            return cached;
+        } else {
+            const value = await fetchFunction(key);
+            await this.set(key, value);
+            return value;
+        }
+    }
+
     get(key: string): Promise<T | undefined> {
         return new Promise((resolve) => {
             redis

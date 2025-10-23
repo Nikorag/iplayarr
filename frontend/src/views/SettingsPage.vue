@@ -154,7 +154,7 @@
             <TextInput
                 v-model="config.OIDC_CALLBACK_HOST"
                 name="OIDC Callback Host"
-                tooltip="http://iplayarr.example.com"
+                :tooltip="oidcCallbackTooltip"
                 :error="validationErrors.config?.OIDC_CALLBACK_HOST"
             />
             <TextInput
@@ -239,6 +239,10 @@ const outputFormats = ref([
 
 const saveEnabled = computed(() => {
     return configChanges.value;
+});
+
+const oidcCallbackTooltip = computed(() => {
+    return `${window.location.protocol}//${window.location.host}`;
 });
 
 const oidcTested = ref(false);
@@ -381,7 +385,6 @@ const testOIDC = () => {
     });
 
     document.body.appendChild(form);
-    //alert(form.outerHTML)
 
     // Use requestSubmit if available, fallback to submit
     form.submit();

@@ -81,7 +81,7 @@ router.get('/oidc/login', async (req: Request, res: Response) => {
 
 router.post('/oidc/test', async (req: Request, res: Response) => {
     const { OIDC_CONFIG_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_CALLBACK_HOST } = req.body;
-    const authUrl = await OIDCService.testConnection(req, OIDC_CONFIG_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_CALLBACK_HOST);
+    const authUrl = await OIDCService.oidcConnection(req, OIDC_CONFIG_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_CALLBACK_HOST, 'test');
     res.redirect(authUrl);
 });
 
@@ -195,6 +195,7 @@ router.post('/resetPassword', async (req: Request, res: Response) => {
         clearTimeout(resetTimer);
         await configService.setParameter(IplayarrParameter.AUTH_USERNAME, configService.defaultConfigMap.AUTH_USERNAME);
         await configService.setParameter(IplayarrParameter.AUTH_PASSWORD, configService.defaultConfigMap.AUTH_PASSWORD);
+        await configService.setParameter(IplayarrParameter.AUTH_TYPE, configService.defaultConfigMap.AUTH_TYPE);
     }
 
     res.json({ status: true });

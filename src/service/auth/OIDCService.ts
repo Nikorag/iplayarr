@@ -5,7 +5,7 @@ import { IplayarrParameter } from '../../types/IplayarrParameters';
 import configService from '../configService';
 
 class OIDCService {
-    async testConnection(req: Request, configUrl: string, clientId: string, clientSecret: string, callback_host: string): Promise<string> {
+    async oidcConnection(req: Request, configUrl: string, clientId: string, clientSecret: string, callback_host: string, mode: string = 'login'): Promise<string> {
         const config: client.Configuration = await client.discovery(
             new URL(configUrl),
             clientId,
@@ -16,7 +16,7 @@ class OIDCService {
         req.session.codeVerifier = codeVerifier
         const code_challenge = await client.calculatePKCECodeChallenge(codeVerifier)
         const statePayload = {
-            mode: 'test',
+            mode,
             details: { configUrl, clientId, clientSecret, callback_host },
             nonce: client.randomState()
         };
@@ -42,7 +42,7 @@ class OIDCService {
             IplayarrParameter.OIDC_CALLBACK_HOST
         )) as string[];
 
-        return await this.testConnection(req, configUrl, clientId, clientSecret, callbackHost);
+        return await this.oidcConnection(req, configUrl, clientId, clientSecret, callbackHost);
     }
 
     async getUserEmail(req: Request, configUrl: string, clientId: string, clientSecret: string): Promise<string | undefined> {

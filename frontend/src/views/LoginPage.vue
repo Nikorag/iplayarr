@@ -1,7 +1,4 @@
 <template>
-    <InfoBar v-if="loginMethod === 'oidc'">
-        OIDC Authentication is in Beta, please report any issues you find. If you find yourself locked out, please adjust the AUTH_TYPE property in the redis key <pre style="display: inline-block;">config</pre>
-    </InfoBar>
     <div class="login-content">
         <div>
             <div class="panel">
@@ -29,17 +26,17 @@
                                 @keyup.enter="login"
                             />
                         </div>
-                    
-                        <div class="forgot-container">
-                            <a href="#" @click="showForgot">Forgot your password?</a>
-                        </div>
                     </template>
+                    <div class="forgot-container">
+                        <a href="#" @click="showForgot">{{loginMethod === 'form' ? 'Forgot your password?' : 'Locked Out?'}}</a>
+                    </div>
                     <button type="button" class="button" @click="login">Login</button>
                     <div v-if="error" id="login-failed" class="login-failed">Incorrect Username or Password</div>
                 </div>
                 <div v-if="forgot" class="panel-body">
-                    <div class="sign-in">FORGOT PASSWORD</div>
-                    <p>A unique code has been printed into the logs, enter it below to reset the password to default</p>
+                    <div class="sign-in">{{loginMethod === 'form' ? 'FORGOT PASSWORD' : 'LOCKED OUT'}}</div>
+                    <p>A unique code has been printed into the logs, enter it below to reset the password to default{{ loginMethod === 'oidc' ? ' and disable OIDC' : ''}}</p>
+                    <pre>admin : password</pre>
                     <div class="form-group">
                         <input
                             v-model="forgotForm.key"
@@ -63,7 +60,6 @@
 import { onMounted,ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import InfoBar from '@/components/common/InfoBar.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 

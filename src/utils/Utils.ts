@@ -124,37 +124,45 @@ export async function calculateSeasonAndEpisode(
 ): Promise<[type: VideoType, episode?: number, episodeTitle?: string, series?: number]> {
     const parent = programme.parent?.programme;
 
-    // Determine series number from the title, falling back to position values within JSON if unsuccessful
+    // Determine series from title or parent position
     const nativeSeriesMatch = parent?.title?.match(nativeSeriesRegex);
     const estimatedSeries = nativeSeriesMatch
         ? getPotentialRoman(nativeSeriesMatch[1])
         : parent?.type == 'series'
-          ? (parent?.position ?? 0)
-          : parent
-            ? 0
-            : undefined;
-    const notSpecialOrMovie = (estimatedSeries ?? 0) > 0;
+            ? parent.position ?? 0
+            : parent ? 0 : undefined;
+
+    // Check if this is a special episode
+    const isSpecial =
+        programme.position == null ||
+        (parent?.expected_child_count != null && programme.position >= parent.expected_child_count);
+
+    // Override series to 0 if counts indicate specials container
     let series =
-        parent?.expected_child_count != null && (parent.aggregated_episode_count ?? 0) > parent.expected_child_count
+        parent?.expected_child_count != null &&
+            (parent.aggregated_episode_count ?? 0) > parent.expected_child_count &&
+            isSpecial
             ? 0
             : estimatedSeries;
 
-    // Determine episode from title, falling back to positions and counts if unsuccessful and not a special
+    // Determine episode number
     const episodeMatch = programme.title?.match(episodeRegex);
     let episode = episodeMatch
         ? parseInt(episodeMatch[1])
-        : notSpecialOrMovie
-          ? (programme.position ?? 0)
-          : parent
-            ? 0
+        : !isSpecial && (estimatedSeries ?? 0) > 0
+            ? programme.position ?? 0
+            : parent ? 0 : undefined;
+
+    // Determine episode title - use subtitle for specials in container series
+    const episodeTitle =
+        episode != null
+            ? isSpecial && parent?.position == null
+                ? programme.display_title?.subtitle
+                : programme.title
             : undefined;
 
-    // Determine episode title if not a movie
-    const episodeTitle =
-        episode != null ? (notSpecialOrMovie ? programme.title : programme.display_title?.subtitle) : undefined;
-
-    // Now, if we're 0/0 - look it up with skyhook.
-    if (series === 0 && episode === 0 && episodeTitle) {
+    // Lookup specials/unresolved episodes via Skyhook
+    if ((isSpecial || series === 0) && episode === 0 && episodeTitle) {
         const seriesTitle = programme.display_title?.title ?? programme.title;
         const skyhookResult = await SkyhookService.lookupSeriesDetails(seriesTitle, episodeTitle);
         if (skyhookResult) {

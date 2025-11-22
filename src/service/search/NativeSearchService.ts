@@ -68,7 +68,8 @@ class NativeSearchService implements AbstractSearchService {
         }
     }
 
-    async processCompletedSearch(results: IPlayerSearchResult[]): Promise<IPlayerSearchResult[]> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async processCompletedSearch(results: IPlayerSearchResult[], _inputTerm: string, _synonym?: Synonym, _season?: number, _episode?: number): Promise<IPlayerSearchResult[]> {
         return results;
     }
 

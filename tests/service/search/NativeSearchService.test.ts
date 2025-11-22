@@ -107,7 +107,7 @@ describe('NativeSearchService', () => {
                 },
                 type: VideoType.TV
             }];
-            const results = await NativeSearchService.processCompletedSearch(mockResults);
+            const results = await NativeSearchService.processCompletedSearch(mockResults, mockTerm);
 
             expect(results).toEqual(mockResults); // Should return the results as they are
         });

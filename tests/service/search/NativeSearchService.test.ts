@@ -113,7 +113,49 @@ describe('NativeSearchService', () => {
             expect(results).toEqual(mockResults); // Should return the results as they are
         });
 
-        it('should filter out programmes that are exempted from synonym', async () => {
+        it('should not filter out programmes if synonym has no exemptions', async () => {
+            const mockResults: IPlayerSearchResult[] = [{
+                title: 'Test Title', pid: 'includePid',
+                number: 1,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }, {
+                title: 'Exempt1 Title', pid: 'exempt1Pid',
+                number: 2,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }, {
+                title: 'Exempt2 Title', pid: 'exempt2Pid',
+                number: 3,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }];
+
+            const mockSynonym: Synonym = {
+                exemptions: '',
+                id: 'synonym-1',
+                from: 'Title 2025',
+                target: 'Title',
+            };
+
+            const results = await NativeSearchService.processCompletedSearch(mockResults, mockTerm, mockSynonym);
+
+            expect(results).toEqual(mockResults); // Should return all entries as no exemptions matched
+        });
+
+        it('should filter out programmes that match synonym exemptions', async () => {
             const mockResults: IPlayerSearchResult[] = [{
                 title: 'Test Title', pid: 'includePid',
                 number: 1,

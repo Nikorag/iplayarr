@@ -260,7 +260,7 @@ describe('GetIplayerExecutableService', () => {
     });
 
     describe('processCompletedSearch', () => {
-        it('should process results and create NZB name', async () => {
+        it('should process results and create NZB name with synonym override when title matches', async () => {
             const mockResults: IPlayerSearchResult[] = [
                 {
                     pid: '12345',
@@ -273,12 +273,23 @@ describe('GetIplayerExecutableService', () => {
                     },
                     type: VideoType.TV,
                 },
+                {
+                    pid: '67890',
+                    title: 'Different Title',
+                    number: 1,
+                    channel: 'BBC Two',
+                    request: {
+                        term: 'Term',
+                        line: 'line',
+                    },
+                    type: VideoType.TV,
+                },
             ];
             const mockSynonym: Synonym = {
                 filenameOverride: 'test.nzb',
                 id: 'synonym-1',
                 from: 'Test Title',
-                target: 'To',
+                target: 'Test Title',
                 exemptions: '',
             };
 
@@ -294,6 +305,7 @@ describe('GetIplayerExecutableService', () => {
             const results = await service.processCompletedSearch(mockResults, mockSynonym);
 
             expect(results[0]).toHaveProperty('nzbName', 'TV-Test.Title-test.nzb-720p');
+            expect(results[1]).toHaveProperty('nzbName', 'TV-Different.Title--720p');
             expect(mockedSynonymService.getSynonym).not.toHaveBeenCalled();
         });
 
@@ -304,6 +316,17 @@ describe('GetIplayerExecutableService', () => {
                     title: 'Test Title',
                     number: 0,
                     channel: 'BBC One',
+                    request: {
+                        term: 'Term',
+                        line: 'line',
+                    },
+                    type: VideoType.TV,
+                },
+                {
+                    pid: '67890',
+                    title: 'Different Title',
+                    number: 1,
+                    channel: 'BBC Two',
                     request: {
                         term: 'Term',
                         line: 'line',
@@ -333,6 +356,7 @@ describe('GetIplayerExecutableService', () => {
             const results = await service.processCompletedSearch(mockResults, undefined);
 
             expect(results[0]).toHaveProperty('nzbName', 'TV-Test.Title-test.nzb-720p');
+            expect(results[1]).toHaveProperty('nzbName', 'TV-Different.Title--720p');
             expect(synonymService.getSynonym).toHaveBeenCalledWith('Test Title');
         });
     });

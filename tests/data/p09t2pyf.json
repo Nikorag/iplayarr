@@ -1,0 +1,137 @@
+{
+    "programme": {
+        "categories": [
+            {
+                "broader": {},
+                "has_topic_page": false,
+                "id": "C00193",
+                "key": "comedy",
+                "narrower": [],
+                "sameAs": null,
+                "title": "Comedy",
+                "type": "genre"
+            },
+            {
+                "broader": {},
+                "has_topic_page": false,
+                "id": "C00200",
+                "key": "entertainment",
+                "narrower": [],
+                "sameAs": null,
+                "title": "Entertainment",
+                "type": "genre"
+            }
+        ],
+        "display_title": {
+            "subtitle": "Series 2, Summer Once Again",
+            "title": "The Goes Wrong Show"
+        },
+        "expected_child_count": null,
+        "first_broadcast_date": "2021-09-27T20:30:00+01:00",
+        "image": {
+            "pid": "p09wn0nb"
+        },
+        "links": [],
+        "long_synopsis": "A coup in the ranks means that Robert is in charge of this week’s show, and he is not going to accept the usual shambolic standards as they present a Downton-esque family saga.",
+        "media_type": "audio_video",
+        "medium_synopsis": "A coup in the ranks means that Robert is in charge of this week’s show, and he is not going to accept the usual shambolic standards as they present a Downton-esque family saga.",
+        "ownership": {
+            "service": {
+                "id": "bbc_one",
+                "key": "bbcone",
+                "title": "BBC One",
+                "type": "tv"
+            }
+        },
+        "parent": {
+            "programme": {
+                "aggregated_episode_count": 6,
+                "expected_child_count": 5,
+                "first_broadcast_date": "2020-12-22T19:00:00Z",
+                "image": {
+                    "pid": "p09wk1sz"
+                },
+                "media_type": null,
+                "ownership": {
+                    "service": {
+                        "id": "bbc_one",
+                        "key": "bbcone",
+                        "title": "BBC One",
+                        "type": "tv"
+                    }
+                },
+                "parent": {
+                    "programme": {
+                        "aggregated_episode_count": 12,
+                        "expected_child_count": null,
+                        "first_broadcast_date": "2019-12-23T19:30:00Z",
+                        "image": {
+                            "pid": "p07y9fxq"
+                        },
+                        "media_type": null,
+                        "ownership": {
+                            "service": {
+                                "id": "bbc_one",
+                                "key": "bbcone",
+                                "title": "BBC One",
+                                "type": "tv"
+                            }
+                        },
+                        "pid": "m000csgs",
+                        "position": null,
+                        "short_synopsis": "Comedy series from the team behind The Play That Goes Wrong.",
+                        "title": "The Goes Wrong Show",
+                        "type": "brand"
+                    }
+                },
+                "pid": "m000qq34",
+                "position": 3,
+                "short_synopsis": "Comedy series from the team behind The Play That Goes Wrong.",
+                "title": "Series 2",
+                "type": "series"
+            }
+        },
+        "peers": {
+            "next": {
+                "first_broadcast_date": "2021-10-04T20:30:00+01:00",
+                "media_type": "audio_video",
+                "pid": "p09t2qcj",
+                "position": 2,
+                "title": "The Most Lamentable...",
+                "type": "episode"
+            },
+            "previous": {
+                "first_broadcast_date": "2020-12-22T19:00:00Z",
+                "media_type": "audio_video",
+                "pid": "m000qq33",
+                "position": 1,
+                "title": "The Nativity",
+                "type": "episode"
+            }
+        },
+        "pid": "p09t2pyf",
+        "position": 1,
+        "short_synopsis": "A coup in the ranks means that Robert is in charge of this week’s show.",
+        "supporting_content_items": [],
+        "title": "Summer Once Again",
+        "type": "episode",
+        "versions": [
+            {
+                "canonical": 0,
+                "duration": 1680,
+                "pid": "m00104ht",
+                "types": [
+                    "Editorial"
+                ]
+            },
+            {
+                "canonical": 1,
+                "duration": 1800,
+                "pid": "p09t2q47",
+                "types": [
+                    "Original version"
+                ]
+            }
+        ]
+    }
+}

@@ -20,8 +20,11 @@ import m001zr9t from '../data/m001zr9t.json';
 import m002b3cb from '../data/m002b3cb.json';
 import m0026fkl from '../data/m0026fkl.json';
 import m0029c0g from '../data/m0029c0g.json';
+import m00255nq from '../data/m00255nq.json';
 import p00bp2rm from '../data/p00bp2rm.json';
 import p0fq3s31 from '../data/p0fq3s31.json';
+import p09t2pyf from '../data/p09t2pyf.json';
+
 
 jest.mock('../../src/service/configService');
 jest.mock('../../src/service/appService');
@@ -380,50 +383,93 @@ describe('Utils', () => {
 
     describe('calculateSeasonAndEpisode', () => {
         describe('episodes', () => {
-            it('series episode', async () => await assertSeasonAndEpisode(m0029c0g, [VideoType.TV, 1, 'Episode 1', 3]));
-            it('roman numerals series', async () =>
-                await assertSeasonAndEpisode(p00bp2rm, [VideoType.TV, 5, 'Dimension Jump', 4]));
-            it('yearly series', async () => await assertSeasonAndEpisode(m001zh50, [VideoType.TV, 1, 'Episode 1', 2024]));
-            it('no series', async () => await assertSeasonAndEpisode(m002b3cb, [VideoType.TV, 0, '13/04/2025', 0]));
+            it('standard series', async () => await assertSeasonAndEpisode(m0029c0g, VideoType.TV,
+                'Doctor Who', 3, 1, 'Episode 1'));
+
+            it('season finale', async () => await assertSeasonAndEpisode(m00255nq, VideoType.TV,
+                'Return to Paradise', 1, 6, 'Oh Mine Papa'));
+
+            it('yearly series', async () => await assertSeasonAndEpisode(m001zh50, VideoType.TV,
+                'Gardeners\' World', 2024, 1, 'Episode 1'));
+
+            it('parsed series title', async () => await assertSeasonAndEpisode(p09t2pyf, VideoType.TV,
+                'The Goes Wrong Show', 2, 1, 'Summer Once Again'));
+
+            it('parsed roman numerals series', async () => await assertSeasonAndEpisode(p00bp2rm, VideoType.TV,
+                'Red Dwarf', 4, 5, 'Dimension Jump'));
+
+            it('no series data', async () => await assertSeasonAndEpisode(m002b3cb, VideoType.TV,
+                'BBC News', 0, 0, '13/04/2025', true));
 
             describe('specials', () => {
-                it('with no series', async () =>
-                    await assertSeasonAndEpisode(m0026fkl, [VideoType.TV, 0, 'Christmas Special 2024', 0]));
-                it('only one in series', async () =>
-                    await assertSeasonAndEpisode(p0fq3s31, [VideoType.TV, 0, 'The Promised Land', 13]));
-                it('episode before series', async () =>
-                    await assertSeasonAndEpisode(m001zh3r, [VideoType.TV, 0, 'RHS: Countdown to Chelsea', 2024]));
-                it('episode within series', async () =>
-                    await assertSeasonAndEpisode(m001zr9t, [VideoType.TV, 0, 'Highlights', 2024]));
-                it('episode after series', async () =>
-                    await assertSeasonAndEpisode(b0211hsl, [VideoType.TV, 0, 'Red Button Special', 0]));
-                it('from series of specials', async () =>
-                    await assertSeasonAndEpisode(m000jbtq, [
-                        VideoType.TV,
-                        0,
-                        'Your Chelsea Flower Show, Making the Most of Your Time',
-                        0,
-                    ]));
+                it('with no series', async () => await assertSeasonAndEpisode(m0026fkl, VideoType.TV,
+                    'Beyond Paradise', 0, 0, 'Christmas Special 2024', true));
+
+                it('only one in series', async () => await assertSeasonAndEpisode(p0fq3s31, VideoType.TV,
+                    'Red Dwarf', 13, 0, 'The Promised Land', true));
+
+                it('episode before series', async () => await assertSeasonAndEpisode(m001zh3r, VideoType.TV,
+                    'RHS Chelsea Flower Show', 2024, 0, 'RHS: Countdown to Chelsea', true));
+
+                it('episode within series', async () => await assertSeasonAndEpisode(m001zr9t, VideoType.TV,
+                    'RHS Chelsea Flower Show', 2024, 0, 'Highlights', true));
+
+                it('episode after series', async () => await assertSeasonAndEpisode(b0211hsl, VideoType.TV,
+                    'RHS Chelsea Flower Show', 0, 0, 'Red Button Special', true));
+
+                it('from series of specials', async () => await assertSeasonAndEpisode(m000jbtq, VideoType.TV,
+                    'RHS Chelsea Flower Show', 0, 0, 'Making the Most of Your Time', true));
             });
         });
 
         describe('movies', () => {
             it('standalone', async () =>
-                await assertSeasonAndEpisode(m001kscd, [VideoType.MOVIE, undefined, undefined, undefined]));
+                await assertSeasonAndEpisode(m001kscd, VideoType.MOVIE, 'Some Movie'));
+
             it('sequel', async () =>
-                await assertSeasonAndEpisode(b008m7xk, [VideoType.MOVIE, undefined, undefined, undefined]));
+                await assertSeasonAndEpisode(b008m7xk, VideoType.MOVIE, 'Another Movie'));
+        });
+
+        describe('fallback to Skyhook', () => {
+            it('uses Skyhook result when full data returned', async () => {
+                mockedSkyhookService.lookupSeriesDetails.mockResolvedValue({ series: 5, episode: 12 });
+                await assertSeasonAndEpisode(m002b3cb, VideoType.TV, 'BBC News', 5, 12, '13/04/2025', true);
+            });
+
+            it('keeps 0/0 when Skyhook returns nothing', async () => {
+                mockedSkyhookService.lookupSeriesDetails.mockResolvedValue(undefined);
+                await assertSeasonAndEpisode(m002b3cb, VideoType.TV, 'BBC News', 0, 0, '13/04/2025', true);
+            });
+
+            it('uses partial data when Skyhook returns series only', async () => {
+                mockedSkyhookService.lookupSeriesDetails.mockResolvedValue({ series: 3, episode: undefined });
+                await assertSeasonAndEpisode(m002b3cb, VideoType.TV, 'BBC News', 3, 0, '13/04/2025', true);
+            });
         });
 
         const assertSeasonAndEpisode = async (
             metadata: unknown,
-            expected: [VideoType, number | undefined, string | undefined, number | undefined]
+            type: VideoType,
+            showTitle: string,
+            season: number | undefined = undefined,
+            episode: number | undefined = undefined,
+            episodeTitle: string | undefined = undefined,
+            expectSkyhook: boolean = false
         ) => {
-            expect(await Utils.calculateSeasonAndEpisode((metadata as IPlayerMetadataResponse).programme)).toEqual(expected);
+            const programme = (metadata as IPlayerMetadataResponse).programme;
+            const result = await Utils.calculateSeasonAndEpisode(programme);
+            expect(result).toEqual([type, episode, episodeTitle, season]);
+
+            if (expectSkyhook) {
+                expect(mockedSkyhookService.lookupSeriesDetails).toHaveBeenCalledWith(showTitle, episodeTitle);
+            } else {
+                expect(mockedSkyhookService.lookupSeriesDetails).not.toHaveBeenCalled();
+            }
         };
     });
 
     beforeEach(() => {
-        mockedSkyhookService.lookupSeriesDetails.mockResolvedValue(undefined);
+        mockedSkyhookService.lookupSeriesDetails.mockClear();
         mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) =>
             Promise.resolve(configService.defaultConfigMap[parameter])
         );

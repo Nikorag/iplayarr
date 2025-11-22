@@ -4,6 +4,7 @@ import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
 import NativeSearchService from '../../../src/service/search/NativeSearchService';
 import { IPlayerSearchResult, VideoType } from '../../../src/types/IPlayerSearchResult';
 import { IPlayerEpisodeMetadata } from '../../../src/types/responses/IPlayerMetadataResponse';
+import { Synonym } from '../../../src/types/Synonym';
 import { createNZBName, getQualityProfile } from '../../../src/utils/Utils';
 
 jest.mock('axios');
@@ -107,9 +108,93 @@ describe('NativeSearchService', () => {
                 },
                 type: VideoType.TV
             }];
-            const results = await NativeSearchService.processCompletedSearch(mockResults);
+            const results = await NativeSearchService.processCompletedSearch(mockResults, mockTerm);
 
             expect(results).toEqual(mockResults); // Should return the results as they are
+        });
+
+        it('should not filter out programmes if synonym has no exemptions', async () => {
+            const mockResults: IPlayerSearchResult[] = [{
+                title: 'Test Title', pid: 'includePid',
+                number: 1,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }, {
+                title: 'Exempt1 Title', pid: 'exempt1Pid',
+                number: 2,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }, {
+                title: 'Exempt2 Title', pid: 'exempt2Pid',
+                number: 3,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }];
+
+            const mockSynonym: Synonym = {
+                exemptions: '',
+                id: 'synonym-1',
+                from: 'Title 2025',
+                target: 'Title',
+            };
+
+            const results = await NativeSearchService.processCompletedSearch(mockResults, mockTerm, mockSynonym);
+
+            expect(results).toEqual(mockResults); // Should return all entries as no exemptions matched
+        });
+
+        it('should filter out programmes that match synonym exemptions', async () => {
+            const mockResults: IPlayerSearchResult[] = [{
+                title: 'Test Title', pid: 'includePid',
+                number: 1,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }, {
+                title: 'Exempt1 Title', pid: 'exempt1Pid',
+                number: 2,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }, {
+                title: 'Exempt2 Title', pid: 'exempt2Pid',
+                number: 3,
+                channel: 'Channel 1',
+                request: {
+                    term: 'term',
+                    line: 'line'
+                },
+                type: VideoType.TV
+            }];
+
+            const mockSynonym: Synonym = {
+                exemptions: 'exempt1,exempt2',
+                id: 'synonym-1',
+                from: 'Title 2025',
+                target: 'Title',
+            };
+
+            const results = await NativeSearchService.processCompletedSearch(mockResults, mockTerm, mockSynonym);
+
+            expect(results).toEqual([mockResults[0]]); // Should return the first entry, which doesn't match exclusion terms
         });
     });
 });

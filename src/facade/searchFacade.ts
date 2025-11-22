@@ -43,7 +43,7 @@ class SearchFacade {
             episode
         );
 
-        const processedResults : IPlayerSearchResult[] = await service.processCompletedSearch(filteredResults, inputTerm, season, episode);
+        const processedResults: IPlayerSearchResult[] = await service.processCompletedSearch(filteredResults, inputTerm, synonym, season, episode);
 
         return processedResults.filter(({ pubDate }) => !pubDate || pubDate < new Date());
     }

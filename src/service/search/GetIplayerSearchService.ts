@@ -45,7 +45,7 @@ class GetIplayerSearchService implements AbstractSearchService {
         });
     }
 
-    async processCompletedSearch(results: IPlayerSearchResult[], inputTerm: string, season?: number, episode?: number): Promise<IPlayerSearchResult[]> {
+    async processCompletedSearch(results: IPlayerSearchResult[], inputTerm: string, _synonym?: Synonym, season?: number, episode?: number): Promise<IPlayerSearchResult[]> {
         const episodeCache: IPlayerSearchResult[] = await episodeCacheService.searchEpisodeCache(inputTerm);
         for (const cachedEpisode of episodeCache) {
             if (cachedEpisode) {

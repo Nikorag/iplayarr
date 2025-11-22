@@ -33,13 +33,14 @@ v-if="!hiddenSettings.HIDE_DONATE" href="https://ko-fi.com/nikorag" aria-label="
 </template>
 
 <script setup>
-import { defineExpose, inject, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { defineExpose, inject, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import { getPidFromBBCUrl } from '@/lib/utils';
 
+const route = useRoute();
 const router = useRouter();
 
 // const globalSettings = inject('globalSettings');
@@ -47,6 +48,16 @@ const toggleLeftHandNav = inject('toggleLeftHandNav');
 const hiddenSettings = inject('hiddenSettings');
 const authState = inject('authState');
 const searchTerm = ref('');
+
+watch(
+    () => route.query.searchTerm,
+    async (newSearchTerm) => {
+        if (route.name === 'search') {
+            searchTerm.value = newSearchTerm;
+        }
+    },
+    { immediate: true }
+);
 
 const search = async () => {
     const pid = getPidFromBBCUrl(searchTerm.value);

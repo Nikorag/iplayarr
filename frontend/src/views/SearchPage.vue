@@ -1,6 +1,6 @@
 <template>
     <SettingsPageToolbar
-        :icons="['filter', 'download']"
+        :icons="filteredResults.length ? ['filter', 'download'] : []"
         :filter-options="availableFilters"
         :selected-filter="filter"
         :filter-enabled="filter != 'All'"
@@ -67,6 +67,9 @@
                 </tr>
             </tbody>
         </table>
+        <template v-if="filteredResults.length == 0">
+            <p>No Results Found</p>
+        </template>
     </div>
     <LoadingIndicator v-if="loading" />
 </template>
@@ -87,7 +90,7 @@ const router = useRouter();
 
 const searchResults = ref([]);
 const searchTerm = ref('');
-const loading = ref(true);
+const loading = ref(searchTerm.value !== '');
 const availableFilters = ref(['All', 'TV', 'Movie']);
 const filter = ref('All');
 const allChecked = ref(false);

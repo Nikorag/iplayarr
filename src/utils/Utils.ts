@@ -24,8 +24,10 @@ export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails
             : IplayarrParameter.TV_FILENAME_TEMPLATE;
     const template = (await configService.getParameter(templateKey)) as string;
     const qualityProfile = await getQualityProfile();
+    const title = result.title.trim();
+
     return Handlebars.compile(template)({
-        title: result.title.trim().replaceAll(removeUnsafeCharsRegex, ''),
+        title: title.replaceAll(removeUnsafeCharsRegex, ''),
         season:
             result.series != null && result.episode != null
                 ? result.series.toString().padStart(2, '0')
@@ -39,7 +41,9 @@ export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails
                   ? '00'
                   : undefined,
         episodeTitle: result.episodeTitle?.trim().replaceAll(removeUnsafeCharsRegex, ''),
-        synonym: (synonym?.filenameOverride ?? synonym?.from)?.trim().replaceAll(removeUnsafeCharsRegex, ''),
+        synonym: synonym?.target.trim().toLowerCase() === title.toLowerCase()
+            ? (synonym.filenameOverride ?? synonym.from)?.trim().replaceAll(removeUnsafeCharsRegex, '')
+            : undefined,
         quality: qualityProfile.quality,
     } as FilenameTemplateContext)
         .replaceAll(/[\s/]|[\s\\-_]{2,}/g, '.')

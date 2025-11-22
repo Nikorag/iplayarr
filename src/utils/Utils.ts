@@ -135,7 +135,7 @@ export async function calculateSeasonAndEpisode(
     // Check if this is a special episode
     const isSpecial =
         programme.position == null ||
-        (parent?.expected_child_count != null && programme.position >= parent.expected_child_count);
+        (parent?.expected_child_count != null && programme.position > parent.expected_child_count);
 
     // Override series to 0 if counts indicate specials container
     let series =

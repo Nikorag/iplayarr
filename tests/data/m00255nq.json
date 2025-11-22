@@ -1,0 +1,138 @@
+{
+    "programme": {
+        "categories": [
+            {
+                "broader": {
+                    "category": {
+                        "broader": {},
+                        "has_topic_page": false,
+                        "id": "C00017",
+                        "key": "drama",
+                        "sameAs": null,
+                        "title": "Drama",
+                        "type": "genre"
+                    }
+                },
+                "has_topic_page": false,
+                "id": "C00021",
+                "key": "crime",
+                "narrower": [],
+                "sameAs": null,
+                "title": "Crime",
+                "type": "genre"
+            }
+        ],
+        "display_title": {
+            "subtitle": "Series 1, Oh Mine Papa",
+            "title": "Return to Paradise"
+        },
+        "expected_child_count": null,
+        "first_broadcast_date": "2024-12-27T20:00:00Z",
+        "image": {
+            "pid": "p0k42dcs"
+        },
+        "links": [],
+        "long_synopsis": "When crabby Vince Ogden is found dead in his locked bedsit, it is presumed he ended his own life. But Mack can sense murder and is more than happy to throw herself into the case now that Glenn is engaged to Daisy.\n\nSuddenly, word from London arrives that Mackenzie has been cleared of misconduct and is free to return to the UK once she has wrapped up the case in Dolphin Cove. But maybe Dolphin Cove isn’t quite ready for her to leave. Maybe Mackenzie isn’t either.",
+        "media_type": "audio_video",
+        "medium_synopsis": "When crabby Vince Ogden is found dead in his locked bedsit, it is presumed he ended his own life. But Mack can sense murder and is more than happy to throw herself into the case.",
+        "ownership": {
+            "service": {
+                "id": "bbc_one",
+                "key": "bbcone",
+                "title": "BBC One",
+                "type": "tv"
+            }
+        },
+        "parent": {
+            "programme": {
+                "aggregated_episode_count": 6,
+                "expected_child_count": 6,
+                "first_broadcast_date": "2024-11-22T20:00:00Z",
+                "image": {
+                    "pid": "p0k49jsg"
+                },
+                "media_type": null,
+                "ownership": {
+                    "service": {
+                        "id": "bbc_one",
+                        "key": "bbcone",
+                        "title": "BBC One",
+                        "type": "tv"
+                    }
+                },
+                "parent": {
+                    "programme": {
+                        "aggregated_episode_count": 13,
+                        "expected_child_count": null,
+                        "first_broadcast_date": "2024-11-22T20:00:00Z",
+                        "image": {
+                            "pid": "p0mb0yds"
+                        },
+                        "media_type": null,
+                        "ownership": {
+                            "service": {
+                                "id": "bbc_one",
+                                "key": "bbcone",
+                                "title": "BBC One",
+                                "type": "tv"
+                            }
+                        },
+                        "pid": "m0023h9b",
+                        "position": null,
+                        "short_synopsis": "Detective Inspector Mackenzie Clarke reluctantly returns to her Australian hometown.",
+                        "title": "Return to Paradise",
+                        "type": "brand"
+                    }
+                },
+                "pid": "m00255h7",
+                "position": 1,
+                "short_synopsis": "Detective Inspector Mackenzie Clarke reluctantly returns to her Australian hometown.",
+                "title": "Series 1",
+                "type": "series"
+            }
+        },
+        "peers": {
+            "next": null,
+            "previous": {
+                "first_broadcast_date": "2024-12-20T20:00:00Z",
+                "media_type": "audio_video",
+                "pid": "m00255nl",
+                "position": 5,
+                "title": "Dead Bowl",
+                "type": "episode"
+            }
+        },
+        "pid": "m00255nq",
+        "position": 6,
+        "short_synopsis": "A man is found dead inside his locked bedsit. Mackenzie must shine a light on the truth.",
+        "supporting_content_items": [],
+        "title": "Oh Mine Papa",
+        "type": "episode",
+        "versions": [
+            {
+                "canonical": 1,
+                "duration": 3300,
+                "pid": "m00255nr",
+                "types": [
+                    "Original version"
+                ]
+            },
+            {
+                "canonical": 0,
+                "duration": 3300,
+                "pid": "p0k5nknr",
+                "types": [
+                    "Dubbed Audio Described"
+                ]
+            },
+            {
+                "canonical": 0,
+                "duration": 3300,
+                "pid": "p0kbb1r1",
+                "types": [
+                    "Studios Distribution"
+                ]
+            }
+        ]
+    }
+}

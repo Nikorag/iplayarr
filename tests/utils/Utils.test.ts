@@ -20,6 +20,7 @@ import m001zr9t from '../data/m001zr9t.json';
 import m002b3cb from '../data/m002b3cb.json';
 import m0026fkl from '../data/m0026fkl.json';
 import m0029c0g from '../data/m0029c0g.json';
+import m00255nq from '../data/m00255nq.json';
 import p00bp2rm from '../data/p00bp2rm.json';
 import p0fq3s31 from '../data/p0fq3s31.json';
 import p09t2pyf from '../data/p09t2pyf.json';
@@ -385,11 +386,14 @@ describe('Utils', () => {
             it('standard series', async () => await assertSeasonAndEpisode(m0029c0g, VideoType.TV,
                 'Doctor Who', 3, 1, 'Episode 1'));
 
+            it('season finale', async () => await assertSeasonAndEpisode(m00255nq, VideoType.TV,
+                'Return to Paradise', 1, 6, 'Oh Mine Papa'));
+
             it('yearly series', async () => await assertSeasonAndEpisode(m001zh50, VideoType.TV,
                 'Gardeners\' World', 2024, 1, 'Episode 1'));
 
             it('parsed series title', async () => await assertSeasonAndEpisode(p09t2pyf, VideoType.TV,
-                'The Repair Shop', 2, 1, 'Summer Once Again'));
+                'The Goes Wrong Show', 2, 1, 'Summer Once Again'));
 
             it('parsed roman numerals series', async () => await assertSeasonAndEpisode(p00bp2rm, VideoType.TV,
                 'Red Dwarf', 4, 5, 'Dimension Jump'));
@@ -414,7 +418,7 @@ describe('Utils', () => {
                     'RHS Chelsea Flower Show', 0, 0, 'Red Button Special', true));
 
                 it('from series of specials', async () => await assertSeasonAndEpisode(m000jbtq, VideoType.TV,
-                    'RHS Chelsea Flower Show', 0, 0, 'Your Chelsea Flower Show, Making the Most of Your Time', true));
+                    'RHS Chelsea Flower Show', 0, 0, 'Making the Most of Your Time', true));
             });
         });
 

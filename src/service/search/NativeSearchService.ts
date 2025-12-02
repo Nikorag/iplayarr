@@ -68,8 +68,9 @@ class NativeSearchService implements AbstractSearchService {
         }
     }
 
-    async processCompletedSearch(results: IPlayerSearchResult[]): Promise<IPlayerSearchResult[]> {
-        return results;
+    async processCompletedSearch(results: IPlayerSearchResult[], _inputTerm: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> {
+        const exemptions = synonym?.exemptions?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        return exemptions?.length ? results.filter(r => exemptions.every(ex => !r.title.toLowerCase().includes(ex))) : results;
     }
 
     async createSearchResult(

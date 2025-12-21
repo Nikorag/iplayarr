@@ -1,6 +1,6 @@
 import scheduleFacade from '../../src/facade/scheduleFacade';
 import configService from '../../src/service/configService';
-import GetIplayerShceduleService from '../../src/service/schedule/GetIplayerShceduleService';
+import GetIplayerShceduleService from '../../src/service/schedule/GetIplayerScheduleService';
 import NativeScheduleService from '../../src/service/schedule/NativeScheduleService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 

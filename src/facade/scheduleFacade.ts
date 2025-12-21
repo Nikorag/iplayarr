@@ -1,6 +1,6 @@
 import configService from '../service/configService';
 import { AbstractScheduleService } from '../service/schedule/AbstractScheduleService';
-import GetIplayerShceduleService from '../service/schedule/GetIplayerShceduleService';
+import GetIplayerShceduleService from '../service/schedule/GetIplayerScheduleService';
 import NativeScheduleService from '../service/schedule/NativeScheduleService';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';

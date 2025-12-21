@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 
 import downloadFacade from '../../../src/facade/downloadFacade';
 import getIplayerExecutableService from '../../../src/service/getIplayerExecutableService';
-import GetIplayerShceduleService from '../../../src/service/schedule/GetIplayerShceduleService';
+import GetIplayerShceduleService from '../../../src/service/schedule/GetIplayerScheduleService';
 import GetIplayerSearchService from '../../../src/service/search/GetIplayerSearchService';
 
 

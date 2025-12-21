@@ -1,11 +1,11 @@
 import scheduleFacade from '../../src/facade/scheduleFacade';
 import configService from '../../src/service/configService';
-import GetIplayerShceduleService from '../../src/service/schedule/GetIplayerScheduleService';
+import GetIplayerScheduleService from '../../src/service/schedule/GetIplayerScheduleService';
 import NativeScheduleService from '../../src/service/schedule/NativeScheduleService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 
 jest.mock('../../src/service/configService');
-jest.mock('../../src/service/schedule/GetIplayerShceduleService', () => ({
+jest.mock('../../src/service/schedule/GetIplayerScheduleService', () => ({
     refreshCache: jest.fn(),
     getFeed: jest.fn()
 }));
@@ -30,14 +30,14 @@ describe('ScheduleFacade', () => {
       expect(NativeScheduleService.refreshCache).toHaveBeenCalled();
     });
 
-    it('uses GetIplayerShceduleService when native search is disabled', async () => {
+    it('uses GetIplayerScheduleService when native search is disabled', async () => {
       (configService.getParameter as jest.Mock).mockResolvedValue('false');
-      (GetIplayerShceduleService.refreshCache as jest.Mock).mockResolvedValue(undefined);
+      (GetIplayerScheduleService.refreshCache as jest.Mock).mockResolvedValue(undefined);
 
       await scheduleFacade.refreshCache();
 
       expect(configService.getParameter).toHaveBeenCalledWith(IplayarrParameter.NATIVE_SEARCH);
-      expect(GetIplayerShceduleService.refreshCache).toHaveBeenCalled();
+      expect(GetIplayerScheduleService.refreshCache).toHaveBeenCalled();
     });
   });
 
@@ -54,15 +54,15 @@ describe('ScheduleFacade', () => {
       expect(result).toEqual(fakeFeed);
     });
 
-    it('uses GetIplayerShceduleService when native search is disabled', async () => {
+    it('uses GetIplayerScheduleService when native search is disabled', async () => {
       const fakeFeed = [{ title: 'Iplayer result' }];
       (configService.getParameter as jest.Mock).mockResolvedValue('false');
-      (GetIplayerShceduleService.getFeed as jest.Mock).mockResolvedValue(fakeFeed);
+      (GetIplayerScheduleService.getFeed as jest.Mock).mockResolvedValue(fakeFeed);
 
       const result = await scheduleFacade.getFeed();
 
       expect(configService.getParameter).toHaveBeenCalledWith(IplayarrParameter.NATIVE_SEARCH);
-      expect(GetIplayerShceduleService.getFeed).toHaveBeenCalled();
+      expect(GetIplayerScheduleService.getFeed).toHaveBeenCalled();
       expect(result).toEqual(fakeFeed);
     });
   });

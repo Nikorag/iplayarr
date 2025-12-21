@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 
 import downloadFacade from '../../../src/facade/downloadFacade';
 import getIplayerExecutableService from '../../../src/service/getIplayerExecutableService';
-import GetIplayerShceduleService from '../../../src/service/schedule/GetIplayerScheduleService';
+import GetIplayerScheduleService from '../../../src/service/schedule/GetIplayerScheduleService';
 import GetIplayerSearchService from '../../../src/service/search/GetIplayerSearchService';
 
 
@@ -22,7 +22,7 @@ describe('GetIplayerScheduleService', () => {
             }];
             (GetIplayerSearchService.search as jest.Mock).mockResolvedValue(test_results);
 
-            const results = await GetIplayerShceduleService.getFeed();
+            const results = await GetIplayerScheduleService.getFeed();
 
             expect(GetIplayerSearchService.search).toHaveBeenCalledWith('*');
             expect(results).toEqual(test_results);
@@ -41,7 +41,7 @@ describe('GetIplayerScheduleService', () => {
 
             const cleanupSpy = jest.spyOn(downloadFacade, 'cleanupFailedDownloads').mockResolvedValue();
 
-            await GetIplayerShceduleService.refreshCache();
+            await GetIplayerScheduleService.refreshCache();
 
             expect(spawn).toHaveBeenCalledWith('get_iplayer', ['--type=tv', '--cache-rebuild'], { shell: true });
             expect(cleanupSpy).toHaveBeenCalled();

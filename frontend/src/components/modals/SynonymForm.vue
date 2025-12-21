@@ -29,7 +29,7 @@
         <TextInput
             v-model="form.exemptions"
             name="Exemptions"
-            tooltip="Exemptions (comma seperated)"
+            tooltip="Exemptions (comma separated)"
             placeholder="You're Fired!"
         />
     </IPlayarrModal>

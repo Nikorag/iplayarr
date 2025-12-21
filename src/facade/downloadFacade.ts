@@ -25,7 +25,7 @@ class DownloadFacade {
         const process: ChildProcess = await service.download(pid, pidDir);
 
         process.stderr?.on('data', this.#processError);
-        process.stdout?.on('data', (data) => this.#processOuput(pid, data));
+        process.stdout?.on('data', (data) => this.#processOutput(pid, data));
         process.on('close', (code) => this.#processComplete(pid, pidDir, code, service));
 
         return process;
@@ -35,7 +35,7 @@ class DownloadFacade {
         loggingService.error(data);
     }
 
-    #processOuput(pid: string, data: any): void {
+    #processOutput(pid: string, data: any): void {
         console.log(data.toString());
         const logLine: LogLine = { level: LogLineLevel.INFO, id: pid, message: data.toString(), timestamp: new Date() };
         socketService.emit('log', logLine);

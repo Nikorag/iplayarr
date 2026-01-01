@@ -27,12 +27,16 @@ class SkyhookService {
         if (cached) {
             return cached;
         }
-        const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${seriesName}`;
-        const { data } = await axios.get(url);
-        if (data && Array.isArray(data)) {
-            await this.skyhookSeriesCache.set(seriesName, data);
+        try {
+            const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`;
+            const { data } = await axios.get(url);
+            if (data && Array.isArray(data)) {
+                await this.skyhookSeriesCache.set(seriesName, data);
+            }
+            return data;
+        } catch {
+            return [];
         }
-        return data;
     }
 
     async findEpisode(tvdbId: number, episodeName: string): Promise<{ title: string, seasonNumber: number, episodeNumber: number } | undefined> {

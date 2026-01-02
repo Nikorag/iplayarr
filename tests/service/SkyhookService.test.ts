@@ -50,6 +50,26 @@ describe('SkyhookService URL construction', () => {
         );
     });
 
+    it('searchSeries falls back to axios when cache fails', async () => {
+        const seriesName = 'Breaking Bad';
+        seriesCacheMock.get.mockRejectedValue(new Error('Cache error'));
+        mockedAxios.get.mockResolvedValue({ data: [{ tvdbId: '123' }] });
+
+        const result = await SkyhookService.searchSeries(seriesName);
+
+        expect(result).toEqual([{ tvdbId: '123' }]);
+    });
+
+    it('searchSeries returns empty array when axios fails', async () => {
+        const seriesName = 'Breaking Bad';
+        seriesCacheMock.get.mockResolvedValue(undefined);
+        mockedAxios.get.mockRejectedValue(new Error('Network error'));
+
+        const result = await SkyhookService.searchSeries(seriesName);
+
+        expect(result).toEqual([]);
+    });
+
     it('findEpisode constructs correct URL and calls axios.get on cache miss', async () => {
         const tvdbId = 789;
         const episodeName = 'Pilot';
@@ -85,6 +105,30 @@ describe('SkyhookService URL construction', () => {
         episodeCacheMock.get.mockResolvedValue({
             episodes: [{ title: 'Other', seasonNumber: 1, episodeNumber: 1 }]
         });
+
+        const result = await SkyhookService.findEpisode(tvdbId, episodeName);
+
+        expect(result).toBeUndefined();
+    });
+
+    it('findEpisode falls back to axios when cache fails', async () => {
+        const tvdbId = 789;
+        const episodeName = 'Pilot';
+        episodeCacheMock.get.mockRejectedValue(new Error('Cache error'));
+        mockedAxios.get.mockResolvedValue({
+            data: { episodes: [{ title: 'Pilot', seasonNumber: 1, episodeNumber: 1 }] }
+        });
+
+        const result = await SkyhookService.findEpisode(tvdbId, episodeName);
+
+        expect(result).toEqual({ title: 'Pilot', seasonNumber: 1, episodeNumber: 1 });
+    });
+
+    it('findEpisode returns undefined when axios fails', async () => {
+        const tvdbId = 789;
+        const episodeName = 'Pilot';
+        episodeCacheMock.get.mockResolvedValue(undefined);
+        mockedAxios.get.mockRejectedValue(new Error('Network error'));
 
         const result = await SkyhookService.findEpisode(tvdbId, episodeName);
 

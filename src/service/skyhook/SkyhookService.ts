@@ -24,21 +24,21 @@ class SkyhookService {
 
     async searchSeries(seriesName: string): Promise<{ tvdbId: string }[]> {
         try {
-        const cached = await this.skyhookSeriesCache.get(seriesName);
-        if (cached) {
-            return cached;
-        }
+            const cached = await this.skyhookSeriesCache.get(seriesName);
+            if (cached) {
+                return cached;
+            }
         } catch {
             // Cache retrieval failed, continue to API lookup
         }
 
         try {
-        const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${seriesName}`;
-        const { data } = await axios.get(url);
-        if (data && Array.isArray(data)) {
-            await this.skyhookSeriesCache.set(seriesName, data);
-        }
-        return data;
+            const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${seriesName}`;
+            const { data } = await axios.get(url);
+            if (data && Array.isArray(data)) {
+                await this.skyhookSeriesCache.set(seriesName, data);
+            }
+            return data;
         } catch {
             return [];
         }
@@ -58,10 +58,10 @@ class SkyhookService {
             try {
                 const response = await axios.get(url);
                 data = response.data;
-            await this.skyhookEpisodeCache.set(String(tvdbId), data);
+                await this.skyhookEpisodeCache.set(String(tvdbId), data);
             } catch {
                 return undefined;
-        }
+            }
         }
 
         const episode = data?.episodes.find((ep: any) => ep.title?.toLowerCase() === episodeName?.toLowerCase());

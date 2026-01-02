@@ -170,8 +170,8 @@ To run iPlayarr locally for development:
 
 ### Prerequisites
 
-- Node.js (v18 or later recommended)
-- Docker (for Redis)
+- Node.js (see `.node-version` for current version)
+- Docker (for local dev instance of Redis)
 
 ### Installation
 
@@ -181,7 +181,7 @@ To run iPlayarr locally for development:
 npm run install:both
 ```
 
-2. Start Redis using Docker:
+2. Start Redis using Docker (or see Redis section below to use another instance):
 
 ```bash
 npm run serve:redis
@@ -197,13 +197,10 @@ The application will be available at:
 - Frontend: http://localhost:8080 (Vue dev server)
 - Backend API: http://localhost:4404
 
-### Available Scripts
+### Additional Useful Scripts
 
 | Script | Description |
 | ------ | ----------- |
-| `npm run install:both` | Install dependencies for backend and frontend |
-| `npm run serve:redis` | Start Redis in Docker |
-| `npm run dev` | Start backend and frontend dev servers |
 | `npm run build:both` | Build backend and frontend for production |
 | `npm test` | Run tests with coverage |
 | `npm run lint` | Run ESLint |

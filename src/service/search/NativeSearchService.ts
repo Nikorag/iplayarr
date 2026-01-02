@@ -39,7 +39,7 @@ class NativeSearchService implements AbstractSearchService {
                             seriesList.filter(({ type }) => type == 'series').map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id))
                         )).flat();
                         // Also include direct episode children (e.g., Christmas specials under the brand)
-                        episodes.push(...seriesList.filter(({ type }) => type == 'episode'));
+                        episodes.push(...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null));
 
                         const chunks = splitArrayIntoChunks(episodes, 5);
 

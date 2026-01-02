@@ -35,7 +35,7 @@ describe('SkyhookService URL construction', () => {
         await SkyhookService.searchSeries(seriesName);
 
         expect(mockedAxios.get).toHaveBeenCalledWith(
-            `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${seriesName}`
+            `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`
         );
     });
 

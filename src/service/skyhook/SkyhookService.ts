@@ -33,7 +33,7 @@ class SkyhookService {
         }
 
         try {
-            const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${seriesName}`;
+            const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`;
             const { data } = await axios.get(url);
             if (data && Array.isArray(data)) {
                 await this.skyhookSeriesCache.set(seriesName, data);

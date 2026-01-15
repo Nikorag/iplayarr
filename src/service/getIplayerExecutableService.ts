@@ -1,20 +1,13 @@
-import fs from 'fs';
-import path from 'path';
-
 import { listFormat, progressRegex } from '../constants/iPlayarrConstants';
 import { DownloadDetails } from '../types/DownloadDetails';
 import { SpawnExecutable } from '../types/GetIplayer/SpawnExecutable';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 import { LogLine, LogLineLevel } from '../types/LogLine';
-import { QueueEntry } from '../types/QueueEntry';
 import { IPlayerProgramMetadata } from '../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../types/Synonym';
-import { calculateSeasonAndEpisode, copyWithFallback, createNZBName, parseEpisodeDetailStrings } from '../utils/Utils';
+import { calculateSeasonAndEpisode, createNZBName, parseEpisodeDetailStrings } from '../utils/Utils';
 import configService from './configService';
-import historyService from './historyService';
-import loggingService from './loggingService';
-import queueService from './queueService';
 import socketService from './socketService';
 import synonymService from './synonymService';
 
@@ -42,7 +35,7 @@ export class GetIplayerExecutableService {
 
     async #getQualityParam(): Promise<string> {
         const videoQuality = (await configService.getParameter(IplayarrParameter.VIDEO_QUALITY)) as string;
-        return `--tv-quality=${videoQuality},hd,sd,web,mobile`;
+        return `--tv-quality=${videoQuality}`;
     }
 
     async getAllDownloadParameters(pid: string, directory: string): Promise<SpawnExecutable> {
@@ -124,45 +117,6 @@ export class GetIplayerExecutableService {
             }
         }
         return;
-    }
-
-    async processCompletedDownload(pid: string, code: number | null): Promise<void> {
-        const [downloadDir, completeDir] = (await configService.getParameters(
-            IplayarrParameter.DOWNLOAD_DIR,
-            IplayarrParameter.COMPLETE_DIR
-        )) as string[];
-
-        const outputFormat = await configService.getParameter(IplayarrParameter.OUTPUT_FORMAT)
-
-        if (code === 0) {
-            const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
-            if (queueItem) {
-                try {
-                    const uuidPath = path.join(downloadDir, pid);
-                    loggingService.debug(pid, `Looking for Video files in ${uuidPath}`);
-                    const files = fs.readdirSync(uuidPath);
-                    const videoFile = files.find((file) => file.endsWith('.mp4') || file.endsWith('.mkv'));
-
-                    if (videoFile) {
-                        const oldPath = path.join(uuidPath, videoFile);
-                        loggingService.debug(pid, `Found Video file ${oldPath}`);
-                        const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
-                        loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
-
-                        copyWithFallback(oldPath, newPath);
-                    }
-
-                    // Delete the uuid directory and file after moving it
-                    loggingService.debug(pid, `Deleting old directory ${uuidPath}`);
-                    fs.rmSync(uuidPath, { recursive: true, force: true });
-
-                    await historyService.addHistory(queueItem);
-                } catch (err) {
-                    loggingService.error(err);
-                }
-            }
-        }
-        queueService.removeFromQueue(pid);
     }
 
     async parseResults(term: string, data: any, sizeFactor: number): Promise<IPlayerSearchResult[]> {

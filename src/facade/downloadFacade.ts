@@ -16,7 +16,7 @@ import { DownloadClient } from '../types/enums/DownloadClient';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
-import { convertToMB, getETA } from '../utils/Utils';
+import { convertToMB, copyWithFallback, getETA } from '../utils/Utils';
 
 class DownloadFacade {
     async download(pid: string): Promise<ChildProcess> {
@@ -64,7 +64,7 @@ class DownloadFacade {
                         const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
                         loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
 
-                        fs.copyFileSync(oldPath, newPath);
+                        copyWithFallback(oldPath, newPath);
                     }
 
                     // Delete the uuid directory and file after moving it

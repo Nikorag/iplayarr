@@ -42,7 +42,7 @@ export class GetIplayerExecutableService {
 
     async #getQualityParam(): Promise<string> {
         const videoQuality = (await configService.getParameter(IplayarrParameter.VIDEO_QUALITY)) as string;
-        return `--tv-quality=${videoQuality}`;
+        return `--tv-quality=${videoQuality},hd,sd,web,mobile`;
     }
 
     async getAllDownloadParameters(pid: string, directory: string): Promise<SpawnExecutable> {

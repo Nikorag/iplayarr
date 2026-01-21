@@ -54,6 +54,10 @@ class DownloadFacade {
             const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
             if (queueItem) {
                 try {
+                    // Run the download method postProcess
+                    await service.postProcess(pid, directory, code);
+
+                    //Move the resultant file
                     loggingService.debug(pid, `Looking for video files in ${directory}`);
                     const files = fs.readdirSync(directory);
                     const videoFile = files.find((file) => file.endsWith('.mp4') || file.endsWith('.mkv'));
@@ -78,7 +82,6 @@ class DownloadFacade {
             }
         }
         queueService.removeFromQueue(pid);
-        service.postProcess(pid, directory, code);
     }
 
     async #getService(): Promise<AbstractDownloadService> {

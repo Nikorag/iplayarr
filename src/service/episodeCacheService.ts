@@ -6,7 +6,7 @@ import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QueuedStorage } from '../types/QueuedStorage';
 import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
 import { IPlayerEpisodeMetadata } from '../types/responses/IPlayerMetadataResponse';
-import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
+import { createNZBName, getQualityProfile, removeAllQueryParams, sanitizeLunrQuery, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerDetailsService from './iplayerDetailsService';
 
 const storage: QueuedStorage = new QueuedStorage();
@@ -35,7 +35,11 @@ const episodeCacheService = {
 
     searchEpisodeCache: async (term: string): Promise<IPlayerSearchResult[]> => {
         await episodeCacheService.buildIndex();
-        const lunrResult = lunrIndex.search(term);
+        const sanitizedTerm = sanitizeLunrQuery(term);
+        if (!sanitizedTerm) {
+            return [];
+        }
+        const lunrResult = lunrIndex.search(sanitizedTerm);
         const results = await Promise.all(lunrResult.map(({ ref }) => storage.getItem(`offSchedule_${ref}`)));
         return results
             .filter((res) => res)

@@ -34,14 +34,14 @@ export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails
             result.series != null && result.episode != null
                 ? result.series.toString().padStart(2, '0')
                 : result.type == VideoType.TV
-                  ? '00'
-                  : undefined,
+                    ? '00'
+                    : undefined,
         episode:
             result.series != null && result.episode != null
                 ? result.episode.toString().padStart(2, '0')
                 : result.type == VideoType.TV
-                  ? '00'
-                  : undefined,
+                    ? '00'
+                    : undefined,
         episodeTitle: result.episodeTitle?.trim().replaceAll(removeUnsafeCharsRegex, ''),
         synonym: synonym?.target.trim().toLowerCase() === title.toLowerCase()
             ? (synonym.filenameOverride ?? synonym.from)?.trim().replaceAll(removeUnsafeCharsRegex, '')
@@ -223,6 +223,11 @@ export function getETA(eta: string | undefined, size: number, speed: number, per
     const seconds = Math.floor(totalSeconds % 60);
 
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+export function sanitizeLunrQuery(term: string): string {
+    // Remove Lunr special characters that could cause parsing errors
+    return term.replace(/[:+\-*~^]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 // Method accounts for CIFS filesystems where copyFile fails due to EPERM errors.

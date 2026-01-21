@@ -39,7 +39,7 @@ export interface IPlayerCategoryResponse {
     key: string;
     title: string;
     narrower?: IPlayerCategoryResponse[] | never[];
-    broader: {
+    broader?: {
         category?: IPlayerCategoryResponse;
     };
     has_topic_page: boolean;

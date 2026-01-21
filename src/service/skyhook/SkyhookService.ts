@@ -23,25 +23,47 @@ class SkyhookService {
     }
 
     async searchSeries(seriesName: string): Promise<{ tvdbId: string }[]> {
-        const cached = await this.skyhookSeriesCache.get(seriesName);
-        if (cached) {
-            return cached;
+        try {
+            const cached = await this.skyhookSeriesCache.get(seriesName);
+            if (cached) {
+                return cached;
+            }
+        } catch {
+            // Cache retrieval failed, continue to API lookup
         }
-        const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${seriesName}`;
-        const { data } = await axios.get(url);
-        if (data && Array.isArray(data)) {
-            await this.skyhookSeriesCache.set(seriesName, data);
+
+        try {
+            const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`;
+            const { data } = await axios.get(url);
+            if (data && Array.isArray(data)) {
+                await this.skyhookSeriesCache.set(seriesName, data);
+            }
+            return data;
+        } catch {
+            return [];
         }
-        return data;
     }
 
     async findEpisode(tvdbId: number, episodeName: string): Promise<{ title: string, seasonNumber: number, episodeNumber: number } | undefined> {
         const url = `https://skyhook.sonarr.tv/v1/tvdb/shows/en/${tvdbId}`;
-        let data = await this.skyhookEpisodeCache.get(String(tvdbId));
-        if (!data) {
-            data = (await axios.get(url)).data;
-            await this.skyhookEpisodeCache.set(String(tvdbId), data);
+        let data;
+
+        try {
+            data = await this.skyhookEpisodeCache.get(String(tvdbId));
+        } catch {
+            // Cache retrieval failed, continue to API lookup
         }
+
+        if (!data) {
+            try {
+                const response = await axios.get(url);
+                data = response.data;
+                await this.skyhookEpisodeCache.set(String(tvdbId), data);
+            } catch {
+                return undefined;
+            }
+        }
+
         const episode = data?.episodes.find((ep: any) => ep.title?.toLowerCase() === episodeName?.toLowerCase());
         return episode;
     }

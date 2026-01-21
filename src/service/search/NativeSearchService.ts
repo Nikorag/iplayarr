@@ -31,11 +31,14 @@ class NativeSearchService implements AbstractSearchService {
             for (const { ref } of lunrResults) {
                 const brandPid = await iplayerDetailsService.findBrandForPid(ref);
                 if (brandPid) {
-                    if (!pidLedger.includes(ref)) {
+                    if (!pidLedger.includes(brandPid)) {
                         const seriesList: IPlayerEpisodeMetadata[] = await iplayerDetailsService.getSeriesEpisodes(brandPid);
 
-                        // Add all the series episodes to list
-                        const episodes = (await Promise.all(seriesList.filter(({ type }) => type == 'series').map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id)))).flat();
+                        // Add episodes from series containers
+                        const episodes = (await Promise.all(
+                            seriesList.filter(({ type }) => type == 'series').map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id))
+                        )).flat();
+                        // Also include direct episode children (e.g., Christmas specials under the brand)
                         episodes.push(...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null));
 
                         const chunks = splitArrayIntoChunks(episodes, 5);
@@ -47,7 +50,7 @@ class NativeSearchService implements AbstractSearchService {
                         }
 
                         infos = [...infos, ...chunkInfos];
-                        pidLedger.push(ref);
+                        pidLedger.push(brandPid);
                     }
                 } else {
                     const pidInfos = await iplayerDetailsService.details([ref]);

@@ -164,6 +164,48 @@ http://Your_Docker_Host:4404
 
 From here, you can manage settings, view logs, and monitor downloads.
 
+## Development Setup
+
+To run iPlayarr locally for development:
+
+### Prerequisites
+
+- Node.js (see `.node-version` for current version)
+- Docker (for local dev instance of Redis)
+
+### Installation
+
+1. Install dependencies for both backend and frontend:
+
+```bash
+npm run install:both
+```
+
+2. Start Redis using Docker (or see Redis section below to use another instance):
+
+```bash
+npm run serve:redis
+```
+
+3. Start the development server (runs backend and frontend concurrently):
+
+```bash
+npm run dev
+```
+
+The application will be available at:
+- Frontend: http://localhost:8080 (Vue dev server)
+- Backend API: http://localhost:4404
+
+### Additional Useful Scripts
+
+| Script | Description |
+| ------ | ----------- |
+| `npm run build:both` | Build backend and frontend for production |
+| `npm test` | Run tests with coverage |
+| `npm run lint` | Run ESLint |
+| `npm run prettier` | Check code formatting |
+
 ## Redis
 
 iPlayarr uses Redis for storage. this is built into the container and **doesn't require any additional setup**, but if you would like to use a standalone redis instance set the following settings:

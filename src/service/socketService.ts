@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
 
 import historyService from './historyService';
+import loggingService from './loggingService';
 import queueService from './queueService';
 
 const sockets: {
@@ -13,6 +14,7 @@ const socketService = {
         io = server;
         io.on('connection', (socket) => {
             socketService.registerSocket(socket);
+            loggingService.pushInitialLogs(socket.id);
         });
     },
 
@@ -33,6 +35,13 @@ const socketService = {
     emit: (subject: string, message: any) => {
         (io as Server).emit(subject, message);
     },
+
+    publish: (socketId: string, subject: string, message: any) => {
+        const socket = sockets[socketId];
+        if (socket) {
+            socket.emit(subject, message);
+        }
+    }
 };
 
 export default socketService;

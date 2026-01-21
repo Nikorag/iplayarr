@@ -3,6 +3,7 @@ import 'winston-daily-rotate-file';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
+import { redis } from '../service/redis/redisService';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import configService from './configService';
@@ -38,7 +39,7 @@ const loggingService = {
         const message = joinOrReturn(params);
         fileLogger.info(message);
         const logLine: LogLine = { level: LogLineLevel.INFO, id: 'INFO', message, timestamp: new Date() };
-        socketService.emit('log', logLine);
+        loggingService.publish(logLine);
     },
 
     error: (...params: any[]) => {
@@ -46,7 +47,7 @@ const loggingService = {
         const message = joinOrReturn(params);
         fileLogger.error(message);
         const logLine: LogLine = { level: LogLineLevel.ERROR, id: 'ERROR', message, timestamp: new Date() };
-        socketService.emit('log', logLine);
+        loggingService.publish(logLine);
     },
 
     debug: (...params: any[]) => {
@@ -56,11 +57,29 @@ const loggingService = {
                 console.log(...params);
                 fileLogger.debug(message);
                 const logLine: LogLine = { level: LogLineLevel.DEBUG, id: 'DEBUG', message, timestamp: new Date() };
-                socketService.emit('log', logLine);
+                loggingService.publish(logLine);
             }
         });
     },
+
+    publish: (logLine: LogLine) => {
+        socketService.emit('log', logLine);
+
+        redis.multi()
+            .rpush('iplayarr_logs', JSON.stringify(logLine))
+            .ltrim('iplayarr_logs', -250, -1)
+            .exec();
+    },
+
+    pushInitialLogs: async (socketId: string) => {
+        const logLines = await redis.lrange('iplayarr_logs', 0, -1);
+        logLines.map((line) => JSON.parse(line) as LogLine).forEach((logLine) => {
+            socketService.publish(socketId, 'log', logLine);
+        });
+    }
 };
+
+
 
 function joinOrReturn(input: string | any[]): string {
     if (Array.isArray(input)) {

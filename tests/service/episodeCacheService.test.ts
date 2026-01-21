@@ -9,6 +9,7 @@ jest.mock('../../src/utils/Utils', () => ({
     getQualityProfile: jest.fn(() => Promise.resolve({ sizeFactor: 100 })),
     removeAllQueryParams: jest.fn((url) => url),
     splitArrayIntoChunks: jest.fn((arr) => [arr]),
+    sanitizeLunrQuery: jest.fn((term) => term.replace(/[:+\-*~^]/g, ' ').replace(/\s+/g, ' ').trim()),
 }));
 
 jest.mock('../../src/types/QueuedStorage', () => {

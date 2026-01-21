@@ -437,6 +437,43 @@ describe('Utils', () => {
         });
     });
 
+    describe('sanitizeLunrQuery', () => {
+        it('removes colons that would be interpreted as field specifiers', () => {
+            expect(Utils.sanitizeLunrQuery('Call the Midwife:')).toBe('Call the Midwife');
+            expect(Utils.sanitizeLunrQuery('title:search')).toBe('title search');
+        });
+
+        it('removes other Lunr special characters', () => {
+            expect(Utils.sanitizeLunrQuery('test+required')).toBe('test required');
+            expect(Utils.sanitizeLunrQuery('test-prohibited')).toBe('test prohibited');
+            expect(Utils.sanitizeLunrQuery('test*wildcard')).toBe('test wildcard');
+            expect(Utils.sanitizeLunrQuery('test~fuzzy')).toBe('test fuzzy');
+            expect(Utils.sanitizeLunrQuery('test^boost')).toBe('test boost');
+        });
+
+        it('handles multiple special characters', () => {
+            expect(Utils.sanitizeLunrQuery('Call: the +Midwife* 2024')).toBe('Call the Midwife 2024');
+        });
+
+        it('collapses multiple spaces', () => {
+            expect(Utils.sanitizeLunrQuery('Call   the   Midwife')).toBe('Call the Midwife');
+        });
+
+        it('returns empty string for query with only special characters', () => {
+            expect(Utils.sanitizeLunrQuery(':+*~^')).toBe('');
+            expect(Utils.sanitizeLunrQuery(':')).toBe('');
+        });
+
+        it('preserves normal search terms', () => {
+            expect(Utils.sanitizeLunrQuery('Doctor Who')).toBe('Doctor Who');
+            expect(Utils.sanitizeLunrQuery('EastEnders')).toBe('EastEnders');
+        });
+
+        it('handles empty input', () => {
+            expect(Utils.sanitizeLunrQuery('')).toBe('');
+        });
+    });
+
     describe('calculateSeasonAndEpisode', () => {
         describe('episodes', () => {
             it('standard series', async () => await assertSeasonAndEpisode(m0029c0g, VideoType.TV,

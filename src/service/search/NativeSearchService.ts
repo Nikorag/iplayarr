@@ -8,7 +8,7 @@ import { IPlayerSearchResult } from '../../types/IPlayerSearchResult';
 import { IPlayerNewSearchResponse, IPlayerNewSearchResult } from '../../types/responses/iplayer/IPlayerNewSearchResponse';
 import { IPlayerEpisodeMetadata } from '../../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../../types/Synonym';
-import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
+import { createNZBName, getQualityProfile, sanitizeLunrQuery, splitArrayIntoChunks } from '../../utils/Utils';
 import iplayerDetailsService from '../iplayerDetailsService';
 import AbstractSearchService from './AbstractSearchService';
 
@@ -110,7 +110,11 @@ class NativeSearchService implements AbstractSearchService {
 
             results.forEach(({ id: pid, title }) => this.add({ pid, title }))
         });
-        return lunrIndex.search(term);
+        const sanitizedTerm = sanitizeLunrQuery(term);
+        if (!sanitizedTerm) {
+            return [];
+        }
+        return lunrIndex.search(sanitizedTerm);
     }
 }
 

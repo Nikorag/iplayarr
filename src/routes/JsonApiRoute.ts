@@ -42,8 +42,12 @@ router.post('/nzb/test', async (req: Request, res: Response) => {
 
 router.get('/search', async (req: Request, res: Response) => {
     const { q } = req.query as any;
-    const result: IPlayerSearchResult[] = await searchFacade.search(q);
-    res.json(result);
+    try {
+        const result: IPlayerSearchResult[] = await searchFacade.search(q);
+        res.json(result);
+    } catch (error: any) {
+        res.status(500).json({ error: ApiError.INTERNAL_ERROR, message: error?.message || 'Search failed' } as ApiResponse);
+    }
 });
 
 router.get('/details', async (req: Request, res: Response) => {

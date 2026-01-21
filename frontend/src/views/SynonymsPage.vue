@@ -11,6 +11,9 @@
                 {{ item.target }}
             </div>
             <div class="featureList">
+                <span v-if="item.seasonOffset" :class="['pill', 'success']">
+                    Season: {{item.seasonOffset > 0 ? '+' : ''}}{{ item.seasonOffset }}
+                </span>
                 <span v-if="item.filenameOverride" :class="['pill', 'success']">
                     {{ item.filenameOverride }}
                 </span>

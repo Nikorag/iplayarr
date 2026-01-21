@@ -32,6 +32,13 @@
             tooltip="Exemptions (comma separated)"
             placeholder="You're Fired!"
         />
+        <TextInput
+            v-model="form.seasonOffset"
+            name="Season Offset"
+            tooltip="Season offset (number)"
+            placeholder="0"
+            type-override="number"
+        />
     </IPlayarrModal>
 </template>
 
@@ -69,6 +76,7 @@ const form = ref({
     from: '',
     target: '',
     exemptions: '',
+    seasonOffset: 0,
 });
 
 const searchApp = ref({});

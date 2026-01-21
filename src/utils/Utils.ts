@@ -28,14 +28,20 @@ export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails
     const qualityProfile = await getQualityProfile();
     const title = result.title.trim();
 
+    let season: string | undefined = undefined;
+    if (result.series != null && result.episode != null) {
+        season = (result.series + (synonym?.seasonOffset ?? 0)).toString().padStart(2, '0');
+    } else {
+        if (result.type == VideoType.TV && synonym?.seasonOffset && synonym.seasonOffset > 0) {
+            season = (synonym.seasonOffset).toString().padStart(2, '0');
+        } else {
+            season = '00';
+        }
+    }
+
     return Handlebars.compile(template)({
         title: title.replaceAll(removeUnsafeCharsRegex, ''),
-        season:
-            result.series != null && result.episode != null
-                ? result.series.toString().padStart(2, '0')
-                : result.type == VideoType.TV
-                    ? '00'
-                    : undefined,
+        season,
         episode:
             result.series != null && result.episode != null
                 ? result.episode.toString().padStart(2, '0')

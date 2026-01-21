@@ -4,4 +4,5 @@ export interface Synonym {
     target: string;
     filenameOverride?: string;
     exemptions: string;
+    seasonOffset?: number; // Season offset to translate between Sonarr/iPlayer
 }

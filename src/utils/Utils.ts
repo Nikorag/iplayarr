@@ -1,7 +1,9 @@
 import * as crypto from 'crypto';
 import { Request } from 'express';
+import fs from 'fs';
 import Handlebars from 'handlebars';
 import { deromanize } from 'romans';
+import { pipeline } from 'stream';
 
 import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
 import appService from '../service/appService';
@@ -227,3 +229,25 @@ export function sanitizeLunrQuery(term: string): string {
     // Remove Lunr special characters that could cause parsing errors
     return term.replace(/[:+\-*~^]/g, ' ').replace(/\s+/g, ' ').trim();
 }
+
+// Method accounts for CIFS filesystems where copyFile fails due to EPERM errors.
+// Under the hood copyFileSync uses rename which can fail on some network filesystems.
+export function copyWithFallback(src: string, dst: string) {
+    try {
+        fs.copyFileSync(src, dst);
+        return;
+    } catch (err: any) {
+        if (err.code !== 'EPERM') throw err;
+    }
+
+    try {
+        pipeline(
+            fs.createReadStream(src),
+            fs.createWriteStream(dst)
+        );
+    } catch (err) {
+        fs.unlinkSync(dst);
+        throw err;
+    }
+}
+>>>>>>> origin/main

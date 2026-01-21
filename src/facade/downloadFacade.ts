@@ -16,7 +16,7 @@ import { DownloadClient } from '../types/enums/DownloadClient';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
-import { convertToMB, getETA } from '../utils/Utils';
+import { convertToMB, copyWithFallback, getETA } from '../utils/Utils';
 
 class DownloadFacade {
     async download(pid: string): Promise<ChildProcess> {
@@ -54,6 +54,10 @@ class DownloadFacade {
             const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
             if (queueItem) {
                 try {
+                    // Run the download method postProcess
+                    await service.postProcess(pid, directory, code);
+
+                    //Move the resultant file
                     loggingService.debug(pid, `Looking for video files in ${directory}`);
                     const files = fs.readdirSync(directory);
                     const videoFile = files.find((file) => file.endsWith('.mp4') || file.endsWith('.mkv'));
@@ -64,7 +68,7 @@ class DownloadFacade {
                         const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
                         loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
 
-                        fs.copyFileSync(oldPath, newPath);
+                        copyWithFallback(oldPath, newPath);
                     }
 
                     // Delete the uuid directory and file after moving it
@@ -78,7 +82,6 @@ class DownloadFacade {
             }
         }
         queueService.removeFromQueue(pid);
-        service.postProcess(pid, directory, code);
     }
 
     async #getService(): Promise<AbstractDownloadService> {

@@ -10,6 +10,7 @@ import { IPlayerEpisodeMetadata } from '../../types/responses/IPlayerMetadataRes
 import { Synonym } from '../../types/Synonym';
 import { createNZBName, getQualityProfile, sanitizeLunrQuery, splitArrayIntoChunks } from '../../utils/Utils';
 import iplayerDetailsService from '../iplayerDetailsService';
+import loggingService from '../loggingService';
 import AbstractSearchService from './AbstractSearchService';
 
 class NativeSearchService implements AbstractSearchService {
@@ -114,7 +115,15 @@ class NativeSearchService implements AbstractSearchService {
         if (!sanitizedTerm) {
             return [];
         }
-        return lunrIndex.search(sanitizedTerm);
+        try {
+            return lunrIndex.search(sanitizedTerm);
+        } catch (err: any) {
+            if (err && err.name === 'QueryParseError') {
+                loggingService.error(`Lunr QueryParseError for term "${term}": ${err.message}`);
+                return [];
+            }
+            throw err;
+        }
     }
 }
 

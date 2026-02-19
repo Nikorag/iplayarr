@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { Request } from 'express';
 import fs from 'fs';
@@ -49,9 +50,10 @@ export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails
                     ? '00'
                     : undefined,
         episodeTitle: result.episodeTitle?.trim().replaceAll(removeUnsafeCharsRegex, ''),
-        synonym: synonym?.target.trim().toLowerCase() === title.toLowerCase()
-            ? (synonym.filenameOverride ?? synonym.from)?.trim().replaceAll(removeUnsafeCharsRegex, '')
-            : undefined,
+        synonym:
+            synonym?.target.trim().toLowerCase() === title.toLowerCase()
+                ? (synonym.filenameOverride ?? synonym.from)?.trim().replaceAll(removeUnsafeCharsRegex, '')
+                : undefined,
         quality: qualityProfile.quality,
     } as FilenameTemplateContext)
         .replaceAll(/[\s/]|[\s\\-_]{2,}/g, '.')
@@ -62,8 +64,24 @@ export function getBaseUrl(req: Request): string {
     return `${req.protocol}://${req.hostname}:${req.socket.localPort}`;
 }
 
+const BCRYPT_SALT_ROUNDS = 10;
+const MD5_HEX_REGEX = /^[a-f0-9]{32}$/;
+
+/** @deprecated Use hashPassword instead. Retained only for migrating legacy MD5 hashes. */
 export function md5(input: string): string {
     return crypto.createHash('md5').update(input).digest('hex');
+}
+
+export async function hashPassword(plaintext: string): Promise<string> {
+    return bcrypt.hash(plaintext, BCRYPT_SALT_ROUNDS);
+}
+
+export async function comparePassword(plaintext: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(plaintext, hash);
+}
+
+export function isLegacyMD5Hash(value: string): boolean {
+    return MD5_HEX_REGEX.test(value);
 }
 
 export async function createNZBDownloadLink(
@@ -86,7 +104,7 @@ export async function createNZBDownloadLink(
 export async function getQualityProfile(): Promise<QualityProfile> {
     const videoQuality = (await configService.getParameter(IplayarrParameter.VIDEO_QUALITY)) as string;
     const profile = qualityProfiles.find(({ id }) => id == videoQuality) as QualityProfile;
-    return profile ? profile : qualityProfiles.find(({ quality }) => quality === 'hd') as QualityProfile;
+    return profile ? profile : (qualityProfiles.find(({ quality }) => quality === 'hd') as QualityProfile);
 }
 
 export function removeAllQueryParams(str: string): string {
@@ -142,8 +160,10 @@ export async function calculateSeasonAndEpisode(
     const estimatedSeries = nativeSeriesMatch
         ? getPotentialRoman(nativeSeriesMatch[1])
         : parent?.type == 'series'
-            ? parent.position ?? 0
-            : parent ? 0 : undefined;
+          ? (parent.position ?? 0)
+          : parent
+            ? 0
+            : undefined;
 
     // Check if this is a special episode
     const isSpecial =
@@ -153,8 +173,8 @@ export async function calculateSeasonAndEpisode(
     // Override series to 0 if counts indicate specials container
     let series =
         parent?.expected_child_count != null &&
-            (parent.aggregated_episode_count ?? 0) > parent.expected_child_count &&
-            isSpecial
+        (parent.aggregated_episode_count ?? 0) > parent.expected_child_count &&
+        isSpecial
             ? 0
             : estimatedSeries;
 
@@ -163,8 +183,10 @@ export async function calculateSeasonAndEpisode(
     let episode = episodeMatch
         ? parseInt(episodeMatch[1])
         : !isSpecial && (estimatedSeries ?? 0) > 0
-            ? programme.position ?? 0
-            : parent ? 0 : undefined;
+          ? (programme.position ?? 0)
+          : parent
+            ? 0
+            : undefined;
 
     // Determine episode title - use subtitle for specials in container series
     const episodeTitle =
@@ -223,7 +245,7 @@ export function getETA(eta: string | undefined, size: number, speed: number, per
         return '';
     }
 
-    const remainingSize = size * (1 - (percent / 100))
+    const remainingSize = size * (1 - percent / 100);
     const totalSeconds = remainingSize / speed;
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);

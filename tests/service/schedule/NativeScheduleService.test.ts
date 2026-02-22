@@ -6,6 +6,7 @@ import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
 import loggingService from '../../../src/service/loggingService';
 import NativeScheduleService from '../../../src/service/schedule/NativeScheduleService';
 import NativeSearchService from '../../../src/service/search/NativeSearchService';
+import synonymService from '../../../src/service/synonymService';
 import * as Utils from '../../../src/utils/Utils';
 
 jest.mock('axios');
@@ -15,6 +16,7 @@ jest.mock('../../../src/service/loggingService');
 jest.mock('../../../src/service/redis/redisCacheService');
 jest.mock('../../../src/service/search/NativeSearchService');
 jest.mock('../../../src/utils/Utils');
+jest.mock('../../../src/service/synonymService');
 
 describe('NativeScheduleService', () => {
     beforeEach(() => {
@@ -27,6 +29,7 @@ describe('NativeScheduleService', () => {
             (configService.getParameter as jest.Mock).mockResolvedValue('24');
             (iplayerDetailsService.details as jest.Mock).mockResolvedValue([{ title: 'Test Show' }]);
             (Utils.splitArrayIntoChunks as jest.Mock).mockImplementation(pids => [pids]);
+            jest.spyOn(synonymService, 'getSynonym').mockResolvedValue(undefined);
 
             (NativeSearchService.createSearchResult as jest.Mock).mockResolvedValue({
                 title: 'Test Show',
@@ -39,8 +42,47 @@ describe('NativeScheduleService', () => {
 
             await NativeScheduleService.refreshCache();
 
+            expect(NativeSearchService.createSearchResult).toHaveBeenCalledWith(
+                'Test Show',
+                { title: 'Test Show' },
+                1,
+                undefined
+            );
             expect(setMock).toHaveBeenCalledWith('schedule', expect.any(Array));
             expect(setMock).toHaveBeenCalledWith('last_cached', expect.any(Number));
+        });
+
+        it('should look up and pass synonym to createSearchResult', async () => {
+            (Utils.getQualityProfile as jest.Mock).mockResolvedValue({ sizeFactor: 1 });
+            (configService.getParameter as jest.Mock).mockResolvedValue('24');
+            (iplayerDetailsService.details as jest.Mock).mockResolvedValue([{ title: 'Test Show' }]);
+            (Utils.splitArrayIntoChunks as jest.Mock).mockImplementation(pids => [pids]);
+            jest.spyOn(synonymService, 'getSynonym').mockResolvedValue({
+                id: 'syn-1',
+                from: 'From',
+                target: 'Test Show',
+                filenameOverride: 'Test Show Override',
+                exemptions: ''
+            });
+
+            (NativeSearchService.createSearchResult as jest.Mock).mockResolvedValue({
+                title: 'Test Show',
+                pubDate: new Date().toISOString(),
+            });
+
+            const setMock = jest.fn();
+            NativeScheduleService.scheduleCache.set = setMock;
+            NativeScheduleService.cacheTime.set = setMock;
+
+            await NativeScheduleService.refreshCache();
+
+            expect(synonymService.getSynonym).toHaveBeenCalledWith('Test Show');
+            expect(NativeSearchService.createSearchResult).toHaveBeenCalledWith(
+                'Test Show',
+                { title: 'Test Show' },
+                1,
+                expect.objectContaining({ target: 'Test Show', filenameOverride: 'Test Show Override' })
+            );
         });
     });
 

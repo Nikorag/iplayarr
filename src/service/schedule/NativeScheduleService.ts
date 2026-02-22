@@ -13,6 +13,7 @@ import iplayerDetailsService from '../iplayerDetailsService';
 import loggingService from '../loggingService';
 import RedisCacheService from '../redis/redisCacheService';
 import NativeSearchService from '../search/NativeSearchService';
+import synonymService from '../synonymService';
 import { AbstractScheduleService } from './AbstractScheduleService';
 
 class NativeScheduleService implements AbstractScheduleService {
@@ -58,7 +59,10 @@ class NativeScheduleService implements AbstractScheduleService {
         loggingService.log(`Fetched details for ${chunkInfos.length} programmes.`);
 
         const results: IPlayerSearchResult[] = await Promise.all(
-            chunkInfos.map((info: IPlayerDetails) => NativeSearchService.createSearchResult(info.title, info, sizeFactor, undefined))
+            chunkInfos.map(async (info: IPlayerDetails) => {
+                const synonym = await synonymService.getSynonym(info.title);
+                return NativeSearchService.createSearchResult(info.title, info, sizeFactor, synonym);
+            })
         );
 
         this.scheduleCache.set('schedule', results);

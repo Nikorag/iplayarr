@@ -78,8 +78,8 @@
                         name="iPlayarr Protocol"
                         :tooltip="`iPlayarr Protocol for connection from ${capitalize(form.type)}`"
                         :options="[
-                            { key: 'true', value: 'https' },
-                            { key: 'false', value: 'http' },
+                            { key: true, value: 'https' },
+                            { key: false, value: 'http' },
                         ]"
                     />
                     <TextInput
@@ -162,7 +162,7 @@ const emit = defineEmits(['saved']);
 const defaultForm = {
     download_client: {},
     iplayarr: {
-        useSSL: window.location.protocol == 'https:',
+        useSSL: false,
         host: window.location.hostname,
         port: window.location.port,
     },

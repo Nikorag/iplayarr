@@ -76,7 +76,8 @@ export async function createNZBDownloadLink(
     if (app) {
         const appObj = await appService.getApp(app);
         if (appObj) {
-            baseUrl = `${appObj.iplayarr.useSSL ? 'https' : 'http'}://${appObj.iplayarr.host}:${appObj.iplayarr.port}`;
+            const useSSL = typeof appObj.iplayarr.useSSL === 'boolean' ? appObj.iplayarr.useSSL : appObj.iplayarr.useSSL === 'true';
+            baseUrl = `${useSSL ? 'https' : 'http'}://${appObj.iplayarr.host}:${appObj.iplayarr.port}`;
         }
     }
     return `${baseUrl}/api?mode=nzb-download&pid=${pid}&nzbName=${nzbName}&type=${type}&apikey=${apiKey}${app ? `&app=${app}` : ''}`;

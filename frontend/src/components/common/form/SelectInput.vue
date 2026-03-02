@@ -34,7 +34,7 @@ const props = defineProps({
         required: true,
     },
     modelValue: {
-        type: String,
+        type: [String, Boolean, Number],
         required: true,
     },
     error: {
@@ -54,7 +54,9 @@ const emit = defineEmits(['update:modelValue']);
 const localValue = ref(props.modelValue);
 
 watch(localValue, (newValue) => {
-    emit('update:modelValue', newValue);
+    // Find the original 'key' and use its value, preserving type
+    const option = props.options.find((o) => String(o.key) === String(newValue));
+    emit('update:modelValue', option ? option.key : newValue);
 });
 
 watch(

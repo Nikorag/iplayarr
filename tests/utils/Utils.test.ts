@@ -55,41 +55,63 @@ describe('Utils', () => {
     });
 
     describe('createNZBDownloadLink', () => {
-        it('builds download link correctly with and without app', async () => {
-            const base: IPlayerSearchResult = {
-                pid: '123',
-                nzbName: 'test.nzb',
-                type: VideoType.MOVIE,
-            } as IPlayerSearchResult;
+        const base: IPlayerSearchResult = {
+            pid: '123',
+            nzbName: 'test.nzb',
+            type: VideoType.MOVIE,
+        } as IPlayerSearchResult;
 
-            const req = {
-                protocol: 'http',
-                hostname: 'localhost',
-                socket: {
-                    localPort: 4404
-                }
-            } as unknown as Request
+        const mockApp = (useSSL: boolean | string): App => ({
+            id: 'radarr-id',
+            name: 'Radarr',
+            type: AppType.RADARR,
+            url: 'http://radarr.example.com:7878',
+            iplayarr: {
+                host: 'iplayarr.example.com',
+                port: 443,
+                useSSL
+            }
+        }) as unknown as App;
 
+        const req = {
+            protocol: 'http',
+            hostname: 'localhost',
+            socket: {
+                localPort: 4404
+            }
+        } as unknown as Request;
+
+        it('builds download link correctly without app', async () => {
             await expect(Utils.createNZBDownloadLink(req, base, 'apikey')).resolves.toBe(
                 'http://localhost:4404/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey'
             );
+        });
 
-            // Mock appService.getApp to return an app
-            const mockApp: App = {
-                id: 'radarr-id',
-                name: 'Radarr',
-                type: AppType.RADARR,
-                url: 'http://radarr.example.com:7878',
-                iplayarr: {
-                    host: 'iplayarr.example.com',
-                    port: 443,
-                    useSSL: true
-                }
-            } as App;
-            mockedAppService.getApp.mockResolvedValue(mockApp);
-
+        it('builds https download link when useSSL is boolean true', async () => {
+            mockedAppService.getApp.mockResolvedValue(mockApp(true));
             await expect(Utils.createNZBDownloadLink(req, base, 'apikey', 'radarr')).resolves.toBe(
                 'https://iplayarr.example.com:443/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey&app=radarr'
+            );
+        });
+
+        it('builds https download link when useSSL is string "true"', async () => {
+            mockedAppService.getApp.mockResolvedValue(mockApp('true'));
+            await expect(Utils.createNZBDownloadLink(req, base, 'apikey', 'radarr')).resolves.toBe(
+                'https://iplayarr.example.com:443/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey&app=radarr'
+            );
+        });
+
+        it('builds http download link when useSSL is boolean false', async () => {
+            mockedAppService.getApp.mockResolvedValue(mockApp(false));
+            await expect(Utils.createNZBDownloadLink(req, base, 'apikey', 'radarr')).resolves.toBe(
+                'http://iplayarr.example.com:443/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey&app=radarr'
+            );
+        });
+
+        it('builds http download link when useSSL is string "false"', async () => {
+            mockedAppService.getApp.mockResolvedValue(mockApp('false'));
+            await expect(Utils.createNZBDownloadLink(req, base, 'apikey', 'radarr')).resolves.toBe(
+                'http://iplayarr.example.com:443/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey&app=radarr'
             );
         });
     });

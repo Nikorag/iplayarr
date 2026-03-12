@@ -11,6 +11,11 @@ import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';
 import { Synonym } from '../../src/types/Synonym';
 
+jest.mock('bcrypt', () => ({
+    hash: jest.fn().mockResolvedValue('$2b$10$mockedhash'),
+    compare: jest.fn().mockResolvedValue(false),
+}));
+
 jest.mock('../../src/service/configService');
 const mockedConfigService = jest.mocked(configService);
 jest.mock('../../src/service/historyService');

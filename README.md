@@ -1,32 +1,29 @@
-# <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/frontend/public/iplayarr.png" alt="Description" width="45" style="margin-right: 1rem;"> iPlayarr
+# <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/frontend/public/iplayarr.png" alt="Description" width="24px"> iPlayarr
 
 iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to integrate **get_iplayer** for searching and downloading iPlayer content directly. It acts as both an **indexer** and a **download client**, allowing seamless automation of TV and movie downloads.
 
 [![Discord](https://img.shields.io/discord/1359619754456907856?label=Discord&logo=discord&style=flat)](https://discord.com/channels/1359619754456907856)
-
 ![Build Status](https://img.shields.io/github/actions/workflow/status/nikorag/iplayarr/build.yml?logo=github)
-
 [![Coverage Status](https://coveralls.io/repos/github/Nikorag/iplayarr/badge.svg?branch=main)](https://coveralls.io/github/Nikorag/iplayarr?branch=main)
 
 ## 📸 Screenshots
 
-<img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/login.png" alt="Login View" width="200" style="margin-right: 1rem; display: inline-block;">
-
-<img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/queue.png" alt="Queue View" width="200" style="margin-right: 1rem; display: inline-block;">
-
-<img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/search.png" alt="Search View" width="200" style="margin-right: 1rem; display: inline-block;">
-
-<img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/details.png" alt="Details View" width="200" style="margin-right: 1rem; display: inline-block;">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/login.png" alt="Login View" width="49%">
+  <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/queue.png" alt="Queue View" width="49%">
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/search.png" alt="Search View" width="49%">
+  <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/details.png" alt="Details View" width="49%">
+</p>
 
 ## Why iPlayarr?
 
 iPlayer offers a wide range of high-quality content, but integrating it with Sonarr and Radarr has always been tricky. iPlayarr solves this problem by:
 
-✔️ Acting as a Newznab-compatible indexer, making iPlayer content searchable within Sonarr/Radarr.
-
-✔️ Presenting as a SABnzbd-compatible download client, allowing automatic downloads and post-processing.
-
-✔️ Handling the full download lifecycle, from fetching content with get_iplayer to organizing completed files.
+- Acting as a Newznab-compatible indexer, making iPlayer content searchable within Sonarr/Radarr
+- Presenting as a SABnzbd-compatible download client, allowing automatic downloads and post-processing
+- Handling the full download lifecycle, from fetching content with get_iplayer to organizing completed files
 
 Unlike torrents and Usenet, iPlayarr operates in a less legally ambiguous space by only downloading content that is freely available for streaming.
 
@@ -42,7 +39,7 @@ Most existing solutions rely on torrents or Usenet, but I wanted something that 
 
 The simplest way to use iPlayarr is via Docker:
 
-```
+```bash
 docker run -d --name iplayarr \
   -v ./cache:/data \
   -v ./config:/config \
@@ -56,7 +53,7 @@ docker run -d --name iplayarr \
 
 Alternatively, use the bundled Dockerfile:
 
-```
+```bash
 docker build -t iplayarr .
 docker run -d --name iplayarr \
   -v ./cache:/data \
@@ -69,26 +66,26 @@ docker run -d --name iplayarr \
   iplayarr
 ```
 
-or use Docker Compose
+Or use Docker Compose:
 
-```
+```yml
 services:
-  iplayarr:
-    image: "nikorag/iplayarr:latest"
-    container_name: "iplayarr"
-    environment:
-      - "API_KEY=1234"
-      - "DOWNLOAD_DIR=/mnt/media/iplayarr/incomplete"
-      - "COMPLETE_DIR=/mnt/media/iplayarr/complete"
-      - "PUID=1000"
-      - "PGID=1000"
-    ports:
-      - "4404:4404"
-    volumes:
-      - "/mnt/media:/mnt/media"
-      - "./cache:/data"
-      - "./config:/config"
-      - "./logs:/logs"
+    iplayarr:
+        image: 'nikorag/iplayarr:latest'
+        container_name: 'iplayarr'
+        environment:
+            - 'API_KEY=1234'
+            - 'DOWNLOAD_DIR=/mnt/media/iplayarr/incomplete'
+            - 'COMPLETE_DIR=/mnt/media/iplayarr/complete'
+            - 'PUID=1000'
+            - 'PGID=1000'
+        ports:
+            - '4404:4404'
+        volumes:
+            - '/mnt/media:/mnt/media'
+            - './cache:/data'
+            - './config:/config'
+            - './logs:/logs'
 ```
 
 You can pre-set the following environment variables, or you can set them in the Settings menu once the container is up.
@@ -101,13 +98,13 @@ You can pre-set the following environment variables, or you can set them in the 
 
 There's a few more optional settings too:
 
-| Property         | Description                                                                                |
-| ---------------- | ------------------------------------------------------------------------------------------ |
-| ACTIVE_LIMIT     | How many downloads are allowed simultaneously, defaults to 3                               |
+| Property         | Description                                                                               |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| ACTIVE_LIMIT     | How many downloads are allowed simultaneously, defaults to 3                              |
 | REFRESH_SCHEDULE | Cron expression for when to proactively refresh schedule, defaults to hourly, on the hour |
-| HIDE_DONATE      | If you don't like the Kofi donate links you can hide them                                  |
-| PUID             | Host User ID for file permissions                                                          |
-| PGID             | Host Group ID for file permissions                                                         |
+| HIDE_DONATE      | If you don't like the Kofi donate links you can hide them                                 |
+| PUID             | Host User ID for file permissions                                                         |
+| PGID             | Host Group ID for file permissions                                                        |
 
 ### Usage
 
@@ -121,9 +118,7 @@ The default details are:
 
 **Sonarr and Radarr link**
 
-<div style="padding: 10px; margin: 10px 0; border: 2px solid #faebcc; border-radius: 4px; background-color: #fcf8e3; color: #8a6d3b;"> 
-  <strong>Info:</strong> The best way to add iPlayarr to Sonarr or Radarr is to use the "Apps" section of the web UI in iPlayarr
-</div>
+> **Info:** The best way to add iPlayarr to Sonarr or Radarr is to use the "Apps" section of the web UI in iPlayarr
 
 iPlayarr presents itself as both an indexer and a download client on port 4404. You can configure it automatically in the Settings menu or manually as follows:
 
@@ -156,12 +151,7 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 
 ### Web Interface
 
-To access the web frontend, visit:
-
-```
-http://Your_Docker_Host:4404
-```
-
+To access the web frontend, visit `http://Your_Docker_Host:4404`.
 From here, you can manage settings, view logs, and monitor downloads.
 
 ## Development Setup
@@ -194,21 +184,22 @@ npm run dev
 ```
 
 The application will be available at:
-- Frontend: http://localhost:8080 (Vue dev server)
-- Backend API: http://localhost:4404
+
+- Frontend: `http://localhost:8080` (Vue dev server)
+- Backend API: `http://localhost:4404`
 
 ### Additional Useful Scripts
 
-| Script | Description |
-| ------ | ----------- |
+| Script               | Description                               |
+| -------------------- | ----------------------------------------- |
 | `npm run build:both` | Build backend and frontend for production |
-| `npm test` | Run tests with coverage |
-| `npm run lint` | Run ESLint |
-| `npm run prettier` | Check code formatting |
+| `npm test`           | Run tests with coverage                   |
+| `npm run lint`       | Run ESLint                                |
+| `npm run prettier`   | Check code formatting                     |
 
 ## Redis
 
-iPlayarr uses Redis for storage. this is built into the container and **doesn't require any additional setup**, but if you would like to use a standalone redis instance set the following settings:
+iPlayarr uses Redis for storage. This is built into the container and **doesn't require any additional setup**, but if you would like to use a standalone redis instance, set the following settings:
 
 - REDIS_HOST
 - REDIS_PORT

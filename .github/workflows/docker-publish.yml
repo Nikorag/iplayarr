@@ -1,70 +1,77 @@
-name: Publish Fork to GHCR
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# GitHub recommends pinning actions to a commit SHA.
+# To get a newer version, you will need to update the SHA.
+# You can also reference a tag or branch, but the action may change without warning.
+
+name: Publish Docker image
 
 on:
-  # This makes it run automatically when you push to your custom branch
-  push:
-    branches:
-      - 'fix/native-search-series-expansion'
-  # This gives you a "Run workflow" button in the GitHub UI to trigger it manually
-  workflow_dispatch:
+    release:
+        types: [published]
+    workflow_dispatch:
 
 jobs:
-  push_to_registry:
-    name: Push Docker image to GHCR
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-      attestations: write
-      id-token: write
+    push_to_registry:
+        name: Push Docker image to Docker Hub
+        runs-on: ubuntu-latest
+        permissions:
+            packages: write
+            contents: read
+            attestations: write
+            id-token: write
 
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+            - name: Log in to Docker Hub
+              uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/iplayarr
+            - name: Extract metadata (tags, labels) for Docker
+              id: meta
+              uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+              with:
+                  images: nikorag/iplayarr
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-      - name: Write version to JSON
-        # Uses the branch name or commit SHA for the version file instead of crashing on missing tags
-        run: |
-          echo "{\"version\": \"${{ github.ref_name }}\"}" > src/config/version.json
+            - name: Extract Git tag
+              id: extract_tag
+              run: echo "git_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Build and push Docker image
-        id: push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          # Your Synology DS918+ uses linux/amd64
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/iplayarr:fork-native-search
-            ghcr.io/${{ github.repository_owner }}/iplayarr:${{ github.ref_name }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            iplayarr_version=${{ github.ref_name }}
+            - name: Write version to JSON
+              run: |
+                  echo "{\"version\": \"${{ env.git_tag }}\"}" > src/config/version.json
 
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-name: ghcr.io/${{ github.repository_owner }}/iplayarr
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+            - name: Build and push Docker image
+              id: push
+              uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: true
+                  platforms: linux/amd64,linux/arm64,linux/arm/v7
+                  tags: |
+                      ${{ steps.meta.outputs.tags }}
+                      nikorag/iplayarr:latest
+                  labels: ${{ steps.meta.outputs.labels }}
+                  build-args: |
+                      iplayarr_version=${{ env.git_tag }}
+
+            - name: Generate artifact attestation
+              uses: actions/attest-build-provenance@v2
+              with:
+                  subject-name: index.docker.io/nikorag/iplayarr
+                  subject-digest: ${{ steps.push.outputs.digest }}
+                  push-to-registry: true

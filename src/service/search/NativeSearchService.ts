@@ -26,36 +26,41 @@ class NativeSearchService implements AbstractSearchService {
 
             const lunrResults: Index.Result[] = this.#indexAndReSearch(term, results);
             const pidLedger: string[] = [];
+            const infoPidLedger: Set<string> = new Set();
 
             let infos: IPlayerDetails[] = [];
 
             for (const { ref } of lunrResults) {
                 const brandPid = await iplayerDetailsService.findBrandForPid(ref);
-                if (brandPid) {
-                    if (!pidLedger.includes(brandPid)) {
-                        const seriesList: IPlayerEpisodeMetadata[] = await iplayerDetailsService.getSeriesEpisodes(brandPid);
+                const searchHitMetadata = await iplayerDetailsService.getMetadata(ref);
+                const fallbackContainerPid = searchHitMetadata.programme.type == 'series' || searchHitMetadata.programme.type == 'brand'
+                    ? ref
+                    : undefined;
+                const containerPid = brandPid ?? fallbackContainerPid;
 
-                        // Add episodes from series containers
-                        const episodes = (await Promise.all(
-                            seriesList.filter(({ type }) => type == 'series').map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id))
-                        )).flat();
-                        // Also include direct episode children (e.g., Christmas specials under the brand)
-                        episodes.push(...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null));
-
+                if (containerPid) {
+                    if (!pidLedger.includes(containerPid)) {
+                        const episodes = await this.#expandEpisodesFromContainer(containerPid);
                         const chunks = splitArrayIntoChunks(episodes, 5);
-
-                        const chunkInfos: IPlayerDetails[] = [];
                         for (const chunk of chunks) {
                             const results: IPlayerDetails[] = await iplayerDetailsService.detailsForEpisodeMetadata(chunk);
-                            chunkInfos.push(...results);
+                            for (const info of results) {
+                                if (!infoPidLedger.has(info.pid)) {
+                                    infos.push(info);
+                                    infoPidLedger.add(info.pid);
+                                }
+                            }
                         }
-
-                        infos = [...infos, ...chunkInfos];
-                        pidLedger.push(brandPid);
+                        pidLedger.push(containerPid);
                     }
                 } else {
                     const pidInfos = await iplayerDetailsService.details([ref]);
-                    pidInfos.forEach(info => infos.push(info));
+                    for (const info of pidInfos) {
+                        if (!infoPidLedger.has(info.pid)) {
+                            infos.push(info);
+                            infoPidLedger.add(info.pid);
+                        }
+                    }
                 }
 
                 //Limit to only 150 results
@@ -70,6 +75,24 @@ class NativeSearchService implements AbstractSearchService {
         } else {
             return [];
         }
+    }
+
+    async #expandEpisodesFromContainer(containerPid: string): Promise<IPlayerEpisodeMetadata[]> {
+        const containerChildren: IPlayerEpisodeMetadata[] = await iplayerDetailsService.getSeriesEpisodes(containerPid);
+        const directEpisodes = containerChildren.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null);
+        const childContainers = containerChildren.filter(({ type }) => type == 'series' || type == 'brand');
+
+        const nestedChildren = (await Promise.all(
+            childContainers.map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id))
+        )).flat();
+        const nestedEpisodes = nestedChildren.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null);
+
+        const combined = [...directEpisodes, ...nestedEpisodes];
+        const dedupedByPid = new Map<string, IPlayerEpisodeMetadata>();
+        for (const episode of combined) {
+            dedupedByPid.set(episode.id, episode);
+        }
+        return [...dedupedByPid.values()];
     }
 
     async processCompletedSearch(results: IPlayerSearchResult[], _inputTerm: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> {

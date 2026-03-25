@@ -21,15 +21,25 @@ describe('NativeSearchService', () => {
     let mockSynonym: any;
     let mockSizeFactor: number;
     let mockTerm: string;
+    const mockEpisodeDetails = (pid: string, title: string, runtime = 30) => ({
+        title,
+        pid,
+        type: 'episode',
+        firstBroadcast: '2025-01-01',
+        runtime,
+    });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        jest.resetAllMocks();
         mockSynonym = { synonymKey: 'synonymValue' };
         mockTerm = 'Test Term';
         mockSizeFactor = 1;
 
         (getQualityProfile as jest.Mock).mockResolvedValue({ sizeFactor: mockSizeFactor });
         (createNZBName as jest.Mock).mockResolvedValue('testNZBName');
+        (iplayerDetailsService.getMetadata as jest.Mock).mockResolvedValue({
+            programme: { type: 'episode' },
+        });
     });
 
     describe('search', () => {
@@ -239,6 +249,67 @@ describe('NativeSearchService', () => {
 
             expect(results.length).toBeGreaterThan(searchResultLimit); // First brand exceeds limit
             expect(iplayerDetailsService.getSeriesEpisodes).toHaveBeenCalledTimes(1); // Should not process second brand
+        });
+
+        it('should expand episodes when search hit is a series/brand container even if brand PID lookup fails', async () => {
+            (axios.get as jest.Mock).mockResolvedValueOnce({
+                status: 200,
+                data: {
+                    new_search: { results: [{ id: 'containerPid1', title: mockTerm }] },
+                },
+            });
+
+            (iplayerDetailsService.findBrandForPid as jest.Mock).mockResolvedValue(null);
+            (iplayerDetailsService.getMetadata as jest.Mock).mockResolvedValue({
+                programme: { type: 'series' },
+            });
+
+            (iplayerDetailsService.getSeriesEpisodes as jest.Mock).mockResolvedValue([
+                { type: 'episode', id: 'ep1', title: 'Episode 1', release_date_time: '2025-01-01' },
+            ]);
+            (iplayerDetailsService.detailsForEpisodeMetadata as jest.Mock).mockResolvedValue([
+                mockEpisodeDetails('ep1', 'Episode 1'),
+            ]);
+
+            const results = await NativeSearchService.search(mockTerm);
+
+            expect(iplayerDetailsService.getSeriesEpisodes).toHaveBeenCalledWith('containerPid1');
+            expect(results).toHaveLength(1);
+            expect(results[0].pid).toBe('ep1');
+        });
+
+        it('should include nested container episodes and dedupe by PID', async () => {
+            (axios.get as jest.Mock).mockResolvedValueOnce({
+                status: 200,
+                data: {
+                    new_search: { results: [{ id: 'containerPid1', title: mockTerm }] },
+                },
+            });
+
+            (iplayerDetailsService.findBrandForPid as jest.Mock).mockResolvedValue('containerPid1');
+
+            (iplayerDetailsService.getSeriesEpisodes as jest.Mock)
+                .mockResolvedValueOnce([
+                    { type: 'episode', id: 'ep1', title: 'Episode 1', release_date_time: '2025-01-01' },
+                    { type: 'brand', id: 'childBrand1', title: 'Child Brand' },
+                    { type: 'episode', id: 'noDate', title: 'No Date Episode' },
+                ])
+                .mockResolvedValueOnce([
+                    { type: 'episode', id: 'ep1', title: 'Episode 1 Duplicate', release_date_time: '2025-01-01' },
+                    { type: 'episode', id: 'ep2', title: 'Episode 2', release_date_time: '2025-01-02' },
+                ]);
+
+            (iplayerDetailsService.detailsForEpisodeMetadata as jest.Mock).mockResolvedValue([
+                mockEpisodeDetails('ep1', 'Episode 1'),
+                mockEpisodeDetails('ep2', 'Episode 2'),
+            ]);
+
+            const results = await NativeSearchService.search(mockTerm);
+
+            expect(iplayerDetailsService.getSeriesEpisodes).toHaveBeenCalledTimes(2);
+            expect(iplayerDetailsService.getSeriesEpisodes).toHaveBeenNthCalledWith(1, 'containerPid1');
+            expect(iplayerDetailsService.getSeriesEpisodes).toHaveBeenNthCalledWith(2, 'childBrand1');
+            expect(results.map((r) => r.pid).sort()).toEqual(['ep1', 'ep2']);
         });
     });
 

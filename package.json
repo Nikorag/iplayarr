@@ -13,6 +13,7 @@
         "start": "node -r tsconfig-paths/register dist/src/server.js",
         "dev": "cross-env DEBUG=true concurrently \"npm run serve:backend\" \"npm run serve:frontend\"",
         "test": "cross-env NODE_ENV=test jest --collectCoverageFrom 'src/**/*.{js,ts}'",
+        "test:integration": "cross-env NODE_ENV=test jest --runInBand --config jest.integration.config.js",
         "test:watch": "jest --watch",
         "lint": "eslint . --ext .ts",
         "lint:fix": "npm run lint -- --fix",

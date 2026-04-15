@@ -74,4 +74,21 @@ describe('SearchEndpoint', () => {
             time: expect.any(Number)
         });
     });
+
+    it('treats empty q as wildcard — calls searchFacade.search with * not empty string', async () => {
+        // Regression test for: GET /api?t=search&q= closes connection instead of returning RSS feed.
+        // Root cause: `q ?? '*'` does not catch empty string (only null/undefined).
+        // Fix: `q || '*'` so '' also falls back to '*' (the schedule feed).
+        req.query = { q: '', apikey: 'mockkey' };
+        (searchFacade.search as jest.Mock).mockResolvedValue([]);
+        (statisticsService.addSearch as jest.Mock).mockImplementation(() => {});
+
+        await SearchEndpoint(req as Request, res as Response);
+
+        // Must call search with '*', NOT with '' (empty string crashes NativeSearchService)
+        expect(searchFacade.search).toHaveBeenCalledWith('*', undefined, undefined);
+        // Must still send a valid XML response
+        expect(setMock).toHaveBeenCalledWith('Content-Type', 'application/xml');
+        expect(sendMock).toHaveBeenCalled();
+    });
 });

@@ -7,7 +7,7 @@ import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 
 import ApiRoute from './routes/ApiRoute';
-import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
+import AuthRoute, { addAuthMiddleware, sessionMiddleware, socketAuthMiddleware } from './routes/AuthRoute';
 import JsonApiRoute from './routes/JsonApiRoute';
 import loggingService from './service/loggingService';
 import { redis } from './service/redis/redisService';
@@ -71,6 +71,13 @@ app.get('*', (req, res) => {
 const server: Server = http.createServer(app);
 
 const io = isDebug ? new SocketIOServer(server, { cors: {} }) : new SocketIOServer(server);
+
+// Socket.io auth: apply session cookie parsing, then check for authenticated user
+io.use((socket, next) => {
+    sessionMiddleware(socket.request as Request, {} as Response, next as NextFunction);
+});
+io.use(socketAuthMiddleware);
+
 socketService.registerIo(io);
 
 server.listen(port, () => {

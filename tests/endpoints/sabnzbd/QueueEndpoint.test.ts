@@ -95,6 +95,10 @@ describe('AbstractSabNZBDActionEndpoint', () => {
                     'noofslots_total': 1,
                     'noofslots': 1,
                     'finish': 2,
+                    'speed': '0 Bytes/s',
+                    'size': '500 MB',
+                    'sizeleft': '100 MB',
+                    'kbpersec': '0.00',
                     'slots': [
                         {
                             'password': '',
@@ -164,6 +168,10 @@ describe('AbstractSabNZBDActionEndpoint', () => {
                     'noofslots_total': 1,
                     'noofslots': 1,
                     'finish': 0,
+                    'speed': '0 Bytes/s',
+                    'size': '700 MB',
+                    'sizeleft': '700 MB',
+                    'kbpersec': '0.00',
                     'slots': [
                         {
                             'password': '',

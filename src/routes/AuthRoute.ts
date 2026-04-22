@@ -9,7 +9,7 @@ import { redis } from '../service/redis/redisService';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import User from '../types/User';
-import { md5 } from '../utils/Utils';
+import { comparePassword, hashPassword, isLegacyMD5Hash, md5 } from '../utils/Utils';
 
 declare module 'express-session' {
     interface SessionData {
@@ -81,13 +81,20 @@ router.get('/oidc/login', async (req: Request, res: Response) => {
 
 router.post('/oidc/test', async (req: Request, res: Response) => {
     const { OIDC_CONFIG_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_CALLBACK_HOST } = req.body;
-    const authUrl = await OIDCService.oidcConnection(req, OIDC_CONFIG_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_CALLBACK_HOST, 'test');
+    const authUrl = await OIDCService.oidcConnection(
+        req,
+        OIDC_CONFIG_URL,
+        OIDC_CLIENT_ID,
+        OIDC_CLIENT_SECRET,
+        OIDC_CALLBACK_HOST,
+        'test'
+    );
     res.redirect(authUrl);
 });
 
 router.get('/oidc/callback', async (req: Request, res: Response) => {
-    const allowedEmailsList = await configService.getParameter(IplayarrParameter.OIDC_ALLOWED_EMAILS) || '';
-    const allowedEmails = allowedEmailsList.split(',').map(email => email.trim().toLowerCase());
+    const allowedEmailsList = (await configService.getParameter(IplayarrParameter.OIDC_ALLOWED_EMAILS)) || '';
+    const allowedEmails = allowedEmailsList.split(',').map((email) => email.trim().toLowerCase());
     const code = req.query.code as string;
     const codeVerifier = req.session.codeVerifier;
 
@@ -99,12 +106,15 @@ router.get('/oidc/callback', async (req: Request, res: Response) => {
     const stateParam = req.query.state as string;
     const stateData = JSON.parse(Buffer.from(stateParam, 'base64url').toString());
     const isTest = stateData.mode === 'test';
-    const email: string | undefined = isTest ?
-        await OIDCService.getUserEmail(req, stateData.details.configUrl, stateData.details.clientId, stateData.details.clientSecret) :
-        await OIDCService.validateUser(req);
+    const email: string | undefined = isTest
+        ? await OIDCService.getUserEmail(
+              req,
+              stateData.details.configUrl,
+              stateData.details.clientId,
+              stateData.details.clientSecret
+          )
+        : await OIDCService.validateUser(req);
     const validUser = email && allowedEmails.includes(email.toLowerCase());
-
-
 
     if (isTest) {
         res.send(`
@@ -137,7 +147,6 @@ router.get('/oidc/callback', async (req: Request, res: Response) => {
     }
 });
 
-
 router.post('/login', async (req: Request, res: Response) => {
     const [AUTH_USERNAME, AUTH_PASSWORD] = await Promise.all([
         configService.getParameter(IplayarrParameter.AUTH_USERNAME),
@@ -145,7 +154,26 @@ router.post('/login', async (req: Request, res: Response) => {
     ]);
     const { username, password } = req.body;
 
-    if (username === AUTH_USERNAME && md5(password) === AUTH_PASSWORD) {
+    if (username !== AUTH_USERNAME || !AUTH_PASSWORD) {
+        res.status(401).json({ error: ApiError.INVALID_CREDENTIALS } as ApiResponse);
+        return;
+    }
+
+    let passwordValid = false;
+
+    if (isLegacyMD5Hash(AUTH_PASSWORD)) {
+        // Stored password is a legacy MD5 hash — compare with MD5, then migrate to bcrypt
+        passwordValid = md5(password) === AUTH_PASSWORD;
+        if (passwordValid) {
+            const bcryptHash = await hashPassword(password);
+            await configService.setParameter(IplayarrParameter.AUTH_PASSWORD, bcryptHash);
+        }
+    } else {
+        // Stored password is a bcrypt hash
+        passwordValid = await comparePassword(password, AUTH_PASSWORD);
+    }
+
+    if (passwordValid) {
         req.session.user = { username };
         res.json({ status: true });
         return;

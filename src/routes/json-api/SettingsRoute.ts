@@ -5,7 +5,7 @@ import configService, { ConfigMap } from '../../service/configService';
 import { IplayarrParameter } from '../../types/IplayarrParameters';
 import { qualityProfiles } from '../../types/QualityProfiles';
 import { ApiError, ApiResponse } from '../../types/responses/ApiResponse';
-import { md5 } from '../../utils/Utils';
+import { comparePassword, hashPassword, isLegacyMD5Hash, md5 } from '../../utils/Utils';
 import { ConfigFormValidator } from '../../validators/ConfigFormValidator';
 import { Validator } from '../../validators/Validator';
 
@@ -38,8 +38,21 @@ router.put('/', async (req: Request, res: Response) => {
         const val = req.body[key];
         if (key == IplayarrParameter.AUTH_PASSWORD) {
             const existing = await configService.getParameter(IplayarrParameter.AUTH_PASSWORD);
-            const hashed = md5(val);
-            if (existing != hashed && existing != val) {
+            // Check if the submitted value is already the stored hash (no change)
+            if (existing === val) {
+                continue;
+            }
+            // Check if the plaintext matches the existing hash (no change)
+            let alreadyMatches = false;
+            if (existing) {
+                if (isLegacyMD5Hash(existing)) {
+                    alreadyMatches = md5(val) === existing;
+                } else {
+                    alreadyMatches = await comparePassword(val, existing);
+                }
+            }
+            if (!alreadyMatches) {
+                const hashed = await hashPassword(val);
                 await configService.setParameter(key as IplayarrParameter, hashed);
             }
         } else {

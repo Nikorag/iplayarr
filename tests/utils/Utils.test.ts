@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { Request } from 'express';
 
 import appService from '../../src/service/appService';
@@ -25,6 +26,8 @@ import p00bp2rm from '../data/p00bp2rm.json';
 import p0fq3s31 from '../data/p0fq3s31.json';
 import p09t2pyf from '../data/p09t2pyf.json';
 
+jest.mock('bcrypt');
+const mockedBcrypt = jest.mocked(bcrypt);
 
 jest.mock('../../src/service/configService');
 jest.mock('../../src/service/appService');
@@ -34,11 +37,49 @@ const mockedAppService = jest.mocked(appService);
 const mockedSkyhookService = jest.mocked(SkyhookService);
 
 describe('Utils', () => {
-    
-
-    describe('md5', () => {
+    describe('md5 (legacy)', () => {
         it('returns correct md5 hash', () => {
             expect(Utils.md5('hello')).toBe('5d41402abc4b2a76b9719d911017c592');
+        });
+    });
+
+    describe('hashPassword', () => {
+        it('delegates to bcrypt.hash with correct salt rounds', async () => {
+            mockedBcrypt.hash.mockResolvedValue('$2b$10$hashedvalue' as never);
+            const hash = await Utils.hashPassword('password');
+            expect(hash).toBe('$2b$10$hashedvalue');
+            expect(mockedBcrypt.hash).toHaveBeenCalledWith('password', 10);
+        });
+    });
+
+    describe('comparePassword', () => {
+        it('delegates to bcrypt.compare and returns result', async () => {
+            mockedBcrypt.compare.mockResolvedValue(true as never);
+            await expect(Utils.comparePassword('password', '$2b$10$hash')).resolves.toBe(true);
+            expect(mockedBcrypt.compare).toHaveBeenCalledWith('password', '$2b$10$hash');
+        });
+
+        it('returns false when bcrypt.compare returns false', async () => {
+            mockedBcrypt.compare.mockResolvedValue(false as never);
+            await expect(Utils.comparePassword('wrong', '$2b$10$hash')).resolves.toBe(false);
+        });
+    });
+
+    describe('isLegacyMD5Hash', () => {
+        it('returns true for a 32-char lowercase hex string', () => {
+            expect(Utils.isLegacyMD5Hash('5f4dcc3b5aa765d61d8327deb882cf99')).toBe(true);
+        });
+
+        it('returns false for a bcrypt hash', () => {
+            expect(Utils.isLegacyMD5Hash('$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01')).toBe(false);
+        });
+
+        it('returns false for an arbitrary string', () => {
+            expect(Utils.isLegacyMD5Hash('not-a-hash')).toBe(false);
+        });
+
+        it('returns false for uppercase hex', () => {
+            expect(Utils.isLegacyMD5Hash('5F4DCC3B5AA765D61D8327DEB882CF99')).toBe(false);
         });
     });
 
@@ -61,24 +102,25 @@ describe('Utils', () => {
             type: VideoType.MOVIE,
         } as IPlayerSearchResult;
 
-        const mockApp = (useSSL: boolean | string): App => ({
-            id: 'radarr-id',
-            name: 'Radarr',
-            type: AppType.RADARR,
-            url: 'http://radarr.example.com:7878',
-            iplayarr: {
-                host: 'iplayarr.example.com',
-                port: 443,
-                useSSL
-            }
-        }) as unknown as App;
+        const mockApp = (useSSL: boolean | string): App =>
+            ({
+                id: 'radarr-id',
+                name: 'Radarr',
+                type: AppType.RADARR,
+                url: 'http://radarr.example.com:7878',
+                iplayarr: {
+                    host: 'iplayarr.example.com',
+                    port: 443,
+                    useSSL,
+                },
+            }) as unknown as App;
 
         const req = {
             protocol: 'http',
             hostname: 'localhost',
             socket: {
-                localPort: 4404
-            }
+                localPort: 4404,
+            },
         } as unknown as Request;
 
         it('builds download link correctly without app', async () => {
@@ -153,154 +195,154 @@ describe('Utils', () => {
                 ).resolves.toBe('Thats.a.Title.S01E02.WEBDL.720p-BBC');
             });
 
-        it('synonym replaces title when title matches target', async () => {
-            await expect(
-                Utils.createNZBName(
-                    {
+            it('synonym replaces title when title matches target', async () => {
+                await expect(
+                    Utils.createNZBName(
+                        {
+                            title: synonym.target,
+                            pid: '',
+                            type: VideoType.TV,
+                            series: 1,
+                            episode: 2,
+                        },
+                        synonym
+                    )
+                ).resolves.toBe('Syno-Nym.Bus.S01E02.WEBDL.720p-BBC');
+            });
+
+            it('synonym does not replace title when title does not match target', async () => {
+                await expect(
+                    Utils.createNZBName(
+                        {
+                            title: 'Different Title',
+                            pid: '',
+                            type: VideoType.TV,
+                            series: 1,
+                            episode: 2,
+                        },
+                        synonym
+                    )
+                ).resolves.toBe('Different.Title.S01E02.WEBDL.720p-BBC');
+            });
+
+            it('synonym override replaces title when title matches target', async () => {
+                await expect(
+                    Utils.createNZBName(
+                        {
+                            title: synonym.target,
+                            pid: '',
+                            type: VideoType.TV,
+                            series: 1,
+                            episode: 2,
+                        },
+                        synonymWithOverride
+                    )
+                ).resolves.toBe('O.Ver_Ride.2.S01E02.WEBDL.720p-BBC');
+            });
+
+            it('synonym override does not replace title when title does not match target', async () => {
+                await expect(
+                    Utils.createNZBName(
+                        {
+                            title: 'Different Title',
+                            pid: '',
+                            type: VideoType.TV,
+                            series: 1,
+                            episode: 2,
+                        },
+                        synonymWithOverride
+                    )
+                ).resolves.toBe('Different.Title.S01E02.WEBDL.720p-BBC');
+            });
+
+            it('double digits', async () => {
+                await expect(
+                    Utils.createNZBName({
+                        title: synonym.target,
+                        pid: '',
+                        type: VideoType.TV,
+                        series: 12,
+                        episode: 34,
+                    })
+                ).resolves.toBe('Thats.a.Title.S12E34.WEBDL.720p-BBC');
+            });
+
+            it('yearly', async () => {
+                await expect(
+                    Utils.createNZBName({
+                        title: synonym.target,
+                        pid: '',
+                        type: VideoType.TV,
+                        series: 2025,
+                        episode: 365,
+                    })
+                ).resolves.toBe('Thats.a.Title.S2025E365.WEBDL.720p-BBC');
+            });
+
+            it('specials', async () => {
+                await expect(
+                    Utils.createNZBName({
+                        title: synonym.target,
+                        pid: '',
+                        type: VideoType.TV,
+                        series: 0,
+                        episode: 0,
+                    })
+                ).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
+            });
+
+            it('episode title', async () => {
+                await expect(
+                    Utils.createNZBName({
                         title: synonym.target,
                         pid: '',
                         type: VideoType.TV,
                         series: 1,
                         episode: 2,
-                    },
-                    synonym
-                )
-            ).resolves.toBe('Syno-Nym.Bus.S01E02.WEBDL.720p-BBC');
-        });
+                        episodeTitle: '14/04/2025: We Call That... an Episode.',
+                    })
+                ).resolves.toBe('Thats.a.Title.S01E02.14.04.2025.We.Call.That.an.Episode.WEBDL.720p-BBC');
+            });
 
-        it('synonym does not replace title when title does not match target', async () => {
-            await expect(
-                Utils.createNZBName(
-                    {
-                        title: 'Different Title',
-                        pid: '',
-                        type: VideoType.TV,
-                        series: 1,
-                        episode: 2,
-                    },
-                    synonym
-                )
-            ).resolves.toBe('Different.Title.S01E02.WEBDL.720p-BBC');
-        });
-
-        it('synonym override replaces title when title matches target', async () => {
-            await expect(
-                Utils.createNZBName(
-                    {
+            it('quality', async () => {
+                mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) =>
+                    Promise.resolve(
+                        parameter == IplayarrParameter.VIDEO_QUALITY ? 'fhd' : configService.defaultConfigMap[parameter]
+                    )
+                );
+                await expect(
+                    Utils.createNZBName({
                         title: synonym.target,
                         pid: '',
                         type: VideoType.TV,
                         series: 1,
                         episode: 2,
-                    },
-                    synonymWithOverride
-                )
-            ).resolves.toBe('O.Ver_Ride.2.S01E02.WEBDL.720p-BBC');
-        });
+                    })
+                ).resolves.toBe('Thats.a.Title.S01E02.WEBDL.1080p-BBC');
+            });
 
-        it('synonym override does not replace title when title does not match target', async () => {
-            await expect(
-                Utils.createNZBName(
-                    {
-                        title: 'Different Title',
+            it('missing series', async () => {
+                await expect(
+                    Utils.createNZBName({
+                        title: synonym.target,
+                        pid: '',
+                        type: VideoType.TV,
+                        episode: 2,
+                    })
+                ).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
+            });
+
+            it('missing episode', async () => {
+                await expect(
+                    Utils.createNZBName({
+                        title: synonym.target,
                         pid: '',
                         type: VideoType.TV,
                         series: 1,
-                        episode: 2,
-                    },
-                    synonymWithOverride
-                )
-            ).resolves.toBe('Different.Title.S01E02.WEBDL.720p-BBC');
+                    })
+                ).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
+            });
         });
-
-        it('double digits', async () => {
-            await expect(
-                Utils.createNZBName({
-                    title: synonym.target,
-                    pid: '',
-                    type: VideoType.TV,
-                    series: 12,
-                    episode: 34,
-                })
-            ).resolves.toBe('Thats.a.Title.S12E34.WEBDL.720p-BBC');
-        });
-
-        it('yearly', async () => {
-            await expect(
-                Utils.createNZBName({
-                    title: synonym.target,
-                    pid: '',
-                    type: VideoType.TV,
-                    series: 2025,
-                    episode: 365,
-                })
-            ).resolves.toBe('Thats.a.Title.S2025E365.WEBDL.720p-BBC');
-        });
-
-        it('specials', async () => {
-            await expect(
-                Utils.createNZBName({
-                    title: synonym.target,
-                    pid: '',
-                    type: VideoType.TV,
-                    series: 0,
-                    episode: 0,
-                })
-            ).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
-        });
-
-        it('episode title', async () => {
-            await expect(
-                Utils.createNZBName({
-                    title: synonym.target,
-                    pid: '',
-                    type: VideoType.TV,
-                    series: 1,
-                    episode: 2,
-                    episodeTitle: '14/04/2025: We Call That... an Episode.',
-                })
-            ).resolves.toBe('Thats.a.Title.S01E02.14.04.2025.We.Call.That.an.Episode.WEBDL.720p-BBC');
-        });
-
-        it('quality', async () => {
-            mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) =>
-                Promise.resolve(
-                    parameter == IplayarrParameter.VIDEO_QUALITY ? 'fhd' : configService.defaultConfigMap[parameter]
-                )
-            );
-            await expect(
-                Utils.createNZBName({
-                    title: synonym.target,
-                    pid: '',
-                    type: VideoType.TV,
-                    series: 1,
-                    episode: 2,
-                })
-            ).resolves.toBe('Thats.a.Title.S01E02.WEBDL.1080p-BBC');
-        });
-
-        it('missing series', async () => {
-            await expect(
-                Utils.createNZBName({
-                    title: synonym.target,
-                    pid: '',
-                    type: VideoType.TV,
-                    episode: 2,
-                })
-            ).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
-        });
-
-        it('missing episode', async () => {
-            await expect(
-                Utils.createNZBName({
-                    title: synonym.target,
-                    pid: '',
-                    type: VideoType.TV,
-                    series: 1,
-                })
-            ).resolves.toBe('Thats.a.Title.S00E00.WEBDL.720p-BBC');
-        });
-    });
 
         describe('MOVIE', () => {
             it('title only', async () => {
@@ -313,78 +355,78 @@ describe('Utils', () => {
                 ).resolves.toBe('Thats.a.Title.WEBDL.720p-BBC');
             });
 
-        it('synonym replaces title when title matches target', async () => {
-            await expect(
-                Utils.createNZBName(
-                    {
+            it('synonym replaces title when title matches target', async () => {
+                await expect(
+                    Utils.createNZBName(
+                        {
+                            title: synonym.target,
+                            pid: '',
+                            type: VideoType.MOVIE,
+                        },
+                        synonym
+                    )
+                ).resolves.toBe('Syno-Nym.Bus.WEBDL.720p-BBC');
+            });
+
+            it('synonym does not replace title when title does not match target', async () => {
+                await expect(
+                    Utils.createNZBName(
+                        {
+                            title: 'Different Title',
+                            pid: '',
+                            type: VideoType.MOVIE,
+                        },
+                        synonym
+                    )
+                ).resolves.toBe('Different.Title.WEBDL.720p-BBC');
+            });
+
+            it('synonym override replaces title when title matches target', async () => {
+                await expect(
+                    Utils.createNZBName(
+                        {
+                            title: synonym.target,
+                            pid: '',
+                            type: VideoType.MOVIE,
+                        },
+                        synonymWithOverride
+                    )
+                ).resolves.toBe('O.Ver_Ride.2.WEBDL.720p-BBC');
+            });
+
+            it('synonym override does not replace title when title does not match target', async () => {
+                await expect(
+                    Utils.createNZBName(
+                        {
+                            title: 'Different Title',
+                            pid: '',
+                            type: VideoType.MOVIE,
+                        },
+                        synonymWithOverride
+                    )
+                ).resolves.toBe('Different.Title.WEBDL.720p-BBC');
+            });
+
+            it('quality', async () => {
+                mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) =>
+                    Promise.resolve(
+                        parameter == IplayarrParameter.VIDEO_QUALITY ? 'fhd' : configService.defaultConfigMap[parameter]
+                    )
+                );
+                await expect(
+                    Utils.createNZBName({
                         title: synonym.target,
                         pid: '',
                         type: VideoType.MOVIE,
-                    },
-                    synonym
-                )
-            ).resolves.toBe('Syno-Nym.Bus.WEBDL.720p-BBC');
+                    })
+                ).resolves.toBe('Thats.a.Title.WEBDL.1080p-BBC');
+            });
         });
-
-        it('synonym does not replace title when title does not match target', async () => {
-            await expect(
-                Utils.createNZBName(
-                    {
-                        title: 'Different Title',
-                        pid: '',
-                        type: VideoType.MOVIE,
-                    },
-                    synonym
-                )
-            ).resolves.toBe('Different.Title.WEBDL.720p-BBC');
-        });
-
-        it('synonym override replaces title when title matches target', async () => {
-            await expect(
-                Utils.createNZBName(
-                    {
-                        title: synonym.target,
-                        pid: '',
-                        type: VideoType.MOVIE,
-                    },
-                    synonymWithOverride
-                )
-            ).resolves.toBe('O.Ver_Ride.2.WEBDL.720p-BBC');
-        });
-
-        it('synonym override does not replace title when title does not match target', async () => {
-            await expect(
-                Utils.createNZBName(
-                    {
-                        title: 'Different Title',
-                        pid: '',
-                        type: VideoType.MOVIE,
-                    },
-                    synonymWithOverride
-                )
-            ).resolves.toBe('Different.Title.WEBDL.720p-BBC');
-        });
-
-        it('quality', async () => {
-            mockedConfigService.getParameter.mockImplementation((parameter: IplayarrParameter) =>
-                Promise.resolve(
-                    parameter == IplayarrParameter.VIDEO_QUALITY ? 'fhd' : configService.defaultConfigMap[parameter]
-                )
-            );
-            await expect(
-                Utils.createNZBName({
-                    title: synonym.target,
-                    pid: '',
-                    type: VideoType.MOVIE,
-                })
-            ).resolves.toBe('Thats.a.Title.WEBDL.1080p-BBC');
-        });
-    });
 
         const synonym: Synonym = {
             id: '',
             from: 'Syno-Nym Bus?',
-            target: 'That\'s a Title!',
+            target: "That's a Title!",
             exemptions: '',
         };
 
@@ -426,22 +468,22 @@ describe('Utils', () => {
 
         it('extracts titles with special characters', () => {
             const [title, episode, series] = Utils.parseEpisodeDetailStrings(
-                'The Apprentice: You\'re Fired!: Series 19',
+                "The Apprentice: You're Fired!: Series 19",
                 '12',
                 '1'
             );
-            expect(title.trim()).toBe('The Apprentice: You\'re Fired!');
+            expect(title.trim()).toBe("The Apprentice: You're Fired!");
             expect(episode).toBe(12);
             expect(series).toBe(19);
         });
 
         it('fall back still extracts titles with special characters', () => {
             const [title, episode, series] = Utils.parseEpisodeDetailStrings(
-                'The Apprentice: You\'re Fired!',
+                "The Apprentice: You're Fired!",
                 '12',
                 '19'
             );
-            expect(title.trim()).toBe('The Apprentice: You\'re Fired!');
+            expect(title.trim()).toBe("The Apprentice: You're Fired!");
             expect(episode).toBe(12);
             expect(series).toBe(19);
         });
@@ -498,51 +540,97 @@ describe('Utils', () => {
 
     describe('calculateSeasonAndEpisode', () => {
         describe('episodes', () => {
-            it('standard series', async () => await assertSeasonAndEpisode(m0029c0g, VideoType.TV,
-                'Doctor Who', 3, 1, 'Episode 1'));
+            it('standard series', async () =>
+                await assertSeasonAndEpisode(m0029c0g, VideoType.TV, 'Doctor Who', 3, 1, 'Episode 1'));
 
-            it('season finale', async () => await assertSeasonAndEpisode(m00255nq, VideoType.TV,
-                'Return to Paradise', 1, 6, 'Oh Mine Papa'));
+            it('season finale', async () =>
+                await assertSeasonAndEpisode(m00255nq, VideoType.TV, 'Return to Paradise', 1, 6, 'Oh Mine Papa'));
 
-            it('yearly series', async () => await assertSeasonAndEpisode(m001zh50, VideoType.TV,
-                'Gardeners\' World', 2024, 1, 'Episode 1'));
+            it('yearly series', async () =>
+                await assertSeasonAndEpisode(m001zh50, VideoType.TV, "Gardeners' World", 2024, 1, 'Episode 1'));
 
-            it('parsed series title', async () => await assertSeasonAndEpisode(p09t2pyf, VideoType.TV,
-                'The Goes Wrong Show', 2, 1, 'Summer Once Again'));
+            it('parsed series title', async () =>
+                await assertSeasonAndEpisode(p09t2pyf, VideoType.TV, 'The Goes Wrong Show', 2, 1, 'Summer Once Again'));
 
-            it('parsed roman numerals series', async () => await assertSeasonAndEpisode(p00bp2rm, VideoType.TV,
-                'Red Dwarf', 4, 5, 'Dimension Jump'));
+            it('parsed roman numerals series', async () =>
+                await assertSeasonAndEpisode(p00bp2rm, VideoType.TV, 'Red Dwarf', 4, 5, 'Dimension Jump'));
 
-            it('no series data', async () => await assertSeasonAndEpisode(m002b3cb, VideoType.TV,
-                'BBC News', 0, 0, '13/04/2025', true));
+            it('no series data', async () =>
+                await assertSeasonAndEpisode(m002b3cb, VideoType.TV, 'BBC News', 0, 0, '13/04/2025', true));
 
             describe('specials', () => {
-                it('with no series', async () => await assertSeasonAndEpisode(m0026fkl, VideoType.TV,
-                    'Beyond Paradise', 0, 0, 'Christmas Special 2024', true));
+                it('with no series', async () =>
+                    await assertSeasonAndEpisode(
+                        m0026fkl,
+                        VideoType.TV,
+                        'Beyond Paradise',
+                        0,
+                        0,
+                        'Christmas Special 2024',
+                        true
+                    ));
 
-                it('only one in series', async () => await assertSeasonAndEpisode(p0fq3s31, VideoType.TV,
-                    'Red Dwarf', 13, 0, 'The Promised Land', true));
+                it('only one in series', async () =>
+                    await assertSeasonAndEpisode(
+                        p0fq3s31,
+                        VideoType.TV,
+                        'Red Dwarf',
+                        13,
+                        0,
+                        'The Promised Land',
+                        true
+                    ));
 
-                it('episode before series', async () => await assertSeasonAndEpisode(m001zh3r, VideoType.TV,
-                    'RHS Chelsea Flower Show', 2024, 0, 'RHS: Countdown to Chelsea', true));
+                it('episode before series', async () =>
+                    await assertSeasonAndEpisode(
+                        m001zh3r,
+                        VideoType.TV,
+                        'RHS Chelsea Flower Show',
+                        2024,
+                        0,
+                        'RHS: Countdown to Chelsea',
+                        true
+                    ));
 
-                it('episode within series', async () => await assertSeasonAndEpisode(m001zr9t, VideoType.TV,
-                    'RHS Chelsea Flower Show', 2024, 0, 'Highlights', true));
+                it('episode within series', async () =>
+                    await assertSeasonAndEpisode(
+                        m001zr9t,
+                        VideoType.TV,
+                        'RHS Chelsea Flower Show',
+                        2024,
+                        0,
+                        'Highlights',
+                        true
+                    ));
 
-                it('episode after series', async () => await assertSeasonAndEpisode(b0211hsl, VideoType.TV,
-                    'RHS Chelsea Flower Show', 0, 0, 'Red Button Special', true));
+                it('episode after series', async () =>
+                    await assertSeasonAndEpisode(
+                        b0211hsl,
+                        VideoType.TV,
+                        'RHS Chelsea Flower Show',
+                        0,
+                        0,
+                        'Red Button Special',
+                        true
+                    ));
 
-                it('from series of specials', async () => await assertSeasonAndEpisode(m000jbtq, VideoType.TV,
-                    'RHS Chelsea Flower Show', 0, 0, 'Making the Most of Your Time', true));
+                it('from series of specials', async () =>
+                    await assertSeasonAndEpisode(
+                        m000jbtq,
+                        VideoType.TV,
+                        'RHS Chelsea Flower Show',
+                        0,
+                        0,
+                        'Making the Most of Your Time',
+                        true
+                    ));
             });
         });
 
         describe('movies', () => {
-            it('standalone', async () =>
-                await assertSeasonAndEpisode(m001kscd, VideoType.MOVIE, 'Some Movie'));
+            it('standalone', async () => await assertSeasonAndEpisode(m001kscd, VideoType.MOVIE, 'Some Movie'));
 
-            it('sequel', async () =>
-                await assertSeasonAndEpisode(b008m7xk, VideoType.MOVIE, 'Another Movie'));
+            it('sequel', async () => await assertSeasonAndEpisode(b008m7xk, VideoType.MOVIE, 'Another Movie'));
         });
 
         describe('fallback to Skyhook', () => {

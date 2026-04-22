@@ -37,6 +37,10 @@ export interface SabNZBDQueueResponse {
     noofslots_total: number;
     noofslots: number;
     finish: number;
+    speed: string;
+    size: string;
+    sizeleft: string;
+    kbpersec: string;
     slots: SabNZBQueueEntry[];
 }
 

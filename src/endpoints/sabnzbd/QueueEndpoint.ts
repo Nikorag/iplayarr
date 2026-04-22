@@ -15,6 +15,7 @@ import {
     SabNZBQueueEntry,
 } from '../../types/responses/sabnzbd/QueueResponse';
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse';
+import { formatBytes } from '../../utils/formatters';
 import { AbstractSabNZBDActionEndpoint, ActionQueryString } from './AbstractSabNZBDActionEndpoint';
 
 
@@ -35,12 +36,21 @@ const actionDirectory: EndpointDirectory = {
         const queue: QueueEntry[] = queueService.getQueue();
         const downloadQueue: QueueEntry[] = queue.filter(({ status }) => status == QueueEntryStatus.DOWNLOADING);
         const iplayerComplete = await historyService.getHistory();
+
+        const totalMb = queue.reduce((acc, slot) => acc + (slot.details?.size || 0), 0);
+        const totalMbLeft = queue.reduce((acc, slot) => acc + (slot.details?.sizeLeft || 0), 0);
+        const totalSpeedKbs = downloadQueue.reduce((acc, slot) => acc + (slot.details?.speed || 0), 0);
+
         const queueResponse: SabNZBDQueueResponse = {
             ...queueSkeleton,
             status: downloadQueue.length > 0 ? QueueStatus.DOWNLOADING : QueueStatus.IDLE,
             noofslots_total: queue.length,
             noofslots: queue.length,
             finish: iplayerComplete.length,
+            speed: `${formatBytes(totalSpeedKbs * 1024)}/s`,
+            size: formatBytes(totalMb * 1024 * 1024),
+            sizeleft: formatBytes(totalMbLeft * 1024 * 1024),
+            kbpersec: totalSpeedKbs.toFixed(2),
             slots: queue.map(convertEntries),
         } as SabNZBDQueueResponse;
         res.json({ queue: queueResponse });

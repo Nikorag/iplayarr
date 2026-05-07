@@ -16,6 +16,15 @@ import NativeSearchService from '../search/NativeSearchService';
 import synonymService from '../synonymService';
 import { AbstractScheduleService } from './AbstractScheduleService';
 
+interface ScheduleProgramme {
+    pid: string;
+    title?: string;
+    synopsis?: string;
+    startDate: Date;
+    endDate?: Date;
+    source: 'json-ld' | 'markup';
+}
+
 class NativeScheduleService implements AbstractScheduleService {
     scheduleCache: RedisCacheService<IPlayerSearchResult[]> = new RedisCacheService('schedule_cache', 5400);
     cacheTime: RedisCacheService<number> = new RedisCacheService('schedule_cache_time', 5400);
@@ -123,38 +132,186 @@ class NativeScheduleService implements AbstractScheduleService {
             const response = await axios.get(url);
             const dom = new JSDOM(response.data);
             const document = dom.window.document;
-            const titles = Array.from(document.querySelectorAll('.programme__titles a'));
-
             const now = new Date();
 
-            const filtered = titles.filter((titleElement) => {
-                const label = titleElement.getAttribute('aria-label');
-                if (!label) return false;
+            const programmes = this.getScheduleProgrammesFromJsonLd(document, url);
+            const scheduleProgrammes = programmes.length > 0
+                ? programmes
+                : this.getScheduleProgrammesFromMarkup(document, url);
 
-                const dateStr = label.split(':')[0].trim(); // e.g., "27 Apr 07:00"
-                const parsedDate = parseDateString(dateStr);
+            const pids = scheduleProgrammes
+                .filter((programme) => {
+                    if (programme.startDate > now) {
+                        loggingService.debug(`Skipping future schedule programme from ${url}: ${programme.pid} starts ${programme.startDate.toISOString()}`);
+                        return false;
+                    }
 
-                if (!parsedDate) return false;
+                    return true;
+                })
+                .map((programme) => programme.pid)
+                .filter((pid, index, allPids) => pid && allPids.indexOf(pid) === index);
 
-                return parsedDate <= now; // keep only if not in the future
-            }).map((titleElement) => {
-                const href = titleElement.getAttribute('href');
-                return href?.split('/').pop() || ''; // Extract the PID from the URL
-            });
+            if (pids.length === 0) {
+                loggingService.debug(`No schedule programme PIDs parsed from ${url}`);
+            }
 
-            return filtered;
+            return pids;
         } catch {
             loggingService.error(`Error fetching schedule page: ${url}`);
             return [];
         }
     }
+
+    private getScheduleProgrammesFromJsonLd(document: Document, url: string): ScheduleProgramme[] {
+        const programmes: ScheduleProgramme[] = [];
+        const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+
+        scripts.forEach((script, scriptIndex) => {
+            try {
+                const text = script.textContent?.trim();
+                if (!text || !text.includes('BroadcastEvent')) return;
+
+                const parsed = JSON.parse(text) as unknown;
+                const nodes = getJsonLdNodes(parsed);
+
+                nodes.forEach((node, nodeIndex) => {
+                    try {
+                        const programme = parseJsonLdProgramme(node);
+                        if (programme) programmes.push(programme);
+                    } catch (error) {
+                        loggingService.debug(`Skipping JSON-LD schedule programme from ${url} at script ${scriptIndex}, node ${nodeIndex}: ${getErrorMessage(error)}`);
+                    }
+                });
+            } catch (error) {
+                loggingService.debug(`Skipping JSON-LD schedule script from ${url} at index ${scriptIndex}: ${getErrorMessage(error)}`);
+            }
+        });
+
+        return programmes;
+    }
+
+    private getScheduleProgrammesFromMarkup(document: Document, url: string): ScheduleProgramme[] {
+        const programmes: ScheduleProgramme[] = [];
+        const scheduleYear = getScheduleYearFromUrl(url) || new Date().getFullYear();
+        const programmeElements = Array.from(document.querySelectorAll('.programme[data-pid], .programme__body[data-pid], [data-pid], .programme__titles a[href*="/programmes/"]'));
+
+        programmeElements.forEach((element, index) => {
+            try {
+                const body = element.matches('.programme__body')
+                    ? element
+                    : element.closest('.programme__body') || element.querySelector('.programme__body') || element;
+                const titleLink = element.matches('a[href*="/programmes/"]')
+                    ? element
+                    : body.querySelector('.programme__titles a') || element.querySelector('a[href*="/programmes/"]');
+                const hrefPid = titleLink?.getAttribute('href')?.split('/').filter(Boolean).pop();
+                const pid = element.getAttribute('data-pid') || hrefPid;
+                if (!pid) {
+                    loggingService.debug(`Skipping schedule programme markup from ${url} at index ${index}: missing data-pid or programme link`);
+                    return;
+                }
+
+                const label = titleLink?.getAttribute('aria-label');
+                const dateStr = label?.split(':').slice(0, 2).join(':').trim(); // e.g., "27 Apr 07:00"
+                const startDate = dateStr ? parseDateString(dateStr, scheduleYear) : null;
+
+                if (!startDate) {
+                    loggingService.debug(`Skipping schedule programme markup from ${url} for ${pid}: missing or invalid start time`);
+                    return;
+                }
+
+                programmes.push({
+                    pid,
+                    title: normaliseText(body.querySelector('.programme__title')?.textContent || titleLink?.textContent),
+                    synopsis: normaliseText(body.querySelector('.programme__synopsis')?.textContent),
+                    startDate,
+                    source: 'markup',
+                });
+            } catch (error) {
+                loggingService.debug(`Skipping schedule programme markup from ${url} at index ${index}: ${getErrorMessage(error)}`);
+            }
+        });
+
+        return programmes;
+    }
 }
 
-function parseDateString(dateStr: string): Date | null {
-    const currentYear = new Date().getFullYear();
-    const fullStr = `${dateStr} ${currentYear}`;
+function parseJsonLdProgramme(node: unknown): ScheduleProgramme | null {
+    if (!isRecord(node)) return null;
+
+    const publication = getBroadcastPublication(node.publication);
+    if (!publication) return null;
+
+    const pid = typeof node.identifier === 'string' ? node.identifier : null;
+    const startDate = parseIsoDate(publication.startDate);
+
+    if (!pid || !startDate) return null;
+
+    return {
+        pid,
+        title: typeof node.name === 'string' ? node.name : undefined,
+        synopsis: typeof node.description === 'string' ? node.description : undefined,
+        startDate,
+        endDate: parseIsoDate(publication.endDate) || undefined,
+        source: 'json-ld',
+    };
+}
+
+function getJsonLdNodes(value: unknown): unknown[] {
+    if (Array.isArray(value)) return value.flatMap(getJsonLdNodes);
+    if (!isRecord(value)) return [];
+
+    const graph = value['@graph'];
+    if (Array.isArray(graph)) return graph;
+
+    return [value];
+}
+
+function getBroadcastPublication(publication: unknown): Record<string, unknown> | null {
+    const publications = Array.isArray(publication) ? publication : [publication];
+
+    for (const item of publications) {
+        if (!isRecord(item)) continue;
+
+        const type = item['@type'];
+        const types = Array.isArray(type) ? type : [type];
+        if (types.includes('BroadcastEvent')) return item;
+    }
+
+    return null;
+}
+
+function parseIsoDate(value: unknown): Date | null {
+    if (typeof value !== 'string') return null;
+
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function parseDateString(dateStr: string, year: number): Date | null {
+    const fullStr = `${dateStr} ${year}`;
     const parsed = new Date(Date.parse(fullStr));
     return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getScheduleYearFromUrl(url: string): number | null {
+    const match = url.match(/\/schedules\/[^/]+\/(\d{4})\//);
+    if (!match) return null;
+
+    const year = Number(match[1]);
+    return Number.isInteger(year) ? year : null;
+}
+
+function normaliseText(value: string | null | undefined): string | undefined {
+    const normalised = value?.replace(/\s+/g, ' ').trim();
+    return normalised || undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
 }
 
 export default new NativeScheduleService();

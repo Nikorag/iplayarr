@@ -1,4 +1,7 @@
 // __tests__/NativeScheduleService.test.ts
+import fs from 'fs';
+import path from 'path';
+
 import axios from 'axios';
 
 import configService from '../../../src/service/configService';
@@ -115,6 +118,62 @@ describe('NativeScheduleService', () => {
     });
 
     describe('getPidsFromSchedulePage', () => {
+        it('should parse PIDs from BBC JSON-LD structured data', async () => {
+            const html = fs.readFileSync(path.join(__dirname, '../../fixtures/bbc-schedule-current.html'), 'utf8');
+            (axios.get as jest.Mock).mockResolvedValue({ data: html });
+
+            const pids = await NativeScheduleService.getPidsFromSchedulePage('https://www.bbc.co.uk/schedules/p00fzl67/2025/04/27');
+
+            expect(pids.length).toBeGreaterThanOrEqual(1);
+            expect(pids).toContain('mjson001');
+        });
+
+        it('should fall back to programme markup data-pid values when JSON-LD is missing', async () => {
+            const html = `
+        <html>
+          <body>
+            <div class="programme programme--tv programme--episode block-link" data-pid="mcss001">
+              <div class="programme__body">
+                <h4 class="programme__titles">
+                  <a href="https://www.bbc.co.uk/programmes/mcss001" aria-label="27 Apr 14:00: CSS Programme">
+                    <span class="programme__title delta"><span>CSS Programme</span></span>
+                  </a>
+                </h4>
+                <p class="programme__synopsis text--subtle centi"><span>A programme exposed through schedule markup.</span></p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+            (axios.get as jest.Mock).mockResolvedValue({ data: html });
+
+            const pids = await NativeScheduleService.getPidsFromSchedulePage('https://www.bbc.co.uk/schedules/p00fzl67/2025/04/27');
+
+            expect(pids.length).toBeGreaterThanOrEqual(1);
+            expect(pids).toContain('mcss001');
+        });
+
+        it('should skip malformed programme blocks without aborting the whole schedule page', async () => {
+            const html = `
+        <html>
+          <body>
+            <div class="programme programme--tv programme--episode block-link" data-pid="mbad001">
+              <div class="programme__body"><h4 class="programme__titles"><a href="https://www.bbc.co.uk/programmes/mbad001">Bad Programme</a></h4></div>
+            </div>
+            <div class="programme programme--tv programme--episode block-link" data-pid="mgood001">
+              <div class="programme__body"><h4 class="programme__titles"><a href="https://www.bbc.co.uk/programmes/mgood001" aria-label="27 Apr 15:00: Good Programme">Good Programme</a></h4></div>
+            </div>
+          </body>
+        </html>
+      `;
+            (axios.get as jest.Mock).mockResolvedValue({ data: html });
+
+            const pids = await NativeScheduleService.getPidsFromSchedulePage('https://www.bbc.co.uk/schedules/p00fzl67/2025/04/27');
+
+            expect(pids).toEqual(['mgood001']);
+            expect(loggingService.debug).toHaveBeenCalledWith(expect.stringContaining('mbad001'));
+        });
+
         it('should parse PIDs from a mocked schedule page', async () => {
             const html = `
         <html>
@@ -127,7 +186,7 @@ describe('NativeScheduleService', () => {
       `;
             (axios.get as jest.Mock).mockResolvedValue({ data: html });
 
-            const pids = await NativeScheduleService.getPidsFromSchedulePage('https://mocked-url');
+            const pids = await NativeScheduleService.getPidsFromSchedulePage('https://www.bbc.co.uk/schedules/p00fzl67/2025/04/27');
 
             expect(pids).toContain('abc123');
         });

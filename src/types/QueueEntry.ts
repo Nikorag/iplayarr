@@ -14,3 +14,8 @@ export interface QueueEntry {
     appId?: string;
     category?: string;
 }
+
+export interface HistoryEntry extends QueueEntry {
+    completedAt?: string;
+    archivedAt?: string;
+}

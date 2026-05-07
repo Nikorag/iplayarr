@@ -3,7 +3,7 @@ import { Request, Response, Router } from 'express';
 import historyService from '../../service/historyService';
 import queueService from '../../service/queueService';
 import socketService from '../../service/socketService';
-import { QueueEntry } from '../../types/QueueEntry';
+import { HistoryEntry, QueueEntry } from '../../types/QueueEntry';
 
 const router = Router();
 
@@ -17,7 +17,7 @@ router.get('/queue', (_: Request, res: Response) => {
 });
 
 router.get('/history', async (_: Request, res: Response) => {
-    const history: QueueEntry[] = (await historyService.getHistory()) || [];
+    const history: HistoryEntry[] = (await historyService.getHistory()) || [];
     res.json(history);
 });
 

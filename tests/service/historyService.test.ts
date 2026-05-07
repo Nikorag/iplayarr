@@ -32,8 +32,13 @@ const sampleEntry: QueueEntry = {
 
 beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers().setSystemTime(new Date('2026-05-07T18:36:45.000Z'));
     mockGetItem.mockResolvedValue([]);
     mockSetItem.mockResolvedValue(undefined);
+});
+
+afterEach(() => {
+    jest.useRealTimers();
 });
 
 describe('historyService', () => {
@@ -51,6 +56,7 @@ describe('historyService', () => {
                 expect.objectContaining({
                     pid: '123',
                     status: QueueEntryStatus.COMPLETE,
+                    completedAt: '2026-05-07T18:36:45.000Z',
                 }),
             ])
         );
@@ -78,6 +84,27 @@ describe('historyService', () => {
                 expect.objectContaining({
                     pid: '123',
                     status: QueueEntryStatus.CANCELLED,
+                    archivedAt: '2026-05-07T18:36:45.000Z',
+                    completedAt: undefined,
+                }),
+            ])
+        );
+    });
+
+    it('addArchive preserves an existing completedAt timestamp', async () => {
+        await historyService.addArchive({
+            ...sampleEntry,
+            completedAt: '2026-05-07T18:35:36.000Z',
+        });
+
+        expect(mockSetItem).toHaveBeenCalledWith(
+            'history',
+            expect.arrayContaining([
+                expect.objectContaining({
+                    pid: '123',
+                    status: QueueEntryStatus.CANCELLED,
+                    archivedAt: '2026-05-07T18:36:45.000Z',
+                    completedAt: '2026-05-07T18:35:36.000Z',
                 }),
             ])
         );

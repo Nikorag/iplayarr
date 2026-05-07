@@ -1,7 +1,7 @@
 node_modules
 frontend/node_modules
 .node-persist
-.env
+.env*
 .git
 .gsd
 .bg-shell

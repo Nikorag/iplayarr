@@ -4,7 +4,7 @@ import { EndpointDirectory } from '../../constants/EndpointDirectory';
 import configService from '../../service/configService';
 import historyService from '../../service/historyService';
 import { IplayarrParameter } from '../../types/IplayarrParameters';
-import { QueueEntry } from '../../types/QueueEntry';
+import { HistoryEntry } from '../../types/QueueEntry';
 import {
     historyEntrySkeleton,
     historySkeleton,
@@ -32,7 +32,7 @@ const actionDirectory: EndpointDirectory = {
     },
 
     _default: async (req: Request, res: Response) => {
-        let history: QueueEntry[] = await historyService.getHistory();
+        let history: HistoryEntry[] = await historyService.getHistory();
         history = history.filter(
             ({ status }) => status != QueueEntryStatus.FORWARDED && status != QueueEntryStatus.CANCELLED && status != QueueEntryStatus.REMOVED
         );
@@ -50,22 +50,38 @@ const actionDirectory: EndpointDirectory = {
     }
 };
 
-function createHistoryEntry(completeDir: string, item: QueueEntry, outputFormat: string): SABNZBDHistoryEntryResponse {
+function createHistoryEntry(completeDir: string, item: HistoryEntry, outputFormat: string): SABNZBDHistoryEntryResponse {
+    const bytes = Math.round((item.details?.size ?? 0) * sizeFactor);
+    const completed = getHistoryTimestamp(item);
+
     return {
         ...historyEntrySkeleton,
         duplicate_key: item.pid,
-        size: formatBytes((item.details?.size as number) * sizeFactor),
+        size: formatBytes(bytes),
         category: item.category || historyEntrySkeleton.category,
         nzb_name: `${item.nzbName}.nzb`,
         storage: `${completeDir}/${item.nzbName}.${outputFormat}`,
-        completed: (item.details?.size as number) * sizeFactor,
-        downloaded: (item.details?.size as number) * sizeFactor,
+        completed,
+        downloaded: bytes,
         nzo_id: item.pid,
         path: `${completeDir}/${item.nzbName}.${outputFormat}`,
         name: `${item.nzbName}.${outputFormat}`,
         url: `${item.nzbName}.nzb`,
-        bytes: (item.details?.size as number) * sizeFactor,
+        bytes,
     } as SABNZBDHistoryEntryResponse;
+}
+
+function getHistoryTimestamp(item: HistoryEntry): number {
+    return parseTimestampSeconds(item.completedAt) ?? parseTimestampSeconds(item.details?.start) ?? 0;
+}
+
+function parseTimestampSeconds(value: Date | string | undefined): number | undefined {
+    if (!value) {
+        return undefined;
+    }
+
+    const parsed = value instanceof Date ? value.getTime() : Date.parse(value);
+    return Number.isNaN(parsed) ? undefined : Math.floor(parsed / 1000);
 }
 
 export default new AbstractSabNZBDActionEndpoint(actionDirectory).handler;

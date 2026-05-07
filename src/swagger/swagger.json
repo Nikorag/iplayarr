@@ -116,6 +116,14 @@
                     },
                     "appId": {
                         "type": "string"
+                    },
+                    "completedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "archivedAt": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "required": ["id", "pid", "status", "nzbName", "type"],

@@ -17,7 +17,7 @@ export const historyEntrySkeleton: Partial<SABNZBDHistoryEntryResponse> = {
     meta: null,
     fail_message: '',
     loaded: false,
-    category: 'iplayer',
+    category: '',
     pp: 'D',
     retry: 0,
     script: 'None',

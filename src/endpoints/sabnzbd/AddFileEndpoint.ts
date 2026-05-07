@@ -75,10 +75,12 @@ export default async (req: Request, res: Response) => {
 };
 
 function parseSabnzbdCategory(value: unknown): string {
-    if (typeof value !== 'string') return 'iplayer';
+    if (typeof value !== 'string') return '';
 
     const category = value.trim();
-    return /^[A-Za-z0-9._ *-]{1,64}$/.test(category) ? category : 'iplayer';
+    if (category === '') return '';
+
+    return /^[A-Za-z0-9._ *-]{1,64}$/.test(category) ? category : '';
 }
 
 async function getDetails(xml: string): Promise<NZBDetails> {

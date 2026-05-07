@@ -181,7 +181,7 @@ describe('AbstractSabNZBDActionEndpoint', () => {
                             'direct_unpack': '10/30',
                             'labels': [],
                             'priority': 'Normal',
-                            'cat': 'iplayer',
+                            'cat': '',
                             'unpackopts': 3,
                             'status': 'Queued',
                             'index': 0,

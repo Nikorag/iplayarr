@@ -14,7 +14,7 @@ import StatisticsService from './stats/StatisticsService';
 let queue: QueueEntry[] = [];
 
 const queueService = {
-    addToQueue: (pid: string, nzbName: string, type: VideoType, appId?: string, category: string = 'iplayer'): void => {
+    addToQueue: (pid: string, nzbName: string, type: VideoType, appId?: string, category: string = ''): void => {
         const queueEntry: QueueEntry = {
             pid,
             status: QueueEntryStatus.QUEUED,

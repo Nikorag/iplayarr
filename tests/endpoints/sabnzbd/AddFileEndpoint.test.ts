@@ -60,6 +60,36 @@ describe('AddFileEndpoint', () => {
         expect(jsonMock).toHaveBeenCalledWith({ status: true, nzo_ids: ['b007801x'] });
     });
 
+    it('preserves an empty SABnzbd category from the addfile request', async () => {
+        const statusMock = jest.fn().mockReturnThis();
+        const jsonMock = jest.fn();
+        const res = {
+            status: statusMock,
+            json: jsonMock,
+        } as unknown as Response;
+
+        const req = {
+            query: { cat: '' },
+            files: [
+                {
+                    originalname: 'show.nzb',
+                    mimetype: 'application/x-nzb',
+                    buffer: Buffer.from(createIplayarrNzb('b007801x', 'Show.S01E01.Title', VideoType.TV)),
+                },
+            ],
+        } as unknown as Request;
+
+        await AddFileEndpoint(req, res);
+
+        expect(queueService.addToQueue).toHaveBeenCalledWith(
+            'b007801x',
+            'Show.S01E01.Title',
+            VideoType.TV,
+            undefined,
+            ''
+        );
+    });
+
     it('normalizes unsafe SABnzbd categories before storing them', async () => {
         const statusMock = jest.fn().mockReturnThis();
         const jsonMock = jest.fn();
@@ -86,7 +116,7 @@ describe('AddFileEndpoint', () => {
             'Show.S01E01.Title',
             VideoType.TV,
             undefined,
-            'iplayer'
+            ''
         );
     });
 });

@@ -74,4 +74,28 @@ describe('SearchEndpoint', () => {
             time: expect.any(Number)
         });
     });
+
+    it('treats an empty q parameter as the schedule feed wildcard', async () => {
+        req.query = {
+            q: '',
+            cat: '5000,5040',
+            app: 'sonarr',
+            apikey: 'mockkey',
+        };
+
+        (searchFacade.search as jest.Mock).mockResolvedValue([]);
+        (statisticsService.addSearch as jest.Mock).mockImplementation(() => { });
+
+        await SearchEndpoint(req as Request, res as Response);
+
+        expect(searchFacade.search).toHaveBeenCalledWith('*', undefined, undefined);
+        expect(statisticsService.addSearch).toHaveBeenCalledWith({
+            term: '*',
+            results: 0,
+            appId: 'sonarr',
+            series: undefined,
+            episode: undefined,
+            time: expect.any(Number)
+        });
+    });
 });

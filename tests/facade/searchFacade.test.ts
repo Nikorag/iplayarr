@@ -17,8 +17,8 @@ jest.mock('../../src/service/search/GetIplayerSearchService');
 
 describe('SearchFacade', () => {
   const mockResults: IPlayerSearchResult[] = [
-    { title: 'Test Show', series: 1, episode: 1, pubDate: new Date() } as IPlayerSearchResult,
-    { title: 'Test Show 2', series: 2, episode: 1, pubDate: new Date() } as IPlayerSearchResult,
+    { title: 'Test Show', series: 1, episode: 1, pubDate: new Date('2020-01-01T00:00:00.000Z') } as IPlayerSearchResult,
+    { title: 'Test Show 2', series: 2, episode: 1, pubDate: new Date('2020-01-01T00:00:00.000Z') } as IPlayerSearchResult,
   ];
 
   beforeEach(() => {

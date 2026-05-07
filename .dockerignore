@@ -3,6 +3,10 @@ frontend/node_modules
 .node-persist
 .env
 .git
+.gsd
+.bg-shell
+coverage
+frontend/dist
 dist
 readme-media
 eslint.config.mjs

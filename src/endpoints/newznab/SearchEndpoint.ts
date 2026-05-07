@@ -19,7 +19,7 @@ interface SearchRequest {
 export default async (req: Request, res: Response) => {
     const { q, season, ep, cat: catList, app } = req.query as any as SearchRequest;
     const cat: string[] | undefined = catList ? catList.split(',') : undefined;
-    const searchTerm = q ?? '*';
+    const searchTerm = q?.trim() || '*';
     let results: IPlayerSearchResult[] = await searchFacade.search(searchTerm, season, ep);
 
     if (cat) {

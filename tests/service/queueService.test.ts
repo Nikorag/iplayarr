@@ -58,7 +58,7 @@ describe('queueService', () => {
             (configService.getParameter as jest.Mock).mockResolvedValue('1');
             (downloadFacade.download as jest.Mock).mockResolvedValue({ pid: 999 });
 
-            queueService.addToQueue('123', 'Test NZB', VideoType.TV, 'myApp');
+            queueService.addToQueue('123', 'Test NZB', VideoType.TV, 'myApp', 'tv');
 
             await new Promise((r) => setTimeout(r, 10)); // wait for async `moveQueue`
 
@@ -70,6 +70,7 @@ describe('queueService', () => {
                 nzbName: 'Test NZB',
                 type: VideoType.TV,
                 appId: 'myApp',
+                category: 'tv',
             });
 
             expect(statisticsService.addGrab).toHaveBeenCalledWith({
@@ -79,6 +80,20 @@ describe('queueService', () => {
                 type: VideoType.TV,
                 appId: 'myApp'
             })
+        });
+
+        it('defaults category to iplayer when omitted', async () => {
+            (configService.getParameter as jest.Mock).mockResolvedValue('1');
+            (downloadFacade.download as jest.Mock).mockResolvedValue({ pid: 999 });
+
+            queueService.addToQueue('default-cat', 'Default Category NZB', VideoType.TV);
+
+            await new Promise((r) => setTimeout(r, 10));
+
+            expect(queueService.getFromQueue('default-cat')).toMatchObject({
+                pid: 'default-cat',
+                category: 'iplayer',
+            });
         });
     });
 

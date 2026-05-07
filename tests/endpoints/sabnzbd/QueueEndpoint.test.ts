@@ -59,6 +59,7 @@ describe('AbstractSabNZBDActionEndpoint', () => {
                         eta: '00:05:00',
                         progress: 80.5,
                     },
+                    category: 'tv',
                 },
             ];
             const mockHistory = [{ id: 1 }, { id: 2 }];
@@ -107,7 +108,7 @@ describe('AbstractSabNZBDActionEndpoint', () => {
                             'direct_unpack': '10/30',
                             'labels': [],
                             'priority': 'Normal',
-                            'cat': 'iplayer',
+                            'cat': 'tv',
                             'unpackopts': 3,
                             'status': 'Downloading',
                             'index': 0,

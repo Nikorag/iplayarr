@@ -55,6 +55,7 @@ function createHistoryEntry(completeDir: string, item: QueueEntry, outputFormat:
         ...historyEntrySkeleton,
         duplicate_key: item.pid,
         size: formatBytes((item.details?.size as number) * sizeFactor),
+        category: item.category || historyEntrySkeleton.category,
         nzb_name: `${item.nzbName}.nzb`,
         storage: `${completeDir}/${item.nzbName}.${outputFormat}`,
         completed: (item.details?.size as number) * sizeFactor,

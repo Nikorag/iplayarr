@@ -29,12 +29,13 @@ interface DetailsRejection {
 
 export default async (req: Request, res: Response) => {
     const { files } = req as any as AddFileRequest;
+    const category = parseSabnzbdCategory(req.query.cat);
     try {
         const pids: string[] = [];
         for (const file of files) {
             const xmlString = file.buffer.toString('utf-8');
             const { pid, nzbName, type, appId } = await getDetails(xmlString);
-            queueService.addToQueue(pid, nzbName, type, appId);
+            queueService.addToQueue(pid, nzbName, type, appId, category);
             pids.push(pid);
         }
 
@@ -72,6 +73,13 @@ export default async (req: Request, res: Response) => {
         });
     }
 };
+
+function parseSabnzbdCategory(value: unknown): string {
+    if (typeof value !== 'string') return 'iplayer';
+
+    const category = value.trim();
+    return /^[A-Za-z0-9._ *-]{1,64}$/.test(category) ? category : 'iplayer';
+}
 
 async function getDetails(xml: string): Promise<NZBDetails> {
     return new Promise((resolve, reject) => {

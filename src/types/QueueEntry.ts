@@ -12,4 +12,5 @@ export interface QueueEntry {
     nzbName: string;
     type: VideoType;
     appId?: string;
+    category?: string;
 }

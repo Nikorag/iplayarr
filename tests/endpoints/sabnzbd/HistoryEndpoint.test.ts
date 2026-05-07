@@ -52,7 +52,8 @@ describe('sabnzbdActionEndpoint', () => {
                     nzbName: 'testfile',
                     status: QueueEntryStatus.COMPLETE,
                     details: { size: 1 },
-                    type: VideoType.TV
+                    type: VideoType.TV,
+                    category: 'tv'
                 },
                 {
                     pid: 'id2',
@@ -90,6 +91,7 @@ describe('sabnzbdActionEndpoint', () => {
                 url: 'testfile.nzb',
                 bytes: 1048576,
                 size: '1 MB',
+                category: 'tv',
             });
         });
     });

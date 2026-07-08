@@ -16,6 +16,7 @@ import { DownloadClient } from '../types/enums/DownloadClient';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
+import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import { convertToMB, copyWithFallback, getETA } from '../utils/Utils';
 
 class DownloadFacade {
@@ -69,13 +70,26 @@ class DownloadFacade {
                         loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
 
                         copyWithFallback(oldPath, newPath);
+                    } else {
+                        // get-iplayer exited 0 but produced no video file — this happens
+                        // silently (e.g. BBC schedule/API errors during the run). Reporting
+                        // success here means Sonarr/Radarr get a false completion signal and
+                        // then loop forever failing to import a file that was never created.
+                        loggingService.error(
+                            pid,
+                            `No video file found in ${directory} after download exited 0 for '${queueItem.nzbName}' — reporting failure instead of a false completion`
+                        );
                     }
 
                     // Delete the uuid directory and file after moving it
                     loggingService.debug(pid, `Deleting old directory ${directory}`);
                     fs.rmSync(directory, { recursive: true, force: true });
 
-                    await historyService.addHistory(queueItem);
+                    if (videoFile) {
+                        await historyService.addHistory(queueItem);
+                    } else {
+                        await historyService.addArchive(queueItem, QueueEntryStatus.FAILED);
+                    }
                 } catch (err) {
                     loggingService.error(err);
                 }

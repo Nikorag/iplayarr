@@ -6,6 +6,7 @@ import historyService from '../../service/historyService';
 import { IplayarrParameter } from '../../types/IplayarrParameters';
 import { QueueEntry } from '../../types/QueueEntry';
 import {
+    HistoryStatus,
     historyEntrySkeleton,
     historySkeleton,
     SABNZBDHistoryEntryResponse,
@@ -51,6 +52,7 @@ const actionDirectory: EndpointDirectory = {
 };
 
 function createHistoryEntry(completeDir: string, item: QueueEntry, outputFormat: string): SABNZBDHistoryEntryResponse {
+    const failed = item.status == QueueEntryStatus.FAILED;
     return {
         ...historyEntrySkeleton,
         duplicate_key: item.pid,
@@ -64,6 +66,8 @@ function createHistoryEntry(completeDir: string, item: QueueEntry, outputFormat:
         name: `${item.nzbName}.${outputFormat}`,
         url: `${item.nzbName}.nzb`,
         bytes: (item.details?.size as number) * sizeFactor,
+        status: failed ? HistoryStatus.FAILED : HistoryStatus.COMPLETED,
+        fail_message: failed ? 'get-iplayer exited successfully but produced no video file' : '',
     } as SABNZBDHistoryEntryResponse;
 }
 

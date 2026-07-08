@@ -10,6 +10,7 @@ export enum QueueEntryStatus {
     QUEUED = 'Queued',
     FORWARDED = 'Forwarded',
     COMPLETE = 'Complete',
+    FAILED = 'Failed',
     CANCELLED = 'Cancelled',
     REMOVED = 'Removed'
 }

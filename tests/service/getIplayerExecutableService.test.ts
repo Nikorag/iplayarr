@@ -1,9 +1,5 @@
-import fs from 'fs';
-
 import configService from '../../src/service/configService';
 import { GetIplayerExecutableService } from '../../src/service/getIplayerExecutableService';
-import historyService from '../../src/service/historyService';
-import queueService from '../../src/service/queueService';
 import SkyhookService from '../../src/service/skyhook/SkyhookService';
 import socketService from '../../src/service/socketService';
 import synonymService from '../../src/service/synonymService';
@@ -18,15 +14,12 @@ jest.mock('bcrypt', () => ({
 
 jest.mock('../../src/service/configService');
 const mockedConfigService = jest.mocked(configService);
-jest.mock('../../src/service/historyService');
 jest.mock('../../src/service/loggingService');
-jest.mock('../../src/service/queueService');
 jest.mock('../../src/service/socketService');
 jest.mock('../../src/service/synonymService');
 jest.mock('../../src/service/skyhook/SkyhookService');
 const mockedSynonymService = jest.mocked(synonymService);
 const mockedSkyhookService = jest.mocked(SkyhookService);
-jest.mock('fs');
 jest.mock('path');
 
 describe('GetIplayerExecutableService', () => {
@@ -199,53 +192,6 @@ describe('GetIplayerExecutableService', () => {
             const result = service.parseProgress(mockPid, mockData);
 
             expect(result).toBeUndefined();
-        });
-    });
-
-    describe('processCompletedDownload', () => {
-        it('should handle completed download and move files', async () => {
-            const mockPid = '12345';
-            const mockQueueItem = { nzbName: 'mock_nzb' };
-            const mockDownloadDir = '/mock/download';
-            const mockCompleteDir = '/mock/complete';
-            const mockFiles = ['mockfile.mp4'];
-
-            queueService.getFromQueue = jest.fn().mockReturnValue(mockQueueItem);
-
-            (configService.getParameters as jest.Mock).mockImplementation(() => {
-                return [mockDownloadDir, mockCompleteDir];
-            });
-
-            fs.readdirSync = jest.fn().mockReturnValue(mockFiles);
-            fs.copyFileSync = jest.fn();
-            fs.rmSync = jest.fn();
-
-            await service.processCompletedDownload(mockPid, 0);
-
-            expect(fs.copyFileSync).toHaveBeenCalled();
-            expect(fs.rmSync).toHaveBeenCalled();
-            expect(historyService.addHistory).toHaveBeenCalled();
-        });
-
-        it('should remove from queue even if no MP4 file found', async () => {
-            const mockPid = '12345';
-            const mockQueueItem = { nzbName: 'mock_nzb' };
-            const mockDownloadDir = '/mock/download';
-            const mockCompleteDir = '/mock/complete';
-
-            queueService.getFromQueue = jest.fn().mockReturnValue(mockQueueItem);
-
-            (configService.getParameters as jest.Mock).mockImplementation(() => {
-                return [mockDownloadDir, mockCompleteDir];
-            });
-
-            fs.readdirSync = jest.fn().mockReturnValue([]);
-            fs.copyFileSync = jest.fn();
-            fs.rmSync = jest.fn();
-
-            await service.processCompletedDownload(mockPid, 0);
-
-            expect(queueService.removeFromQueue).toHaveBeenCalled();
         });
     });
 

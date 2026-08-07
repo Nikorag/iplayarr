@@ -1,5 +1,5 @@
 import { ChildProcess } from 'child_process';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 import { progressRegex, timestampFile } from '../constants/iPlayarrConstants';
@@ -16,7 +16,7 @@ import { DownloadClient } from '../types/enums/DownloadClient';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
-import { convertToMB, copyWithFallback, getETA } from '../utils/Utils';
+import { convertToMB, getETA } from '../utils/Utils';
 
 class DownloadFacade {
     async download(pid: string): Promise<ChildProcess> {
@@ -54,12 +54,8 @@ class DownloadFacade {
             const queueItem: QueueEntry | undefined = queueService.getFromQueue(pid);
             if (queueItem) {
                 try {
-                    // Run the download method postProcess
-                    await service.postProcess(pid, directory, code);
-
-                    //Move the resultant file
                     loggingService.debug(pid, `Looking for video files in ${directory}`);
-                    const files = fs.readdirSync(directory);
+                    const files = await fs.readdir(directory);
                     const videoFile = files.find((file) => file.endsWith('.mp4') || file.endsWith('.mkv'));
 
                     if (videoFile) {
@@ -68,12 +64,12 @@ class DownloadFacade {
                         const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
                         loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
 
-                        copyWithFallback(oldPath, newPath);
+                        await fs.copyFile(oldPath, newPath);
                     }
 
                     // Delete the uuid directory and file after moving it
                     loggingService.debug(pid, `Deleting old directory ${directory}`);
-                    fs.rmSync(directory, { recursive: true, force: true });
+                    await fs.rm(directory, { recursive: true, force: true });
 
                     await historyService.addHistory(queueItem);
                 } catch (err) {
@@ -82,6 +78,7 @@ class DownloadFacade {
             }
         }
         queueService.removeFromQueue(pid);
+        service.postProcess(pid, directory, code);
     }
 
     async #getService(): Promise<AbstractDownloadService> {
@@ -100,8 +97,8 @@ class DownloadFacade {
     async #createPidDirectory(pid: string): Promise<string> {
         const downloadDir: string = (await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR)) as string;
         const pidDir = `${downloadDir}/${pid}`;
-        fs.mkdirSync(pidDir, { recursive: true });
-        fs.writeFileSync(`${pidDir}/${timestampFile}`, '');
+        await fs.mkdir(pidDir, { recursive: true });
+        await fs.writeFile(`${pidDir}/${timestampFile}`, '');
         return pidDir;
     }
 
@@ -135,37 +132,34 @@ class DownloadFacade {
     async cleanupFailedDownloads(): Promise<void> {
         const downloadDir = (await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR)) as string;
         const threeHoursAgo: number = Date.now() - 3 * 60 * 60 * 1000;
-        fs.readdir(downloadDir, { withFileTypes: true }, (err, entries) => {
-            if (err) {
-                console.error('Error reading directory:', err);
-                return;
-            }
+        
+        try {
+            const entries = await fs.readdir(downloadDir, { withFileTypes: true });
 
-            entries.forEach((entry) => {
-                if (!entry.isDirectory()) return;
+            for (const entry of entries) {
+                if (!entry.isDirectory()) continue;
 
                 const dirPath: string = path.join(downloadDir, entry.name);
                 const filePath: string = path.join(dirPath, timestampFile);
 
-                fs.stat(filePath, (err, stats) => {
-                    if (err) {
-                        // Ignore missing files
-                        if (err.code !== 'ENOENT') console.error(`Error checking ${filePath}:`, err);
-                        return;
-                    }
-
+                try {
+                    const stats = await fs.stat(filePath);
                     if (stats.mtimeMs < threeHoursAgo) {
-                        fs.rm(dirPath, { recursive: true, force: true }, (err) => {
-                            if (err) {
-                                loggingService.error(`Error deleting ${dirPath}:`, err);
-                            } else {
-                                loggingService.log(`Deleted old directory: ${dirPath}`);
-                            }
-                        });
+                        try {
+                            await fs.rm(dirPath, { recursive: true, force: true });
+                            loggingService.log(`Deleted old directory: ${dirPath}`);
+                        } catch (err) {
+                            loggingService.error(`Error deleting ${dirPath}:`, err);
+                        }
                     }
-                });
-            });
-        });
+                } catch (err: any) {
+                    // Ignore missing files
+                    if (err.code !== 'ENOENT') console.error(`Error checking ${filePath}:`, err);
+                }
+            }
+        } catch (err) {
+            console.error('Error reading directory:', err);
+        }
     }
 }
 

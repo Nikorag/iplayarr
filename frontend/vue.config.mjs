@@ -18,5 +18,14 @@ export default defineConfig({
         msTileColor: '#000000',
         appleMobileWebAppCapable: 'yes',
         appleMobileWebAppStatusBarStyle: 'black-translucent',
+        workboxOptions: {
+            maximumFileSizeToCacheInBytes: 3000000,
+        },
+    },
+    configureWebpack: {
+        performance: {
+            maxEntrypointSize: 3000000,
+            maxAssetSize: 3000000,
+        },
     },
 });

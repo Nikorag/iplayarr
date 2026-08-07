@@ -5,16 +5,17 @@ import lunr from 'lunr';
 import { searchResultLimit } from '../../constants/iPlayarrConstants';
 import { IPlayerDetails } from '../../types/IPlayerDetails';
 import { IPlayerSearchResult } from '../../types/IPlayerSearchResult';
-import { IPlayerNewSearchResponse, IPlayerNewSearchResult } from '../../types/responses/iplayer/IPlayerNewSearchResponse';
+import {
+    IPlayerNewSearchResponse,
+    IPlayerNewSearchResult,
+} from '../../types/responses/iplayer/IPlayerNewSearchResponse';
 import { IPlayerEpisodeMetadata } from '../../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../../types/Synonym';
-import { createNZBName, getQualityProfile, sanitizeLunrQuery, splitArrayIntoChunks } from '../../utils/Utils';
+import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
 import iplayerDetailsService from '../iplayerDetailsService';
-import loggingService from '../loggingService';
 import AbstractSearchService from './AbstractSearchService';
 
 class NativeSearchService implements AbstractSearchService {
-
     async search(term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> {
         const { sizeFactor } = await getQualityProfile();
         const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(term)}`;
@@ -26,41 +27,45 @@ class NativeSearchService implements AbstractSearchService {
 
             const lunrResults: Index.Result[] = this.#indexAndReSearch(term, results);
             const pidLedger: string[] = [];
-            const infoPidLedger: Set<string> = new Set();
 
             let infos: IPlayerDetails[] = [];
 
             for (const { ref } of lunrResults) {
                 const brandPid = await iplayerDetailsService.findBrandForPid(ref);
-                const searchHitMetadata = await iplayerDetailsService.getMetadata(ref);
-                const fallbackContainerPid = searchHitMetadata.programme.type == 'series' || searchHitMetadata.programme.type == 'brand'
-                    ? ref
-                    : undefined;
-                const containerPid = brandPid ?? fallbackContainerPid;
+                if (brandPid) {
+                    if (!pidLedger.includes(ref)) {
+                        const seriesList: IPlayerEpisodeMetadata[] =
+                            await iplayerDetailsService.getSeriesEpisodes(brandPid);
 
-                if (containerPid) {
-                    if (!pidLedger.includes(containerPid)) {
-                        const episodes = await this.#expandEpisodesFromContainer(containerPid);
+                        // Add all the series episodes to list
+                        const episodes = (
+                            await Promise.all(
+                                seriesList
+                                    .filter(({ type }) => type == 'series')
+                                    .map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id))
+                            )
+                        ).flat();
+                        episodes.push(
+                            ...seriesList.filter(
+                                ({ type, release_date_time }) => type == 'episode' && release_date_time != null
+                            )
+                        );
+
                         const chunks = splitArrayIntoChunks(episodes, 5);
+
+                        const chunkInfos: IPlayerDetails[] = [];
                         for (const chunk of chunks) {
-                            const results: IPlayerDetails[] = await iplayerDetailsService.detailsForEpisodeMetadata(chunk);
-                            for (const info of results) {
-                                if (!infoPidLedger.has(info.pid)) {
-                                    infos.push(info);
-                                    infoPidLedger.add(info.pid);
-                                }
-                            }
+                            const results: IPlayerDetails[] =
+                                await iplayerDetailsService.detailsForEpisodeMetadata(chunk);
+                            chunkInfos.push(...results);
                         }
-                        pidLedger.push(containerPid);
+
+                        infos = [...infos, ...chunkInfos];
+                        pidLedger.push(ref);
                     }
                 } else {
                     const pidInfos = await iplayerDetailsService.details([ref]);
-                    for (const info of pidInfos) {
-                        if (!infoPidLedger.has(info.pid)) {
-                            infos.push(info);
-                            infoPidLedger.add(info.pid);
-                        }
-                    }
+                    pidInfos.forEach((info) => infos.push(info));
                 }
 
                 //Limit to only 150 results
@@ -77,27 +82,18 @@ class NativeSearchService implements AbstractSearchService {
         }
     }
 
-    async #expandEpisodesFromContainer(containerPid: string): Promise<IPlayerEpisodeMetadata[]> {
-        const containerChildren: IPlayerEpisodeMetadata[] = await iplayerDetailsService.getSeriesEpisodes(containerPid);
-        const directEpisodes = containerChildren.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null);
-        const childContainers = containerChildren.filter(({ type }) => type == 'series' || type == 'brand');
-
-        const nestedChildren = (await Promise.all(
-            childContainers.map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id))
-        )).flat();
-        const nestedEpisodes = nestedChildren.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null);
-
-        const combined = [...directEpisodes, ...nestedEpisodes];
-        const dedupedByPid = new Map<string, IPlayerEpisodeMetadata>();
-        for (const episode of combined) {
-            dedupedByPid.set(episode.id, episode);
-        }
-        return [...dedupedByPid.values()];
-    }
-
-    async processCompletedSearch(results: IPlayerSearchResult[], _inputTerm: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> {
-        const exemptions = synonym?.exemptions?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-        return exemptions?.length ? results.filter(r => exemptions.every(ex => !r.title.toLowerCase().includes(ex))) : results;
+    async processCompletedSearch(
+        results: IPlayerSearchResult[],
+        _inputTerm: string,
+        synonym?: Synonym
+    ): Promise<IPlayerSearchResult[]> {
+        const exemptions = synonym?.exemptions
+            ?.split(',')
+            .map((e) => e.trim().toLowerCase())
+            .filter(Boolean);
+        return exemptions?.length
+            ? results.filter((r) => exemptions.every((ex) => !r.title.toLowerCase().includes(ex)))
+            : results;
     }
 
     async createSearchResult(
@@ -132,20 +128,20 @@ class NativeSearchService implements AbstractSearchService {
             this.field('pid');
             this.field('title');
 
-            results.forEach(({ id: pid, title }) => this.add({ pid, title }))
+            results.forEach(({ id: pid, title }) => this.add({ pid, title }));
         });
-        const sanitizedTerm = sanitizeLunrQuery(term);
-        if (!sanitizedTerm) {
-            return [];
-        }
         try {
-            return lunrIndex.search(sanitizedTerm);
-        } catch (err: any) {
-            if (err && err.name === 'QueryParseError') {
-                loggingService.error(`Lunr QueryParseError for term "${term}": ${err.message}`);
+            return lunrIndex.search(term);
+        } catch (e) {
+            const cleanTerm = term.replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (!cleanTerm) {
                 return [];
             }
-            throw err;
+            try {
+                return lunrIndex.search(cleanTerm);
+            } catch (err) {
+                return [];
+            }
         }
     }
 }

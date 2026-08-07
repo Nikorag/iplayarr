@@ -2,7 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import request from 'supertest';
 
-import AuthRoute, { addAuthMiddleware } from '../../src/routes/AuthRoute';
+import AuthRoute, { addAuthMiddleware, socketAuthMiddleware } from '../../src/routes/AuthRoute';
 import configService from '../../src/service/configService';
 import { IplayarrParameter } from '../../src/types/IplayarrParameters';
 import { ApiError } from '../../src/types/responses/ApiResponse';
@@ -196,5 +196,42 @@ describe('AuthRoute', () => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual({ status: true });
         });
+    });
+});
+
+describe('socketAuthMiddleware', () => {
+    const makeSocket = (sessionData?: Record<string, any>) => ({
+        request: { session: sessionData ?? {} },
+    });
+
+    it('should allow connection when AUTH_TYPE is none', async () => {
+        (configService.getParameter as jest.Mock).mockResolvedValueOnce('none');
+        const next = jest.fn();
+
+        await socketAuthMiddleware(makeSocket() as any, next);
+
+        expect(next).toHaveBeenCalledWith(/* no error */);
+        expect(next.mock.calls[0]).toHaveLength(0);
+    });
+
+    it('should allow connection when user is present in session', async () => {
+        (configService.getParameter as jest.Mock).mockResolvedValueOnce('form');
+        const next = jest.fn();
+
+        await socketAuthMiddleware(makeSocket({ user: { username: 'haven' } }) as any, next);
+
+        expect(next).toHaveBeenCalledWith(/* no error */);
+        expect(next.mock.calls[0]).toHaveLength(0);
+    });
+
+    it('should reject connection when no session user and auth is required', async () => {
+        (configService.getParameter as jest.Mock).mockResolvedValueOnce('form');
+        const next = jest.fn();
+
+        await socketAuthMiddleware(makeSocket() as any, next);
+
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
+        expect(next.mock.calls[0][0].message).toBe('Unauthorized');
     });
 });

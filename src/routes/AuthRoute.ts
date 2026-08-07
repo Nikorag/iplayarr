@@ -30,21 +30,22 @@ const router: Router = Router();
 let token: string = '';
 let resetTimer: NodeJS.Timeout | undefined;
 
-export const addAuthMiddleware = (app: Express) => {
-    const sessionCookieSettings: any = { secure: false, maxAge: 1000 * 60 * 60 * 24 };
-    if (isDebug) {
-        sessionCookieSettings.sameSite = 'lax';
-    }
+// Module-level session middleware — shared by Express routes and Socket.io auth
+const sessionCookieSettings: session.CookieOptions = { secure: false, maxAge: 1000 * 60 * 60 * 24 };
+if (isDebug) {
+    sessionCookieSettings.sameSite = 'lax';
+}
 
-    app.use(
-        session({
-            secret: process.env.SESSION_SECRET || 'default_secret_key', // Replace in production
-            resave: false,
-            saveUninitialized: false,
-            cookie: sessionCookieSettings,
-            store: redisStore,
-        })
-    );
+export const sessionMiddleware = session({
+    secret: process.env.SESSION_SECRET || 'default_secret_key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: sessionCookieSettings,
+    store: redisStore,
+});
+
+export const addAuthMiddleware = (app: Express) => {
+    app.use(sessionMiddleware);
 
     app.use('/json-api/*', async (req: Request, res: Response, next: NextFunction) => {
         const [authType, username] = await Promise.all([
@@ -228,5 +229,23 @@ router.post('/resetPassword', async (req: Request, res: Response) => {
 
     res.json({ status: true });
 });
+
+/**
+ * Socket.io middleware — rejects unauthenticated connections unless AUTH_TYPE is 'none'.
+ * Must be registered AFTER the sessionMiddleware io.use() wrapper so that
+ * socket.request.session is already populated.
+ */
+export const socketAuthMiddleware = async (
+    socket: { request: unknown },
+    next: (err?: Error) => void
+): Promise<void> => {
+    const req = socket.request as Request;
+    const authType = await configService.getParameter(IplayarrParameter.AUTH_TYPE);
+    if (authType === 'none' || req.session?.user) {
+        next();
+    } else {
+        next(new Error('Unauthorized'));
+    }
+};
 
 export default router;

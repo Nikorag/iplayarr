@@ -2,6 +2,11 @@ import axios from 'axios';
 
 import RedisCacheService from '../redis/redisCacheService';
 
+// Skyhook rejects requests carrying axios's default User-Agent (axios/x.x.x) with a 400,
+// presumably bot mitigation aimed at generic HTTP clients. It's Sonarr's own metadata
+// service, so identify as Sonarr rather than spoofing a browser.
+const SKYHOOK_REQUEST_CONFIG = { headers: { 'User-Agent': 'Sonarr' } };
+
 class SkyhookService {
     skyhookSeriesCache: RedisCacheService<{ tvdbId: string }[]>
     skyhookEpisodeCache: RedisCacheService<{ episodes: any[] } | undefined>
@@ -34,7 +39,7 @@ class SkyhookService {
 
         try {
             const url = `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`;
-            const { data } = await axios.get(url);
+            const { data } = await axios.get(url, SKYHOOK_REQUEST_CONFIG);
             if (data && Array.isArray(data)) {
                 await this.skyhookSeriesCache.set(seriesName, data);
             }
@@ -56,7 +61,7 @@ class SkyhookService {
 
         if (!data) {
             try {
-                const response = await axios.get(url);
+                const response = await axios.get(url, SKYHOOK_REQUEST_CONFIG);
                 data = response.data;
                 await this.skyhookEpisodeCache.set(String(tvdbId), data);
             } catch {

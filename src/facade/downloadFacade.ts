@@ -58,17 +58,58 @@ class DownloadFacade {
                     await service.postProcess(pid, directory, code);
 
                     //Move the resultant file
-                    loggingService.debug(pid, `Looking for video files in ${directory}`);
-                    const files = fs.readdirSync(directory);
-                    const videoFile = files.find((file) => file.endsWith('.mp4') || file.endsWith('.mkv'));
+                    const isVideo = (file: string) => file.endsWith('.mp4') || file.endsWith('.mkv');
+                    const isOriginal = (file: string) => file.endsWith('_original.mp4') || file.endsWith('_original.mkv');
+                    // get-iplayer's own post-processing (converting to MPEG-TS/MP4, tagging)
+                    // keeps running for real wall-clock time - tens of seconds for a large
+                    // file - after this process's 'close' event fires. Poll instead of
+                    // scanning once, and only accept the _original file once its size has
+                    // been stable for a full interval (some downloads never produce a second,
+                    // non-_original file at all).
+                    let videoFile: string | undefined;
+                    let lastOriginalSize = -1;
+                    const maxAttempts = 100; // ~5 minutes at 3s apart
+                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                        const files = fs.readdirSync(directory);
+                        const processedFile = files.find((file) => isVideo(file) && !isOriginal(file));
+                        const originalFile = files.find((file) => isVideo(file) && isOriginal(file));
+
+                        if (processedFile) {
+                            videoFile = processedFile;
+                            break;
+                        }
+
+                        if (originalFile) {
+                            const size = fs.statSync(path.join(directory, originalFile)).size;
+                            if (size === lastOriginalSize) {
+                                videoFile = originalFile;
+                                break;
+                            }
+                            lastOriginalSize = size;
+                        } else {
+                            lastOriginalSize = -1;
+                        }
+
+                        if (attempt < maxAttempts) {
+                            await new Promise((resolve) => setTimeout(resolve, 3000));
+                        }
+                    }
 
                     if (videoFile) {
                         const oldPath = path.join(directory, videoFile);
-                        loggingService.debug(pid, `Found video file ${oldPath}`);
                         const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
-                        loggingService.debug(pid, `Moving ${oldPath} to ${newPath}`);
+                        loggingService.debug(pid, `Found video file ${oldPath}, moving to ${newPath}`);
 
-                        copyWithFallback(oldPath, newPath);
+                        try {
+                            copyWithFallback(oldPath, newPath);
+                        } catch (copyErr: any) {
+                            if (copyErr.code === 'ENOENT') {
+                                loggingService.error(pid, `${oldPath} vanished immediately before copy for '${queueItem.nzbName}'`);
+                                videoFile = undefined;
+                            } else {
+                                throw copyErr;
+                            }
+                        }
                     }
 
                     // Delete the uuid directory and file after moving it
@@ -143,6 +184,8 @@ class DownloadFacade {
 
             entries.forEach((entry) => {
                 if (!entry.isDirectory()) return;
+
+                if (queueService.getFromQueue(entry.name)) return;
 
                 const dirPath: string = path.join(downloadDir, entry.name);
                 const filePath: string = path.join(dirPath, timestampFile);

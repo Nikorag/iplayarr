@@ -22,6 +22,7 @@ jest.mock('fs', () => ({
     rmSync: jest.fn(),
     rm: jest.fn(),
     stat: jest.fn(),
+    statSync: jest.fn(),
     readdir: jest.fn(),
 }));
 
@@ -110,7 +111,15 @@ describe('DownloadFacade', () => {
         const pid = 'test-pid';
         const queueItem = { nzbName: 'Test.Episode', details: { size: 100 } };
 
-        async function triggerClose(code: number) {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        async function triggerClose(code: number): Promise<void> {
             const downloadDir = '/downloads';
 
             (configService.getParameter as jest.Mock)
@@ -134,7 +143,9 @@ describe('DownloadFacade', () => {
                 .mockResolvedValueOnce('/complete') // COMPLETE_DIR
                 .mockResolvedValueOnce('mp4'); // OUTPUT_FORMAT
 
-            await closeHandler(code);
+            const closePromise = closeHandler(code);
+            await jest.advanceTimersByTimeAsync(10000);
+            await closePromise;
         }
 
         it('prefers a processed (non-_original) file when both exist', async () => {
@@ -148,8 +159,9 @@ describe('DownloadFacade', () => {
             );
         });
 
-        it('falls back to the _original file when it is the only video present', async () => {
+        it('falls back to the _original file once its size is stable', async () => {
             (fs.readdirSync as jest.Mock).mockReturnValue(['episode_original.mp4']);
+            (fs.statSync as jest.Mock).mockReturnValue({ size: 12345 });
 
             await triggerClose(0);
 

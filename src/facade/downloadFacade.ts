@@ -60,7 +60,12 @@ class DownloadFacade {
                     //Move the resultant file
                     loggingService.debug(pid, `Looking for video files in ${directory}`);
                     const files = fs.readdirSync(directory);
-                    const videoFile = files.find((file) => (file.endsWith('.mp4') || file.endsWith('.mkv')) && !file.endsWith('_original.mp4') && !file.endsWith('_original.mkv'));
+                    const isVideo = (file: string) => file.endsWith('.mp4') || file.endsWith('.mkv');
+                    const isOriginal = (file: string) => file.endsWith('_original.mp4') || file.endsWith('_original.mkv');
+                    // _original isn't always a discarded backup - some downloads never produce
+                    // a second file, so fall back to it rather than treating it as garbage.
+                    const videoFile = files.find((file) => isVideo(file) && !isOriginal(file))
+                        ?? files.find((file) => isVideo(file) && isOriginal(file));
 
                     if (videoFile) {
                         const oldPath = path.join(directory, videoFile);

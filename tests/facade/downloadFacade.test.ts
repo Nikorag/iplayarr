@@ -4,6 +4,8 @@ import { timestampFile } from '../../src/constants/iPlayarrConstants';
 import downloadFacade from '../../src/facade/downloadFacade';
 import configService from '../../src/service/configService';
 import GetIplayerDownloadService from '../../src/service/download/GetIplayerDownloadService';
+import historyService from '../../src/service/historyService';
+import queueService from '../../src/service/queueService';
 import { DownloadClient } from '../../src/types/enums/DownloadClient';
 
 // Mocks
@@ -57,6 +59,10 @@ jest.mock('../../src/service/socketService', () => ({
     emit: jest.fn(),
 }));
 
+jest.mock('../../src/service/historyService', () => ({
+    addHistory: jest.fn(),
+}));
+
 describe('DownloadFacade', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -97,6 +103,61 @@ describe('DownloadFacade', () => {
             expect(mockChildProcess.on).toHaveBeenCalledWith('close', expect.any(Function));
 
             expect(result).toBe(mockChildProcess);
+        });
+    });
+
+    describe('processComplete video file selection (via close handler)', () => {
+        const pid = 'test-pid';
+        const queueItem = { nzbName: 'Test.Episode', details: { size: 100 } };
+
+        async function triggerClose(code: number) {
+            const downloadDir = '/downloads';
+
+            (configService.getParameter as jest.Mock)
+                .mockResolvedValueOnce(downloadDir) // DOWNLOAD_DIR
+                .mockResolvedValueOnce(DownloadClient.GET_IPLAYER); // DOWNLOAD_CLIENT
+
+            const mockChildProcess = {
+                stdout: { on: jest.fn() },
+                stderr: { on: jest.fn() },
+                on: jest.fn(),
+            };
+            (GetIplayerDownloadService.download as jest.Mock).mockResolvedValue(mockChildProcess);
+            (GetIplayerDownloadService.postProcess as jest.Mock).mockResolvedValue(undefined);
+
+            await downloadFacade.download(pid);
+
+            const closeHandler = mockChildProcess.on.mock.calls.find(([event]) => event === 'close')?.[1];
+
+            (queueService.getFromQueue as jest.Mock).mockReturnValueOnce(queueItem);
+            (configService.getParameter as jest.Mock)
+                .mockResolvedValueOnce('/complete') // COMPLETE_DIR
+                .mockResolvedValueOnce('mp4'); // OUTPUT_FORMAT
+
+            await closeHandler(code);
+        }
+
+        it('prefers a processed (non-_original) file when both exist', async () => {
+            (fs.readdirSync as jest.Mock).mockReturnValue(['episode_original.mp4', 'episode.mp4']);
+
+            await triggerClose(0);
+
+            expect(fs.copyFileSync).toHaveBeenCalledWith(
+                expect.stringContaining('/episode.mp4'),
+                expect.any(String)
+            );
+        });
+
+        it('falls back to the _original file when it is the only video present', async () => {
+            (fs.readdirSync as jest.Mock).mockReturnValue(['episode_original.mp4']);
+
+            await triggerClose(0);
+
+            expect(fs.copyFileSync).toHaveBeenCalledWith(
+                expect.stringContaining('episode_original.mp4'),
+                expect.any(String)
+            );
+            expect(historyService.addHistory).toHaveBeenCalledWith(queueItem);
         });
     });
 

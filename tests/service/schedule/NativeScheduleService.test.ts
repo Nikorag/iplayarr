@@ -1,22 +1,22 @@
 // __tests__/NativeScheduleService.test.ts
 import axios from 'axios';
 
-import configService from '../../../src/service/configService';
-import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
-import loggingService from '../../../src/service/loggingService';
-import NativeScheduleService from '../../../src/service/schedule/NativeScheduleService';
-import NativeSearchService from '../../../src/service/search/NativeSearchService';
-import synonymService from '../../../src/service/synonymService';
-import * as Utils from '../../../src/utils/Utils';
+import configService from '../../../server/service/configService';
+import iplayerDetailsService from '../../../server/service/iplayerDetailsService';
+import loggingService from '../../../server/service/loggingService';
+import NativeScheduleService from '../../../server/service/schedule/NativeScheduleService';
+import NativeSearchService from '../../../server/service/search/NativeSearchService';
+import synonymService from '../../../server/service/synonymService';
+import * as Utils from '../../../server/utils/Utils';
 
 jest.mock('axios');
-jest.mock('../../../src/service/configService');
-jest.mock('../../../src/service/iplayerDetailsService');
-jest.mock('../../../src/service/loggingService');
-jest.mock('../../../src/service/cache/cacheService');
-jest.mock('../../../src/service/search/NativeSearchService');
-jest.mock('../../../src/utils/Utils');
-jest.mock('../../../src/service/synonymService');
+jest.mock('../../../server/service/configService');
+jest.mock('../../../server/service/iplayerDetailsService');
+jest.mock('../../../server/service/loggingService');
+jest.mock('../../../server/service/cache/cacheService');
+jest.mock('../../../server/service/search/NativeSearchService');
+jest.mock('../../../server/utils/Utils');
+jest.mock('../../../server/service/synonymService');
 
 describe('NativeScheduleService', () => {
     beforeEach(() => {

@@ -1,37 +1,30 @@
-import express, { Response } from 'express';
-import request from 'supertest';
+import { EventHandler } from 'h3';
 
-import { NewzNabEndpointDirectory } from '../../src/constants/EndpointDirectory';
-import router from '../../src/routes/ApiRoute';  // Update with the correct path to your router
-import configService from '../../src/service/configService';
-import { ApiError } from '../../src/types/responses/ApiResponse';
+import apiRoute from '../../server/api/index';
+import { NewzNabEndpointDirectory } from '../../server/constants/EndpointDirectory';
+import configService from '../../server/service/configService';
+import { ApiError } from '../../server/types/responses/ApiResponse';
+import { testRequest } from '../helpers/h3';
 
 // Mocking dependencies
-jest.mock('../../src/service/configService');
-jest.mock('../../src/constants/EndpointDirectory', () => ({
+jest.mock('../../server/service/configService');
+jest.mock('../../server/constants/EndpointDirectory', () => ({
     SabNZBDEndpointDirectory: {
-        someEndpoint: jest.fn(async (_, res: Response) => {
-            res.status(200).json({ success: true });
-            return true;
-        }),
+        someEndpoint: jest.fn(async () => ({ success: true })),
     },
     NewzNabEndpointDirectory: {
-        someEndpoint: jest.fn(async (_, res: Response) => {
-            res.status(200).json({ success: true });
-            return true;
-        }),
+        someEndpoint: jest.fn(async () => ({ success: true })),
     },
 }));
 
 describe('API Route Tests', () => {
-    const app = express();
-    app.use('/api', router);
+    const app = testRequest([['get', '/api', apiRoute as EventHandler], ['post', '/api', apiRoute as EventHandler]]);
 
     it('should return 401 if API key is incorrect', async () => {
         // Mock the getParameter method to return a different API key than the one passed in the query
         (configService.getParameter as jest.Mock).mockResolvedValue('correct-api-key');
 
-        const response = await request(app)
+        const response = await app
             .post('/api')
             .query({ apikey: 'wrong-api-key' })  // Using incorrect API key
             .send();
@@ -44,7 +37,7 @@ describe('API Route Tests', () => {
         // Mock the getParameter method to return the correct API key
         (configService.getParameter as jest.Mock).mockResolvedValue('correct-api-key');
 
-        const response = await request(app)
+        const response = await app
             .post('/api')
             .query({ apikey: 'correct-api-key', mode: 'invalidMode' })  // Using invalid mode
             .send();
@@ -58,12 +51,13 @@ describe('API Route Tests', () => {
         (configService.getParameter as jest.Mock).mockResolvedValue('correct-api-key');
 
         // Send a request with a valid API key and a valid endpoint (NewzNab)
-        const response = await request(app)
+        const response = await app
             .post('/api')
             .query({ apikey: 'correct-api-key', t: 'someEndpoint' })
             .send();
 
         expect(response.status).toBe(200);
+        expect(response.body).toEqual({ success: true });
         expect((NewzNabEndpointDirectory as any).someEndpoint).toHaveBeenCalled();
     });
 });

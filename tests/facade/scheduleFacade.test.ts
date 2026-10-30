@@ -1,15 +1,15 @@
-import scheduleFacade from '../../src/facade/scheduleFacade';
-import configService from '../../src/service/configService';
-import GetIplayerScheduleService from '../../src/service/schedule/GetIplayerScheduleService';
-import NativeScheduleService from '../../src/service/schedule/NativeScheduleService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
+import scheduleFacade from '../../server/facade/scheduleFacade';
+import configService from '../../server/service/configService';
+import GetIplayerScheduleService from '../../server/service/schedule/GetIplayerScheduleService';
+import NativeScheduleService from '../../server/service/schedule/NativeScheduleService';
+import { IplayarrParameter } from '../../server/types/IplayarrParameters';
 
-jest.mock('../../src/service/configService');
-jest.mock('../../src/service/schedule/GetIplayerScheduleService', () => ({
+jest.mock('../../server/service/configService');
+jest.mock('../../server/service/schedule/GetIplayerScheduleService', () => ({
     refreshCache: jest.fn(),
     getFeed: jest.fn()
 }));
-jest.mock('../../src/service/schedule/NativeScheduleService', () => ({
+jest.mock('../../server/service/schedule/NativeScheduleService', () => ({
     refreshCache: jest.fn(),
     getFeed: jest.fn()
 }));

@@ -1,14 +1,20 @@
-import express from 'express';
 import request from 'supertest';
 
-import router from '../../../src/routes/json-api/StatisticsRoute'; // adjust path as needed
-import statisticsService from '../../../src/service/stats/StatisticsService';
+import getCacheSizes from '../../../server/routes/json-api/stats/cacheSizes.get';
+import getGrabHistory from '../../../server/routes/json-api/stats/grabHistory.get';
+import getSearchHistory from '../../../server/routes/json-api/stats/searchHistory.get';
+import getUptime from '../../../server/routes/json-api/stats/uptime.get';
+import statisticsService from '../../../server/service/stats/StatisticsService';
+import { nodeApp } from '../../helpers/h3';
 
-jest.mock('../../../src/service/stats/StatisticsService');
+jest.mock('../../../server/service/stats/StatisticsService');
 
-const expressApp = express();
-expressApp.use(express.json());
-expressApp.use('/', router);
+const expressApp = nodeApp([
+    ['get', '/searchHistory', getSearchHistory],
+    ['get', '/grabHistory', getGrabHistory],
+    ['get', '/uptime', getUptime],
+    ['get', '/cacheSizes', getCacheSizes],
+]);
 
 describe('Statistics Routes', () => {
     beforeEach(() => {

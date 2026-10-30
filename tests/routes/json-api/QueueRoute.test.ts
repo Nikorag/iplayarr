@@ -1,18 +1,24 @@
-import express from 'express';
 import request from 'supertest';
 
-import router from '../../../src/routes/json-api/QueueRoute';
-import historyService from '../../../src/service/historyService';
-import queueService from '../../../src/service/queueService';
-import socketService from '../../../src/service/socketService';
+import deleteHistory from '../../../server/routes/json-api/queue/history.delete';
+import getHistory from '../../../server/routes/json-api/queue/history.get';
+import deleteQueue from '../../../server/routes/json-api/queue/queue.delete';
+import getQueue from '../../../server/routes/json-api/queue/queue.get';
+import historyService from '../../../server/service/historyService';
+import queueService from '../../../server/service/queueService';
+import socketService from '../../../server/service/socketService';
+import { nodeApp } from '../../helpers/h3';
 
-jest.mock('../../../src/service/queueService');
-jest.mock('../../../src/service/historyService');
-jest.mock('../../../src/service/socketService');
+jest.mock('../../../server/service/queueService');
+jest.mock('../../../server/service/historyService');
+jest.mock('../../../server/service/socketService');
 
-const app = express();
-app.use(express.json());
-app.use('/', router);
+const app = nodeApp([
+    ['get', '/queue', getQueue],
+    ['get', '/history', getHistory],
+    ['delete', '/queue', deleteQueue],
+    ['delete', '/history', deleteHistory],
+]);
 
 describe('Queue and History Routes', () => {
   beforeEach(() => {

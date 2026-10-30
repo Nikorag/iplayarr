@@ -1,25 +1,20 @@
-import { NextFunction, Request, Response } from 'express';
+import handler from '../../../server/endpoints/sabnzbd/QueueEndpoint';
+import configService from '../../../server/service/configService';
+import historyService from '../../../server/service/historyService';
+import queueService from '../../../server/service/queueService';
+import { QueueEntryStatus } from '../../../server/types/responses/sabnzbd/QueueResponse';
+import { makeEvent } from '../../helpers/h3';
 
-import handler from '../../../src/endpoints/sabnzbd/QueueEndpoint';
-import configService from '../../../src/service/configService';
-import historyService from '../../../src/service/historyService';
-import queueService from '../../../src/service/queueService';
-import { QueueEntryStatus } from '../../../src/types/responses/sabnzbd/QueueResponse';
 
-
-jest.mock('../../../src/service/configService');
-jest.mock('../../../src/service/queueService');
-jest.mock('../../../src/service/historyService');
+jest.mock('../../../server/service/configService');
+jest.mock('../../../server/service/queueService');
+jest.mock('../../../server/service/historyService');
 
 describe('AbstractSabNZBDActionEndpoint', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
-    let next: NextFunction;
+    let req: { query: Record<string, string> };
 
     beforeEach(() => {
         req = { query: {} };
-        res = { json: jest.fn() };
-        next = jest.fn();
     });
 
     describe('delete action', () => {
@@ -27,22 +22,22 @@ describe('AbstractSabNZBDActionEndpoint', () => {
             (configService.getParameter as jest.Mock).mockResolvedValue('true');
             req.query = { value: 'abc123', name: 'delete' };
 
-            await handler(req as Request, res as Response, next);
+            const result = await handler(makeEvent({ query: req.query }));
 
             expect(configService.getParameter).toHaveBeenCalledWith('ARCHIVE_ENABLED');
             expect(queueService.cancelItem).toHaveBeenCalledWith('abc123', true);
-            expect(res.json).toHaveBeenCalledWith({ status: true });
+            expect(result).toEqual({ status: true });
         });
 
         it('should return status false if value is not provided', async () => {
             (configService.getParameter as jest.Mock).mockResolvedValue('false');
             req.query = { name: 'delete' };
 
-            await handler(req as Request, res as Response, next);
+            const result = await handler(makeEvent({ query: req.query }));
 
             expect(configService.getParameter).toHaveBeenCalledWith('ARCHIVE_ENABLED');
             expect(queueService.cancelItem).not.toHaveBeenCalled();
-            expect(res.json).toHaveBeenCalledWith({ status: false });
+            expect(result).toEqual({ status: false });
         });
     });
 
@@ -67,12 +62,12 @@ describe('AbstractSabNZBDActionEndpoint', () => {
             (queueService.getQueue as jest.Mock).mockReturnValue(mockQueue);
             (historyService.getHistory as jest.Mock).mockResolvedValue(mockHistory);
 
-            await handler(req as Request, res as Response, next);
+            const result = await handler(makeEvent({ query: req.query }));
 
             expect(queueService.getQueue).toHaveBeenCalled();
             expect(historyService.getHistory).toHaveBeenCalled();
 
-            expect(res.json).toHaveBeenCalledWith({
+            expect(result).toEqual({
                 'queue': {
                     'speedlimit': 9,
                     'speedlimit_abs': 4718592,
@@ -143,9 +138,9 @@ describe('AbstractSabNZBDActionEndpoint', () => {
             (queueService.getQueue as jest.Mock).mockReturnValue(mockQueue);
             (historyService.getHistory as jest.Mock).mockResolvedValue(mockHistory);
 
-            await handler(req as Request, res as Response, next);
+            const result = await handler(makeEvent({ query: req.query }));
 
-            expect(res.json).toHaveBeenCalledWith({
+            expect(result).toEqual({
                 'queue': {
                     'speedlimit': 9,
                     'speedlimit_abs': 4718592,

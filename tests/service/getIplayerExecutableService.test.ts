@@ -1,29 +1,29 @@
 import fs from 'fs';
 
-import configService from '../../src/service/configService';
-import { GetIplayerExecutableService } from '../../src/service/getIplayerExecutableService';
-import historyService from '../../src/service/historyService';
-import queueService from '../../src/service/queueService';
-import SkyhookService from '../../src/service/skyhook/SkyhookService';
-import socketService from '../../src/service/socketService';
-import synonymService from '../../src/service/synonymService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';
-import { Synonym } from '../../src/types/Synonym';
+import configService from '../../server/service/configService';
+import { GetIplayerExecutableService } from '../../server/service/getIplayerExecutableService';
+import historyService from '../../server/service/historyService';
+import queueService from '../../server/service/queueService';
+import SkyhookService from '../../server/service/skyhook/SkyhookService';
+import socketService from '../../server/service/socketService';
+import synonymService from '../../server/service/synonymService';
+import { IplayarrParameter } from '../../server/types/IplayarrParameters';
+import { IPlayerSearchResult, VideoType } from '../../server/types/IPlayerSearchResult';
+import { Synonym } from '../../server/types/Synonym';
 
 jest.mock('bcrypt', () => ({
     hash: jest.fn().mockResolvedValue('$2b$10$mockedhash'),
     compare: jest.fn().mockResolvedValue(false),
 }));
 
-jest.mock('../../src/service/configService');
+jest.mock('../../server/service/configService');
 const mockedConfigService = jest.mocked(configService);
-jest.mock('../../src/service/historyService');
-jest.mock('../../src/service/loggingService');
-jest.mock('../../src/service/queueService');
-jest.mock('../../src/service/socketService');
-jest.mock('../../src/service/synonymService');
-jest.mock('../../src/service/skyhook/SkyhookService');
+jest.mock('../../server/service/historyService');
+jest.mock('../../server/service/loggingService');
+jest.mock('../../server/service/queueService');
+jest.mock('../../server/service/socketService');
+jest.mock('../../server/service/synonymService');
+jest.mock('../../server/service/skyhook/SkyhookService');
 const mockedSynonymService = jest.mocked(synonymService);
 const mockedSkyhookService = jest.mocked(SkyhookService);
 jest.mock('fs');

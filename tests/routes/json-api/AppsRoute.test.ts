@@ -1,18 +1,30 @@
-import express from 'express';
 import request from 'supertest';
 
-import router from '../../../src/routes/json-api/AppsRoute'; // adjust path if needed
-import appService from '../../../src/service/appService';
-import { appFeatures } from '../../../src/types/AppType';
-import { ApiError } from '../../../src/types/responses/ApiResponse';
-import { AppFormValidator } from '../../../src/validators/AppFormValidator';
+import deleteApp from '../../../server/routes/json-api/apps/index.delete';
+import getApps from '../../../server/routes/json-api/apps/index.get';
+import postApp from '../../../server/routes/json-api/apps/index.post';
+import putApp from '../../../server/routes/json-api/apps/index.put';
+import testApp from '../../../server/routes/json-api/apps/test.post';
+import getTypes from '../../../server/routes/json-api/apps/types.get';
+import updateApiKey from '../../../server/routes/json-api/apps/updateApiKey.post';
+import appService from '../../../server/service/appService';
+import { appFeatures } from '../../../server/types/AppType';
+import { ApiError } from '../../../server/types/responses/ApiResponse';
+import { AppFormValidator } from '../../../server/validators/AppFormValidator';
+import { nodeApp } from '../../helpers/h3';
 
-jest.mock('../../../src/service/appService');
-jest.mock('../../../src/validators/AppFormValidator');
+jest.mock('../../../server/service/appService');
+jest.mock('../../../server/validators/AppFormValidator');
 
-const app = express();
-app.use(express.json());
-app.use('/', router);
+const app = nodeApp([
+    ['get', '/', getApps],
+    ['post', '/', postApp],
+    ['put', '/', putApp],
+    ['delete', '/', deleteApp],
+    ['get', '/types', getTypes],
+    ['post', '/test', testApp],
+    ['post', '/updateApiKey', updateApiKey],
+]);
 
 describe('App Router', () => {
     beforeEach(() => {

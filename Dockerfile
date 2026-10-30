@@ -20,7 +20,7 @@ RUN apk --update add \
 # Symlink AtomicParsley
 RUN ln -s `which atomicparsley` /usr/local/bin/AtomicParsley
 
-RUN mkdir -p /data/output /data/config /config /data /node-persist /app/frontend /logs
+RUN mkdir -p /data/output /data/config /config /data /node-persist /app /logs
 
 WORKDIR /iplayer
 
@@ -57,12 +57,19 @@ RUN chmod +x /redis/redis-server
 WORKDIR /app
 
 COPY package*.json ./
-COPY frontend/package*.json ./frontend/
 
-RUN npm run install:both
+RUN npm ci
 COPY . .
-RUN npm run build:both
-RUN rm -rf /app/src /app/frontend/src
+RUN npm run build
+
+# The Nuxt build is self-contained, but only bundles the files it can statically trace. Native modules are
+# copied over from the install above so that platforms without prebuilt binaries still get the compiled ones.
+RUN for module in better-sqlite3 bcrypt; do \
+        rm -rf .output/server/node_modules/$module && cp -a node_modules/$module .output/server/node_modules/$module; \
+    done
+
+# Only the build output, database migrations and start script are needed at runtime
+RUN rm -rf node_modules .nuxt app server tests
 
 ENV LOG_DIR=/logs
 

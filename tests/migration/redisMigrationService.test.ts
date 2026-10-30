@@ -1,11 +1,11 @@
 import RedisMock from 'ioredis-mock';
 
-import { SqliteDriver } from '../../src/db/sqliteDriver';
-import { importFromRedis, migrateFromRedisIfNeeded, MIGRATION_MARKER } from '../../src/migration/redisMigrationService';
+import { SqliteDriver } from '../../server/db/sqliteDriver';
+import { importFromRedis, migrateFromRedisIfNeeded, MIGRATION_MARKER } from '../../server/migration/redisMigrationService';
 
 let driver: SqliteDriver;
 
-jest.mock('../../src/db/database', () => ({ getDatabase: () => Promise.resolve(driver) }));
+jest.mock('../../server/db/database', () => ({ getDatabase: () => Promise.resolve(driver) }));
 
 describe('redis migration', () => {
     let redis: InstanceType<typeof RedisMock>;

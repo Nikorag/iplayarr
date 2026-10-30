@@ -1,14 +1,17 @@
-import express from 'express';
 import request from 'supertest';
 
-import SettingsRoute from '../../../src/routes/json-api/SettingsRoute';
-import configService from '../../../src/service/configService';
-import { qualityProfiles } from '../../../src/types/QualityProfiles';
-import { ApiError, ApiResponse } from '../../../src/types/responses/ApiResponse';
-import * as Utils from '../../../src/utils/Utils';
-import { ConfigFormValidator } from '../../../src/validators/ConfigFormValidator';
+import getHiddenSettings from '../../../server/routes/json-api/config/hiddenSettings.get';
+import getConfig from '../../../server/routes/json-api/config/index.get';
+import putConfig from '../../../server/routes/json-api/config/index.put';
+import getQualityProfiles from '../../../server/routes/json-api/config/qualityProfiles.get';
+import configService from '../../../server/service/configService';
+import { qualityProfiles } from '../../../server/types/QualityProfiles';
+import { ApiError, ApiResponse } from '../../../server/types/responses/ApiResponse';
+import * as Utils from '../../../server/utils/Utils';
+import { ConfigFormValidator } from '../../../server/validators/ConfigFormValidator';
+import { nodeApp } from '../../helpers/h3';
 
-jest.mock('../../../src/service/configService');
+jest.mock('../../../server/service/configService');
 const mockedConfigService = jest.mocked(configService);
 
 const mockedConfigFormValidator: jest.Mocked<ConfigFormValidator> = {
@@ -18,14 +21,17 @@ const mockedConfigFormValidator: jest.Mocked<ConfigFormValidator> = {
     isNumber: jest.fn(),
     matchesRegex: jest.fn(),
 };
-jest.mock('../../../src/validators/ConfigFormValidator', () => ({
+jest.mock('../../../server/validators/ConfigFormValidator', () => ({
     ConfigFormValidator: jest.fn(() => mockedConfigFormValidator),
 }));
 
 describe('SettingsRoute', () => {
-    const app = express();
-    app.use(express.json());
-    app.use('/', SettingsRoute);
+    const app = nodeApp([
+        ['get', '/hiddenSettings', getHiddenSettings],
+        ['get', '/', getConfig],
+        ['put', '/', putConfig],
+        ['get', '/qualityProfiles', getQualityProfiles],
+    ]);
 
     afterEach(() => {
         jest.restoreAllMocks();

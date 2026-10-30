@@ -1,12 +1,12 @@
-import { ArrServiceDirectory } from '../../src/constants/ArrServiceDirectory';
-import ArrFacade from '../../src/facade/arrFacade';
-import AbstractArrService, { ArrTag } from '../../src/service/arr/AbstractArrService';
-import { App } from '../../src/types/App';
-import { CreateDownloadClientForm } from '../../src/types/requests/form/CreateDownloadClientForm';
-import { CreateIndexerForm } from '../../src/types/requests/form/CreateIndexerForm';
-import { ArrLookupResponse } from '../../src/types/responses/arr/ArrLookupResponse';
-import { DownloadClientResponse } from '../../src/types/responses/arr/DownloadClientResponse';
-import { IndexerResponse } from '../../src/types/responses/arr/IndexerResponse';
+import { ArrServiceDirectory } from '../../server/constants/ArrServiceDirectory';
+import ArrFacade from '../../server/facade/arrFacade';
+import AbstractArrService, { ArrTag } from '../../server/service/arr/AbstractArrService';
+import { App } from '../../server/types/App';
+import { CreateDownloadClientForm } from '../../server/types/requests/form/CreateDownloadClientForm';
+import { CreateIndexerForm } from '../../server/types/requests/form/CreateIndexerForm';
+import { ArrLookupResponse } from '../../server/types/responses/arr/ArrLookupResponse';
+import { DownloadClientResponse } from '../../server/types/responses/arr/DownloadClientResponse';
+import { IndexerResponse } from '../../server/types/responses/arr/IndexerResponse';
 
 // Create a mock service
 const mockService: jest.Mocked<AbstractArrService> = {

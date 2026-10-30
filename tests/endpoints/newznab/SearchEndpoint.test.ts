@@ -1,39 +1,28 @@
-import { Request, Response } from 'express';
 import { parseStringPromise } from 'xml2js';
 
-import SearchEndpoint from '../../../src/endpoints/newznab/SearchEndpoint';
-import searchFacade from '../../../src/facade/searchFacade';
-import statisticsService from '../../../src/service/stats/StatisticsService';
-import { VideoType } from '../../../src/types/IPlayerSearchResult';
-import * as Utils from '../../../src/utils/Utils';
+import SearchEndpoint from '../../../server/endpoints/newznab/SearchEndpoint';
+import searchFacade from '../../../server/facade/searchFacade';
+import statisticsService from '../../../server/service/stats/StatisticsService';
+import { VideoType } from '../../../server/types/IPlayerSearchResult';
+import * as Utils from '../../../server/utils/Utils';
+import { makeEvent, responseHeader } from '../../helpers/h3';
 
-jest.mock('../../../src/facade/searchFacade');
-jest.mock('../../../src/service/stats/StatisticsService');
+jest.mock('../../../server/facade/searchFacade');
+jest.mock('../../../server/service/stats/StatisticsService');
 jest.spyOn(Utils, 'getBaseUrl').mockReturnValue('http://localhost:3000');
 jest.spyOn(Utils, 'createNZBDownloadLink').mockImplementation(() => Promise.resolve('/nzb/link.nzb'));
 
 describe('SearchEndpoint', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
-    let sendMock: jest.Mock;
-    let setMock: jest.Mock;
+    let query: Record<string, string>;
 
     beforeEach(() => {
-        sendMock = jest.fn();
-        setMock = jest.fn();
-        req = {
-            query: {
-                q: 'Test Show',
-                season: '1',
-                ep: '2',
-                cat: '5000,5040',
-                app: 'radarr',
-                apikey: 'mockkey',
-            },
-        };
-        res = {
-            set: setMock,
-            send: sendMock,
+        query = {
+            q: 'Test Show',
+            season: '1',
+            ep: '2',
+            cat: '5000,5040',
+            app: 'radarr',
+            apikey: 'mockkey',
         };
     });
 
@@ -51,12 +40,10 @@ describe('SearchEndpoint', () => {
         (searchFacade.search as jest.Mock).mockResolvedValue(fakeResults);
         (statisticsService.addSearch as jest.Mock).mockImplementation(() => { });
 
-        await SearchEndpoint(req as Request, res as Response);
+        const event = makeEvent({ query });
+        const xml = await SearchEndpoint(event);
 
-        expect(setMock).toHaveBeenCalledWith('Content-Type', 'application/xml');
-        expect(sendMock).toHaveBeenCalled();
-
-        const xml = sendMock.mock.calls[0][0];
+        expect(responseHeader(event, 'content-type')).toBe('application/xml');
         expect(typeof xml).toBe('string');
 
         const parsed = await parseStringPromise(xml);
@@ -79,16 +66,17 @@ describe('SearchEndpoint', () => {
         // Regression test for: GET /api?t=search&q= closes connection instead of returning RSS feed.
         // Root cause: `q ?? '*'` does not catch empty string (only null/undefined).
         // Fix: `q || '*'` so '' also falls back to '*' (the schedule feed).
-        req.query = { q: '', apikey: 'mockkey' };
+        query = { q: '', apikey: 'mockkey' };
         (searchFacade.search as jest.Mock).mockResolvedValue([]);
         (statisticsService.addSearch as jest.Mock).mockImplementation(() => {});
 
-        await SearchEndpoint(req as Request, res as Response);
+        const event = makeEvent({ query });
+        const xml = await SearchEndpoint(event);
 
         // Must call search with '*', NOT with '' (empty string crashes NativeSearchService)
         expect(searchFacade.search).toHaveBeenCalledWith('*', undefined, undefined);
         // Must still send a valid XML response
-        expect(setMock).toHaveBeenCalledWith('Content-Type', 'application/xml');
-        expect(sendMock).toHaveBeenCalled();
+        expect(responseHeader(event, 'content-type')).toBe('application/xml');
+        expect(typeof xml).toBe('string');
     });
 });

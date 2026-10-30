@@ -1,8 +1,8 @@
-import V1ArrService from '../../../src/service/arr/V1ArrService';
-import { App } from '../../../src/types/App';
-import { CreateProwlarrIndexerRequest } from '../../../src/types/requests/arr/CreateProwlarrIndexerRequest';
-import { CreateDownloadClientForm } from '../../../src/types/requests/form/CreateDownloadClientForm';
-import { CreateIndexerForm } from '../../../src/types/requests/form/CreateIndexerForm';
+import V1ArrService from '../../../server/service/arr/V1ArrService';
+import { App } from '../../../server/types/App';
+import { CreateProwlarrIndexerRequest } from '../../../server/types/requests/arr/CreateProwlarrIndexerRequest';
+import { CreateDownloadClientForm } from '../../../server/types/requests/form/CreateDownloadClientForm';
+import { CreateIndexerForm } from '../../../server/types/requests/form/CreateIndexerForm';
 
 describe('V1ArrService', () => {
     const app: App = {

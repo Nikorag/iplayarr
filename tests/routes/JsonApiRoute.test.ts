@@ -1,26 +1,33 @@
-import bodyParser from 'body-parser';
-import express from 'express';
 import request from 'supertest';
 
-import router from '../../src/routes/JsonApiRoute';
+import cacheRefresh from '../../server/routes/json-api/cache-refresh.get';
+import details from '../../server/routes/json-api/details.get';
+import download from '../../server/routes/json-api/download.get';
+import nzbTest from '../../server/routes/json-api/nzb/test.post';
+import search from '../../server/routes/json-api/search.get';
+import { nodeApp } from '../helpers/h3';
 
 // Mock dependencies
-jest.mock('../../src/facade/nzbFacade');
-jest.mock('../../src/facade/scheduleFacade');
-jest.mock('../../src/facade/searchFacade');
-jest.mock('../../src/service/iplayerDetailsService');
-jest.mock('../../src/service/queueService');
+jest.mock('../../server/facade/nzbFacade');
+jest.mock('../../server/facade/scheduleFacade');
+jest.mock('../../server/facade/searchFacade');
+jest.mock('../../server/service/iplayerDetailsService');
+jest.mock('../../server/service/queueService');
 
-import nzbFacade from '../../src/facade/nzbFacade';
-import scheduleFacade from '../../src/facade/scheduleFacade';
-import searchFacade from '../../src/facade/searchFacade';
-import iplayerDetailsService from '../../src/service/iplayerDetailsService';
-import queueService from '../../src/service/queueService';
-import { ApiError } from '../../src/types/responses/ApiResponse';
+import nzbFacade from '../../server/facade/nzbFacade';
+import scheduleFacade from '../../server/facade/scheduleFacade';
+import searchFacade from '../../server/facade/searchFacade';
+import iplayerDetailsService from '../../server/service/iplayerDetailsService';
+import queueService from '../../server/service/queueService';
+import { ApiError } from '../../server/types/responses/ApiResponse';
 
-const app = express();
-app.use(bodyParser.json());
-app.use(router);
+const app = nodeApp([
+    ['post', '/nzb/test', nzbTest],
+    ['get', '/search', search],
+    ['get', '/details', details],
+    ['get', '/download', download],
+    ['get', '/cache-refresh', cacheRefresh],
+]);
 
 describe('JsonApiRoute', () => {
     describe('POST /nzb/test', () => {
@@ -91,6 +98,31 @@ describe('JsonApiRoute', () => {
             expect(addToQueueMock).toHaveBeenCalledWith('p01xyz', 'show.nzb', 'tv');
             expect(res.status).toBe(200);
             expect(res.body).toEqual({ status: true });
+        });
+    });
+
+    describe('GET /download without type or name', () => {
+        const metadata = (categories: any[]) => ({
+            programme: { display_title: { title: 'Inception', subtitle: '' }, categories },
+        });
+
+        it('detects films from the format category', async () => {
+            (iplayerDetailsService.getMetadata as jest.Mock).mockResolvedValue(
+                metadata([{ type: 'format', key: 'films' }])
+            );
+
+            const res = await request(app).get('/download').query({ pid: 'p01film' });
+
+            expect(queueService.addToQueue).toHaveBeenCalledWith('p01film', 'Inception', 'MOVIE');
+            expect(res.status).toBe(200);
+        });
+
+        it('defaults to TV otherwise', async () => {
+            (iplayerDetailsService.getMetadata as jest.Mock).mockResolvedValue(metadata([]));
+
+            await request(app).get('/download').query({ pid: 'p01show' });
+
+            expect(queueService.addToQueue).toHaveBeenCalledWith('p01show', 'Inception', 'TV');
         });
     });
 

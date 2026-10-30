@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-import V3ArrService from '../../../src/service/arr/V3ArrService';
-import { App } from '../../../src/types/App';
-import { AppType } from '../../../src/types/AppType';
-import { CreateIndexerForm } from '../../../src/types/requests/form/CreateIndexerForm';
+import V3ArrService from '../../../server/service/arr/V3ArrService';
+import { App } from '../../../server/types/App';
+import { AppType } from '../../../server/types/AppType';
+import { CreateIndexerForm } from '../../../server/types/requests/form/CreateIndexerForm';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;

@@ -8,12 +8,26 @@ import tseslint from 'typescript-eslint';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-    { files: ['**/*.{ts,vue}', 'frontend/src/**/*.{js}'] },
-    { languageOptions: { globals: { ...globals.node, ...globals.browser } } },
+    { files: ['**/*.{ts,vue}', 'app/**/*.{js}'] },
+    {
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                ...globals.browser,
+                // Nuxt auto-imports
+                defineNuxtConfig: 'readonly',
+                defineNuxtPlugin: 'readonly',
+                defineNuxtRouteMiddleware: 'readonly',
+                definePageMeta: 'readonly',
+                navigateTo: 'readonly',
+                useNuxtApp: 'readonly',
+            },
+        },
+    },
     pluginJs.configs.recommended,
     ...tseslint.configs.recommended,
     ...pluginVue.configs['flat/recommended'],
-    { ignores: ['**/dist/**', '**/node_modules/**'] },
+    { ignores: ['**/dist/**', '**/node_modules/**', '.nuxt/**', '.output/**'] },
     {
         plugins: {
             import: importPlugin,
@@ -29,6 +43,11 @@ export default [
             'vue/max-attributes-per-line': 'off',
             'vue/require-default-prop': 'off',
         },
+    },
+    {
+        // Nuxt derives routes from page file names, so they are naturally single word
+        files: ['app/pages/**/*.vue'],
+        rules: { 'vue/multi-word-component-names': 'off' },
     },
     eslintConfigPrettier,
     {

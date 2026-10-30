@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { Validator } from '../../src/validators/Validator';
+import { Validator } from '../../server/validators/Validator';
 
 jest.mock('fs');
 

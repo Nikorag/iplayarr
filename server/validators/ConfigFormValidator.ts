@@ -58,6 +58,9 @@ export class ConfigFormValidator extends Validator {
                 validatorError['NZB_PASSWORD'] = response as string;
             }
         }
+        if (input.LIVE_TV_MODE && !['redirect', 'proxy'].includes(input.LIVE_TV_MODE)) {
+            validatorError['LIVE_TV_MODE'] = 'Live TV mode must be redirect or proxy';
+        }
         if (input.AUTH_TYPE === 'oidc') {
             if (!input.OIDC_CONFIG_URL) {
                 validatorError['OIDC_CONFIG_URL'] = 'Please provide a valid OIDC configuration URL';

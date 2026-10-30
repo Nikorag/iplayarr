@@ -1,24 +1,15 @@
-import { Request, Response } from 'express';
+import DownloadEndpoint from '../../../server/endpoints/generic/DownloadEndpoint';
+import iplayerDetailsService from '../../../server/service/iplayerDetailsService';
+import queueService from '../../../server/service/queueService';
+import { VideoType } from '../../../server/types/IPlayerSearchResult';
+import { IPlayerMetadataResponse } from '../../../server/types/responses/IPlayerMetadataResponse';
+import { makeEvent } from '../../helpers/h3';
 
-import DownloadEndpoint from '../../../src/endpoints/generic/DownloadEndpoint';
-import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
-import queueService from '../../../src/service/queueService';
-import { VideoType } from '../../../src/types/IPlayerSearchResult';
-import { IPlayerMetadataResponse } from '../../../src/types/responses/IPlayerMetadataResponse';
-
-jest.mock('../../../src/service/iplayerDetailsService');
-jest.mock('../../../src/service/queueService');
+jest.mock('../../../server/service/iplayerDetailsService');
+jest.mock('../../../server/service/queueService');
 
 describe('DownloadEndpoint', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
-    let jsonMock: jest.Mock;
-
-    beforeEach(() => {
-        jsonMock = jest.fn();
-        req = { query: { pid: 'abc123' } };
-        res = { json: jsonMock };
-    });
+    const event = () => makeEvent({ query: { pid: 'abc123' } });
 
     it('handles TV metadata correctly and adds to queue', async () => {
         const metadata: IPlayerMetadataResponse = {
@@ -33,7 +24,7 @@ describe('DownloadEndpoint', () => {
 
         (iplayerDetailsService.getMetadata as jest.Mock).mockResolvedValue(metadata);
 
-        await DownloadEndpoint(req as Request, res as Response);
+        const result = await DownloadEndpoint(event());
 
         expect(iplayerDetailsService.getMetadata).toHaveBeenCalledWith('abc123');
         expect(queueService.addToQueue).toHaveBeenCalledWith(
@@ -41,7 +32,7 @@ describe('DownloadEndpoint', () => {
             'Doctor.Who_The.Timeless.Child',
             VideoType.TV
         );
-        expect(jsonMock).toHaveBeenCalledWith({ status: true });
+        expect(result).toEqual({ status: true });
     });
 
     it('handles movie metadata correctly and adds to queue', async () => {
@@ -65,22 +56,22 @@ describe('DownloadEndpoint', () => {
 
         (iplayerDetailsService.getMetadata as jest.Mock).mockResolvedValue(metadata);
 
-        await DownloadEndpoint(req as Request, res as Response);
+        const result = await DownloadEndpoint(event());
 
         expect(queueService.addToQueue).toHaveBeenCalledWith(
             'abc123',
             'Inception',
             VideoType.MOVIE
         );
-        expect(jsonMock).toHaveBeenCalledWith({ status: true });
+        expect(result).toEqual({ status: true });
     });
 
     it('handles missing metadata gracefully', async () => {
         (iplayerDetailsService.getMetadata as jest.Mock).mockResolvedValue(undefined);
 
-        await DownloadEndpoint(req as Request, res as Response);
+        const result = await DownloadEndpoint(event());
 
         expect(queueService.addToQueue).toHaveBeenCalledWith('abc123', '', VideoType.TV);
-        expect(jsonMock).toHaveBeenCalledWith({ status: true });
+        expect(result).toEqual({ status: true });
     });
 });

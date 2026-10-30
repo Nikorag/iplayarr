@@ -1,29 +1,29 @@
 import cron from 'node-cron';
 
-import downloadFacade from '../../src/facade/downloadFacade';
-import scheduleFacade from '../../src/facade/scheduleFacade';
-import configService from '../../src/service/configService';
-import episodeCacheService from '../../src/service/episodeCacheService';
-import TaskService from '../../src/service/taskService';
+import downloadFacade from '../../server/facade/downloadFacade';
+import scheduleFacade from '../../server/facade/scheduleFacade';
+import configService from '../../server/service/configService';
+import episodeCacheService from '../../server/service/episodeCacheService';
+import TaskService from '../../server/service/taskService';
 
 // Mock dependencies
 jest.mock('node-cron', () => ({
     schedule: jest.fn(),
 }));
 
-jest.mock('../../src/service/configService', () => ({
+jest.mock('../../server/service/configService', () => ({
     getParameter: jest.fn(),
 }));
 
-jest.mock('../../src/facade/scheduleFacade', () => ({
+jest.mock('../../server/facade/scheduleFacade', () => ({
     refreshCache: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('../../src/facade/downloadFacade', () => ({
+jest.mock('../../server/facade/downloadFacade', () => ({
     cleanupFailedDownloads: jest.fn(),
 }));
 
-jest.mock('../../src/service/episodeCacheService', () => ({
+jest.mock('../../server/service/episodeCacheService', () => ({
     recacheAllSeries: jest.fn(),
 }));
 

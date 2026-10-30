@@ -1,17 +1,17 @@
 import axios from 'axios';
 
-import iplayerDetailsService from '../../../src/service/iplayerDetailsService';
-import NativeSearchService from '../../../src/service/search/NativeSearchService';
-import { IPlayerSearchResult, VideoType } from '../../../src/types/IPlayerSearchResult';
-import { IPlayerEpisodeMetadata } from '../../../src/types/responses/IPlayerMetadataResponse';
-import { Synonym } from '../../../src/types/Synonym';
-import { createNZBName, getQualityProfile } from '../../../src/utils/Utils';
+import iplayerDetailsService from '../../../server/service/iplayerDetailsService';
+import NativeSearchService from '../../../server/service/search/NativeSearchService';
+import { IPlayerSearchResult, VideoType } from '../../../server/types/IPlayerSearchResult';
+import { IPlayerEpisodeMetadata } from '../../../server/types/responses/IPlayerMetadataResponse';
+import { Synonym } from '../../../server/types/Synonym';
+import { createNZBName, getQualityProfile } from '../../../server/utils/Utils';
 
 jest.mock('axios');
-jest.mock('../../../src/service//episodeCacheService');
-jest.mock('../../../src/service//iplayerDetailsService');
-jest.mock('../../../src/utils/Utils', () => ({
-    ...jest.requireActual('../../../src/utils/Utils'),
+jest.mock('../../../server/service//episodeCacheService');
+jest.mock('../../../server/service//iplayerDetailsService');
+jest.mock('../../../server/utils/Utils', () => ({
+    ...jest.requireActual('../../../server/utils/Utils'),
     createNZBName: jest.fn(),
     getQualityProfile: jest.fn(),
 }));

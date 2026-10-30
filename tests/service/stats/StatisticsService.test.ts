@@ -1,9 +1,9 @@
-import CacheService from '../../../src/service/cache/cacheService';
-import statisticsService from '../../../src/service/stats/StatisticsService';
-import { GrabHistoryEntry } from '../../../src/types/data/GrabHistoryEntry';
-import { SearchHistoryEntry } from '../../../src/types/data/SearchHistoryEntry';
-import { VideoType } from '../../../src/types/IPlayerSearchResult';
-import { FixedFIFOQueue } from '../../../src/types/utils/FixedFIFOQueue';
+import CacheService from '../../../server/service/cache/cacheService';
+import statisticsService from '../../../server/service/stats/StatisticsService';
+import { GrabHistoryEntry } from '../../../server/types/data/GrabHistoryEntry';
+import { SearchHistoryEntry } from '../../../server/types/data/SearchHistoryEntry';
+import { VideoType } from '../../../server/types/IPlayerSearchResult';
+import { FixedFIFOQueue } from '../../../server/types/utils/FixedFIFOQueue';
 
 describe('statisticsService', () => {
     // Clear history before each test run

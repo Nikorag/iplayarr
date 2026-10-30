@@ -52,7 +52,7 @@ jobs:
 
             - name: Write version to JSON
               run: |
-                  echo "{\"version\": \"${{ env.git_tag }}\"}" > src/config/version.json
+                  echo "{\"version\": \"${{ env.git_tag }}\"}" > server/config/version.json
 
             - name: Build and push Docker image
               id: push

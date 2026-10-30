@@ -1,10 +1,11 @@
 node_modules
-frontend/node_modules
+.nuxt
+.output
 .node-persist
 .env
 .git
 dist
 readme-media
 eslint.config.mjs
-jest.config.js
+jest.config.cjs
 .github

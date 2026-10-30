@@ -1,4 +1,4 @@
-import { formatBytes, formatSabnzbdSpeedKbps } from '../../src/utils/formatters';
+import { formatBytes, formatSabnzbdSpeedKbps } from '../../server/utils/formatters';
 
 describe('formatSabnzbdSpeedKbps', () => {
     it('returns SABnzbd-style zero when idle', () => {

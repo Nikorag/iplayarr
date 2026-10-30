@@ -1,9 +1,9 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 
-import configService from '../../../src/service/configService';
-import ytdlpDownloadService from '../../../src/service/download/YTDLPDownloadService';
-import loggingService from '../../../src/service/loggingService';
+import configService from '../../../server/service/configService';
+import ytdlpDownloadService from '../../../server/service/download/YTDLPDownloadService';
+import loggingService from '../../../server/service/loggingService';
 
 jest.mock('child_process', () => ({
   spawn: jest.fn(),
@@ -11,10 +11,10 @@ jest.mock('child_process', () => ({
 jest.mock('fs', () => ({
   rmSync: jest.fn(),
 }));
-jest.mock('../../../src/service/configService', () => ({
+jest.mock('../../../server/service/configService', () => ({
   getParameter: jest.fn(),
 }));
-jest.mock('../../../src/service/loggingService', () => ({
+jest.mock('../../../server/service/loggingService', () => ({
   debug: jest.fn(),
 }));
 

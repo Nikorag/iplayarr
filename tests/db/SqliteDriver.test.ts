@@ -1,10 +1,10 @@
-import { DatabaseSessionStore } from '../../src/db/DatabaseSessionStore';
-import { SqliteDriver } from '../../src/db/sqliteDriver';
-import { DatabaseFIFOQueue } from '../../src/types/utils/DatabaseFIFOQueue';
+import { SqliteDriver } from '../../server/db/sqliteDriver';
+import sessionService from '../../server/service/auth/sessionService';
+import { DatabaseFIFOQueue } from '../../server/types/utils/DatabaseFIFOQueue';
 
 let driver: SqliteDriver;
 
-jest.mock('../../src/db/database', () => ({ getDatabase: () => Promise.resolve(driver) }));
+jest.mock('../../server/db/database', () => ({ getDatabase: () => Promise.resolve(driver) }));
 
 beforeEach(() => {
     driver = new SqliteDriver(':memory:', 'drizzle/sqlite');
@@ -59,17 +59,12 @@ describe('DatabaseFIFOQueue', () => {
     });
 });
 
-describe('DatabaseSessionStore', () => {
-    const store = new DatabaseSessionStore();
-    const sess: any = { cookie: { expires: new Date(Date.now() + 60000) }, user: { username: 'admin' } };
+describe('sessionService', () => {
+    it('stores, loads and removes sessions', async () => {
+        await sessionService.store('sid1', { user: { username: 'admin' } });
+        expect((await sessionService.load('sid1'))?.user).toEqual({ username: 'admin' });
 
-    it('sets, gets and destroys sessions', async () => {
-        await new Promise<void>((res) => store.set('sid1', sess, () => res()));
-        const got: any = await new Promise((res) => store.get('sid1', (_e, s) => res(s)));
-        expect(got.user).toEqual({ username: 'admin' });
-
-        await new Promise<void>((res) => store.destroy('sid1', () => res()));
-        const gone = await new Promise((res) => store.get('sid1', (_e, s) => res(s)));
-        expect(gone).toBeNull();
+        await sessionService.remove('sid1');
+        expect(await sessionService.load('sid1')).toBeUndefined();
     });
 });

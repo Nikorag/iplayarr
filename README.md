@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/frontend/public/iplayarr.png" alt="Description" width="24px"> iPlayarr
+# <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/public/iplayarr.png" alt="Description" width="24px"> iPlayarr
 
 iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to integrate **get_iplayer** for searching and downloading iPlayer content directly. It acts as both an **indexer** and a **download client**, allowing seamless automation of TV and movie downloads.
 
@@ -16,6 +16,26 @@ iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to in
   <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/search.png" alt="Search View" width="49%">
   <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/details.png" alt="Details View" width="49%">
 </p>
+
+## 📰 News
+
+### iPlayarr is now a single Nuxt application
+
+The Express backend and the separate Vue frontend have been replaced by one [Nuxt](https://nuxt.com) application. The UI, the API (including the Newznab and SABnzbd endpoints that Sonarr and Radarr talk to) and the background tasks now run in a single process, and the frontend and API are served from the same port, `4404` by default.
+
+What this means for you:
+
+- **Nothing to change in Sonarr, Radarr or Prowlarr.** API URLs, API keys and the endpoints they use are unchanged.
+- **You'll be logged out once.** Login sessions are handled differently, so you'll need to sign in again after upgrading.
+- **Live updates use a native websocket** (`/_ws`) instead of socket.io. If you run iPlayarr behind a reverse proxy, make sure it forwards websocket connections.
+- **Smaller Docker image**, as only the production build is shipped.
+- **Development is simpler**: `npm install` then `npm run dev` runs everything on `http://localhost:4404`, see [Development Setup](#development-setup).
+
+### SQLite is now the default database
+
+iPlayarr no longer runs or needs Redis for your data. Settings, apps, synonyms, history, statistics and login sessions are stored in a **SQLite** file (`/config/iplayarr.db` in Docker), created automatically with no setup. Postgres is supported too by setting `DATABASE_URL`. Redis is now optional and only used for caching.
+
+Upgrading from a Redis-based version is automatic, your existing data is imported on first start. See [Database](#database) and [Migrating from Redis](#migrating-from-redis) for details.
 
 ## Why iPlayarr?
 
@@ -169,33 +189,31 @@ To run iPlayarr locally for development:
 
 ### Installation
 
-1. Install dependencies for both backend and frontend:
+1. Install dependencies:
 
 ```bash
-npm run install:both
+npm install
 ```
 
-2. Start the development server. By default this uses a local SQLite file at `./config/iplayarr.db` and an in-memory cache, so there's nothing else to run. To develop against Postgres, see the [Database](#database) section (`npm run serve:postgres` starts a local one).
+2. By default the dev server uses a local SQLite file at `./config/iplayarr.db`, so there's nothing else to run. To develop against Postgres, see the [Database](#database) section (`npm run serve:postgres` starts a local one).
 
-3. Start the development server (runs backend and frontend concurrently):
+3. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-The application will be available at:
-
-- Frontend: `http://localhost:8080` (Vue dev server)
-- Backend API: `http://localhost:4404`
+iPlayarr is a single [Nuxt](https://nuxt.com) application: the Vue frontend lives in `app/` and the API (Nitro server routes, websocket and background tasks) in `server/`. Everything is served from `http://localhost:4404`.
 
 ### Additional Useful Scripts
 
-| Script               | Description                               |
-| -------------------- | ----------------------------------------- |
-| `npm run build:both` | Build backend and frontend for production |
-| `npm test`           | Run tests with coverage                   |
-| `npm run lint`       | Run ESLint                                |
-| `npm run prettier`   | Check code formatting                     |
+| Script             | Description                                               |
+| ------------------ | --------------------------------------------------------- |
+| `npm run build`    | Build for production (output goes to `.output`)           |
+| `npm start`        | Run the production build (port 4404 unless `PORT` is set) |
+| `npm test`         | Run tests with coverage                                   |
+| `npm run lint`     | Run ESLint                                                |
+| `npm run prettier` | Check code formatting                                     |
 
 ## Database
 
@@ -246,7 +264,7 @@ If `REDIS_HOST` isn't set, the in-memory cache is used.
 
 Earlier versions of iPlayarr kept all their data in Redis (either the copy bundled in the container, or an external one via `REDIS_HOST`). Upgrading is automatic: on first start, iPlayarr imports your existing data and then carries on as normal.
 
-What is migrated: settings, apps, synonyms, history, cached off-schedule series, search/grab statistics and logged-in sessions (so you won't even be logged out). Search/schedule/metadata caches and the live log buffer aren't migrated, they simply rebuild.
+What is migrated: settings, apps, synonyms, history, cached off-schedule series, search/grab statistics. Logged-in sessions aren't carried over, so you'll need to log in again. Search/schedule/metadata caches and the live log buffer aren't migrated, they simply rebuild.
 
 - **Bundled Redis (the default):** keep your `/config` volume mounted as before. iPlayarr reads the old `dump.rdb` from it, using a temporary, throwaway Redis process on a _copy_ of the file. Your `dump.rdb` is never modified and is left in place as a backup, once you're happy you can delete it.
 - **External Redis (`REDIS_HOST` set):** leave the `REDIS_*` variables as they are. Your data is imported once from that instance, which is then (if you keep `REDIS_HOST`) used purely as the cache. If you don't want a Redis cache, remove the variables after the first successful start.

@@ -1,9 +1,9 @@
-import { SqliteDriver } from '../../src/db/sqliteDriver';
-import { QueuedStorage } from '../../src/types/QueuedStorage';
+import { SqliteDriver } from '../../server/db/sqliteDriver';
+import { QueuedStorage } from '../../server/types/QueuedStorage';
 
 let driver: SqliteDriver;
 
-jest.mock('../../src/db/database', () => ({ getDatabase: () => Promise.resolve(driver) }));
+jest.mock('../../server/db/database', () => ({ getDatabase: () => Promise.resolve(driver) }));
 
 describe('QueuedStorage', () => {
     let storage: QueuedStorage;

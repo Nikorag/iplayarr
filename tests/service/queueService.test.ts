@@ -1,37 +1,37 @@
 import { spawn } from 'child_process';
 
-import downloadFacade from '../../src/facade/downloadFacade';
-import configService from '../../src/service/configService';
-import historyService from '../../src/service/historyService';
-import queueService from '../../src/service/queueService';
-import statisticsService from '../../src/service/stats/StatisticsService';
-import { VideoType } from '../../src/types/IPlayerSearchResult';
-import { QueueEntryStatus } from '../../src/types/responses/sabnzbd/QueueResponse';
+import downloadFacade from '../../server/facade/downloadFacade';
+import configService from '../../server/service/configService';
+import historyService from '../../server/service/historyService';
+import queueService from '../../server/service/queueService';
+import statisticsService from '../../server/service/stats/StatisticsService';
+import { VideoType } from '../../server/types/IPlayerSearchResult';
+import { QueueEntryStatus } from '../../server/types/responses/sabnzbd/QueueResponse';
 
-jest.mock('../../src/service/stats/StatisticsService');
+jest.mock('../../server/service/stats/StatisticsService');
 
-jest.mock('../../src/service/configService', () => ({
+jest.mock('../../server/service/configService', () => ({
     __esModule: true,
     default: {
         getParameter: jest.fn(),
     },
 }));
 
-jest.mock('../../src/facade/downloadFacade', () => ({
+jest.mock('../../server/facade/downloadFacade', () => ({
     __esModule: true,
     default: {
         download: jest.fn(),
     },
 }));
 
-jest.mock('../../src/service/socketService', () => ({
+jest.mock('../../server/service/socketService', () => ({
     __esModule: true,
     default: {
         emit: jest.fn(),
     },
 }));
 
-jest.mock('../../src/service/historyService', () => ({
+jest.mock('../../server/service/historyService', () => ({
     __esModule: true,
     default: {
         addArchive: jest.fn(),

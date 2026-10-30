@@ -1,8 +1,8 @@
-import nzbFacade from '../../src/facade/nzbFacade';
-import { ConfigFormValidator } from '../../src/validators/ConfigFormValidator';
+import nzbFacade from '../../server/facade/nzbFacade';
+import { ConfigFormValidator } from '../../server/validators/ConfigFormValidator';
 
 // Mock nzbFacade
-jest.mock('../../src/facade/nzbFacade', () => ({
+jest.mock('../../server/facade/nzbFacade', () => ({
     testConnection: jest.fn(),
 }));
 

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import FormData from 'form-data';
 
-import sabzbdService from '../../src/service/nzb/SabNZBDService';
-import { App } from '../../src/types/App';
+import sabzbdService from '../../server/service/nzb/SabNZBDService';
+import { App } from '../../server/types/App';
+import { UploadedFile } from '../../server/types/UploadedFile';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -63,7 +64,7 @@ describe('sabzbdService', () => {
                 originalname: 'test.nzb',
                 mimetype: 'application/x-nzb',
                 buffer: Buffer.from('nzb content'),
-            } as Express.Multer.File;
+            } as UploadedFile;
 
             mockedAxios.post.mockResolvedValue({ status: 200, data: 'OK' });
 

@@ -1,14 +1,22 @@
-import express from 'express';
-import session from 'express-session';
 import request from 'supertest';
 
-import AuthRoute, { addAuthMiddleware, socketAuthMiddleware } from '../../src/routes/AuthRoute';
-import configService from '../../src/service/configService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
-import { ApiError } from '../../src/types/responses/ApiResponse';
-import * as Utils from '../../src/utils/Utils';
+import { SqliteDriver } from '../../server/db/sqliteDriver';
+import generateToken from '../../server/routes/auth/generateToken.get';
+import login from '../../server/routes/auth/login.post';
+import logout from '../../server/routes/auth/logout.get';
+import me from '../../server/routes/auth/me.get';
+import method from '../../server/routes/auth/method.get';
+import resetPassword from '../../server/routes/auth/resetPassword.post';
+import configService from '../../server/service/configService';
+import { IplayarrParameter } from '../../server/types/IplayarrParameters';
+import { ApiError } from '../../server/types/responses/ApiResponse';
+import * as Utils from '../../server/utils/Utils';
+import { nodeApp } from '../helpers/h3';
 
-jest.mock('../../src/service/configService');
+let driver: SqliteDriver;
+
+jest.mock('../../server/db/database', () => ({ getDatabase: () => Promise.resolve(driver) }));
+jest.mock('../../server/service/configService');
 jest.mock('uuid', () => ({ v4: () => 'mock-token' }));
 jest.mock('openid-client', () => {});
 
@@ -16,25 +24,33 @@ jest.mock('openid-client', () => {});
 const BCRYPT_HASH_PASSWORD = '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
 
 describe('AuthRoute', () => {
-    let app: express.Express;
+    let app: ReturnType<typeof nodeApp>;
 
     beforeEach(() => {
         jest.restoreAllMocks();
+        driver = new SqliteDriver(':memory:', 'drizzle/sqlite');
 
-        app = express();
-        app.use(express.json());
+        app = nodeApp([
+            ['get', '/method', method],
+            ['post', '/login', login],
+            ['get', '/logout', logout],
+            ['get', '/me', me],
+            ['get', '/generateToken', generateToken],
+            ['post', '/resetPassword', resetPassword],
+        ]);
+    });
 
-        // Minimal in-memory session
-        app.use(
-            session({
-                secret: 'test',
-                resave: false,
-                saveUninitialized: false,
-            })
-        );
+    afterEach(() => driver.close());
 
-        addAuthMiddleware(app);
-        app.use('/', AuthRoute);
+    describe('GET /method', () => {
+        it('returns the configured auth type', async () => {
+            (configService.getParameter as jest.Mock).mockResolvedValueOnce('oidc');
+
+            const res = await request(app).get('/method');
+
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual({ message: 'oidc' });
+        });
     });
 
     describe('POST /login', () => {
@@ -54,6 +70,7 @@ describe('AuthRoute', () => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual({ status: true });
             expect(Utils.comparePassword).toHaveBeenCalledWith('password', BCRYPT_HASH_PASSWORD);
+            expect(res.headers['set-cookie'][0]).toMatch(/^iplayarr\.sid=[a-f0-9]{64}; .*HttpOnly/);
         });
 
         it('should login with legacy MD5 hash and migrate to bcrypt', async () => {
@@ -97,6 +114,7 @@ describe('AuthRoute', () => {
 
             expect(res.status).toBe(401);
             expect(res.body).toEqual({ error: ApiError.INVALID_CREDENTIALS });
+            expect(res.headers['set-cookie']).toBeUndefined();
         });
 
         it('should fail login with incorrect credentials (legacy MD5)', async () => {
@@ -131,9 +149,27 @@ describe('AuthRoute', () => {
     });
 
     describe('GET /logout', () => {
-        it('should destroy session on logout', async () => {
+        it('should succeed when there is no session', async () => {
+            await request(app).get('/logout').expect(200, { status: true });
+        });
+
+        it('should destroy the stored session on logout', async () => {
             const agent = request.agent(app);
+
+            (configService.getParameter as jest.Mock)
+                .mockResolvedValueOnce('admin')
+                .mockResolvedValueOnce(BCRYPT_HASH_PASSWORD);
+            jest.spyOn(Utils, 'isLegacyMD5Hash').mockReturnValue(false);
+            jest.spyOn(Utils, 'comparePassword').mockResolvedValue(true);
+
+            const loginRes = await agent.post('/login').send({ username: 'admin', password: 'any' });
+            const sid = /iplayarr\.sid=([a-f0-9]+)/.exec(loginRes.headers['set-cookie'][0])![1];
+            expect(await driver.sessionGet(sid)).toBeDefined();
+
             await agent.get('/logout').expect(200, { status: true });
+
+            expect(await driver.sessionGet(sid)).toBeUndefined();
+            expect((await agent.get('/me')).status).toBe(401);
         });
     });
 
@@ -159,6 +195,20 @@ describe('AuthRoute', () => {
 
             expect(res.status).toBe(200);
             expect(res.body).toEqual({ username: 'admin' });
+        });
+
+        it('should return the configured user without a session when AUTH_TYPE is none', async () => {
+            (configService.getParameter as jest.Mock).mockResolvedValueOnce('none').mockResolvedValueOnce('haven');
+
+            const res = await request(app).get('/me');
+
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual({ username: 'haven' });
+        });
+
+        it('should ignore a cookie for a session that does not exist', async () => {
+            const res = await request(app).get('/me').set('Cookie', 'iplayarr.sid=deadbeef');
+            expect(res.status).toBe(401);
         });
     });
 
@@ -196,42 +246,5 @@ describe('AuthRoute', () => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual({ status: true });
         });
-    });
-});
-
-describe('socketAuthMiddleware', () => {
-    const makeSocket = (sessionData?: Record<string, any>) => ({
-        request: { session: sessionData ?? {} },
-    });
-
-    it('should allow connection when AUTH_TYPE is none', async () => {
-        (configService.getParameter as jest.Mock).mockResolvedValueOnce('none');
-        const next = jest.fn();
-
-        await socketAuthMiddleware(makeSocket() as any, next);
-
-        expect(next).toHaveBeenCalledWith(/* no error */);
-        expect(next.mock.calls[0]).toHaveLength(0);
-    });
-
-    it('should allow connection when user is present in session', async () => {
-        (configService.getParameter as jest.Mock).mockResolvedValueOnce('form');
-        const next = jest.fn();
-
-        await socketAuthMiddleware(makeSocket({ user: { username: 'haven' } }) as any, next);
-
-        expect(next).toHaveBeenCalledWith(/* no error */);
-        expect(next.mock.calls[0]).toHaveLength(0);
-    });
-
-    it('should reject connection when no session user and auth is required', async () => {
-        (configService.getParameter as jest.Mock).mockResolvedValueOnce('form');
-        const next = jest.fn();
-
-        await socketAuthMiddleware(makeSocket() as any, next);
-
-        expect(next).toHaveBeenCalledTimes(1);
-        expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
-        expect(next.mock.calls[0][0].message).toBe('Unauthorized');
     });
 });

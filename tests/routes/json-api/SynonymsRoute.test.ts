@@ -1,20 +1,28 @@
-import express from 'express';
 import request from 'supertest';
 
-import arrFacade from '../../../src/facade/arrFacade';
-import router from '../../../src/routes/json-api/SynonymsRoute'; // adjust path as needed
-import appService from '../../../src/service/appService';
-import synonymService from '../../../src/service/synonymService';
-import { ApiError } from '../../../src/types/responses/ApiResponse';
-import { Synonym } from '../../../src/types/Synonym';
+import arrFacade from '../../../server/facade/arrFacade';
+import deleteSynonym from '../../../server/routes/json-api/synonym/index.delete';
+import getSynonyms from '../../../server/routes/json-api/synonym/index.get';
+import postSynonym from '../../../server/routes/json-api/synonym/index.post';
+import putSynonym from '../../../server/routes/json-api/synonym/index.put';
+import lookup from '../../../server/routes/json-api/synonym/lookup/[appId].get';
+import appService from '../../../server/service/appService';
+import synonymService from '../../../server/service/synonymService';
+import { ApiError } from '../../../server/types/responses/ApiResponse';
+import { Synonym } from '../../../server/types/Synonym';
+import { nodeApp } from '../../helpers/h3';
 
-jest.mock('../../../src/service/synonymService');
-jest.mock('../../../src/service/appService');
-jest.mock('../../../src/facade/arrFacade');
+jest.mock('../../../server/service/synonymService');
+jest.mock('../../../server/service/appService');
+jest.mock('../../../server/facade/arrFacade');
 
-const expressApp = express();
-expressApp.use(express.json());
-expressApp.use('/', router);
+const expressApp = nodeApp([
+    ['get', '/', getSynonyms],
+    ['post', '/', postSynonym],
+    ['put', '/', putSynonym],
+    ['delete', '/', deleteSynonym],
+    ['get', '/lookup/:appId', lookup],
+]);
 
 describe('Synonym and Lookup Routes', () => {
     beforeEach(() => {

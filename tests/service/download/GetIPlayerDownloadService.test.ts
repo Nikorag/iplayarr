@@ -1,14 +1,14 @@
 import { spawn } from 'child_process';
 
-import getIplayerDownloadService from '../../../src/service/download/GetIplayerDownloadService';
-import getIplayerExecutableService from '../../../src/service/getIplayerExecutableService';
+import getIplayerDownloadService from '../../../server/service/download/GetIplayerDownloadService';
+import getIplayerExecutableService from '../../../server/service/getIplayerExecutableService';
 
 // Mock the external dependencies
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
 }));
 
-jest.mock('../../../src/service/getIplayerExecutableService', () => ({
+jest.mock('../../../server/service/getIplayerExecutableService', () => ({
     __esModule: true,
     default: {
         getAllDownloadParameters: jest.fn(),

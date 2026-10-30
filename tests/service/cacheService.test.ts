@@ -1,4 +1,4 @@
-import CacheService from '../../src/service/cache/cacheService';
+import CacheService from '../../server/service/cache/cacheService';
 
 describe('CacheService', () => {
     afterEach(() => jest.restoreAllMocks());
@@ -75,8 +75,8 @@ describe('CacheService with Redis (REDIS_HOST set)', () => {
         jest.isolateModules(() => {
             jest.doMock('ioredis', () => jest.requireActual('ioredis-mock'));
         });
-        const { default: Cache } = await import('../../src/service/cache/cacheService');
-        const { getRedisClient } = await import('../../src/service/cache/redisClient');
+        const { default: Cache } = await import('../../server/service/cache/cacheService');
+        const { getRedisClient } = await import('../../server/service/cache/redisClient');
         cache = new Cache('redis_t', 60);
 
         await cache.set('k', { a: 1 });

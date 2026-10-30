@@ -1,11 +1,10 @@
-import { RedisStore } from 'connect-redis';
 import { Express, NextFunction, Request, Response, Router } from 'express';
 import session from 'express-session';
 import { v4 } from 'uuid';
 
+import { DatabaseSessionStore } from '../db/DatabaseSessionStore';
 import OIDCService from '../service/auth/OIDCService';
 import configService from '../service/configService';
-import { redis } from '../service/redis/redisService';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { ApiError, ApiResponse } from '../types/responses/ApiResponse';
 import User from '../types/User';
@@ -19,10 +18,7 @@ declare module 'express-session' {
     }
 }
 
-const redisStore = new RedisStore({
-    client: redis,
-    prefix: 'iplayarr:',
-});
+const sessionStore = new DatabaseSessionStore();
 
 const isDebug = process.env.DEBUG == 'true';
 const router: Router = Router();
@@ -41,7 +37,7 @@ export const sessionMiddleware = session({
     resave: false,
     saveUninitialized: false,
     cookie: sessionCookieSettings,
-    store: redisStore,
+    store: sessionStore,
 });
 
 export const addAuthMiddleware = (app: Express) => {

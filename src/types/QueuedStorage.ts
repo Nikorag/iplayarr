@@ -1,69 +1,41 @@
-import { redis } from '../service/redis/redisService';
+import { getDatabase } from '../db/database';
 
+/**
+ * Persistent JSON key/value storage backed by the configured database (SQLite or Postgres).
+ * Operations run one at a time, in the order they were issued.
+ */
 export class QueuedStorage {
-    private current: Promise<void>;
+    private current: Promise<unknown> = Promise.resolve();
 
-    constructor() {
-        this.current = Promise.resolve(); // Start with a resolved promise
+    private enqueue<R>(operation: () => Promise<R>): Promise<R> {
+        const result = this.current.then(operation);
+        this.current = result.catch(() => undefined);
+        return result;
     }
 
     async values(): Promise<any[]> {
-        return new Promise((resolve, reject) => {
-            this.current = this.current.then(async () => {
-                try {
-                    const keys = await redis.keys('*');
-                    const values = await redis.mget(keys);
-                    resolve(values.map((value) => (value ? JSON.parse(value) : undefined)));
-                } catch (error) {
-                    reject(error);
-                }
-            });
+        return this.enqueue(async () => {
+            const entries = await (await getDatabase()).kvEntries();
+            return entries.map(({ value }) => JSON.parse(value));
         });
     }
 
     async keys(): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            this.current = this.current.then(() => redis.keys('*').then(resolve, reject));
-        });
+        return this.enqueue(async () => (await (await getDatabase()).kvEntries()).map(({ key }) => key));
     }
 
     async getItem(key: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.current = this.current.then(() =>
-                redis.get(key).then((str: string | null) => resolve(str ? JSON.parse(str) : undefined), reject)
-            );
+        return this.enqueue(async () => {
+            const value = await (await getDatabase()).kvGet(key);
+            return value ? JSON.parse(value) : undefined;
         });
     }
 
     async setItem(key: string, value: any): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            this.current = this.current.then(() =>
-                redis
-                    .set(key, JSON.stringify(value))
-                    .then(() => {
-                        redis
-                            .save()
-                            .then(() => resolve())
-                            .catch(reject);
-                    })
-                    .catch(reject)
-            );
-        });
+        return this.enqueue(async () => (await getDatabase()).kvSet(key, JSON.stringify(value)));
     }
 
     async removeItem(key: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            this.current = this.current.then(() =>
-                redis
-                    .del(key)
-                    .then(() => {
-                        redis
-                            .save()
-                            .then(() => resolve())
-                            .catch(reject);
-                    })
-                    .catch(reject)
-            );
-        });
+        return this.enqueue(async () => (await getDatabase()).kvDelete(key));
     }
 }

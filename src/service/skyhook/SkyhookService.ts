@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import RedisCacheService from '../redis/redisCacheService';
+import CacheService from '../cache/cacheService';
 
 // Skyhook rejects requests carrying axios's default User-Agent (axios/x.x.x) with a 400,
 // presumably bot mitigation aimed at generic HTTP clients. It's Sonarr's own metadata
@@ -8,12 +8,12 @@ import RedisCacheService from '../redis/redisCacheService';
 const SKYHOOK_REQUEST_CONFIG = { headers: { 'User-Agent': 'Sonarr' } };
 
 class SkyhookService {
-    skyhookSeriesCache: RedisCacheService<{ tvdbId: string }[]>
-    skyhookEpisodeCache: RedisCacheService<{ episodes: any[] } | undefined>
+    skyhookSeriesCache: CacheService<{ tvdbId: string }[]>
+    skyhookEpisodeCache: CacheService<{ episodes: any[] } | undefined>
 
     constructor() {
-        this.skyhookSeriesCache = new RedisCacheService('skyhook_series_cache', 2700);
-        this.skyhookEpisodeCache = new RedisCacheService('skyhook_episode_cache', 86400);
+        this.skyhookSeriesCache = new CacheService('skyhook_series_cache', 2700);
+        this.skyhookEpisodeCache = new CacheService('skyhook_episode_cache', 86400);
     }
 
     async lookupSeriesDetails(seriesName: string, episodeTitle: string): Promise<{ series?: number, episode?: number } | undefined> {

@@ -13,6 +13,7 @@ import { IPlayerEpisodeMetadata } from '../../types/responses/IPlayerMetadataRes
 import { Synonym } from '../../types/Synonym';
 import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
 import iplayerDetailsService from '../iplayerDetailsService';
+import loggingService from '../loggingService';
 import AbstractSearchService from './AbstractSearchService';
 
 class NativeSearchService implements AbstractSearchService {

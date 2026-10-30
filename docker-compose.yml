@@ -1,6 +1,21 @@
-# For running container dependencies locally
+# For running optional container dependencies locally.
+# iPlayarr uses SQLite by default and needs nothing here. To develop against Postgres:
+#   npm run serve:postgres
+#   DATABASE_URL=postgres://iplayarr:iplayarr@localhost:5432/iplayarr npm run dev
+# To use Redis as the cache instead of in-memory:
+#   docker compose --profile redis up -d   (and set REDIS_HOST=127.0.0.1)
 services:
+    postgres:
+        image: postgres:16-alpine
+        profiles: ['postgres']
+        environment:
+            POSTGRES_USER: iplayarr
+            POSTGRES_PASSWORD: iplayarr
+            POSTGRES_DB: iplayarr
+        ports:
+            - 5432:5432
     redis:
         image: redis
+        profiles: ['redis']
         ports:
             - 6379:6379

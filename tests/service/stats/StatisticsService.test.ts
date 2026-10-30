@@ -1,12 +1,9 @@
-import RedisCacheService from '../../../src/service/redis/redisCacheService';
-import { redis } from '../../../src/service/redis/redisService';
+import CacheService from '../../../src/service/cache/cacheService';
 import statisticsService from '../../../src/service/stats/StatisticsService';
 import { GrabHistoryEntry } from '../../../src/types/data/GrabHistoryEntry';
 import { SearchHistoryEntry } from '../../../src/types/data/SearchHistoryEntry';
 import { VideoType } from '../../../src/types/IPlayerSearchResult';
 import { FixedFIFOQueue } from '../../../src/types/utils/FixedFIFOQueue';
-
-jest.mock('../../../src/service/redis/redisService');
 
 describe('statisticsService', () => {
     // Clear history before each test run
@@ -154,41 +151,28 @@ describe('statisticsService', () => {
         expect(history).toHaveLength(0); // History should be empty
     });
 
-    it('setUptime stores current timestamp in Redis', async () => {
-        const now = 100;
-        jest.spyOn(global.Date, 'now').mockReturnValueOnce(now);
-
+    it('getUptime returns time elapsed since setUptime was called', async () => {
+        const nowSpy = jest.spyOn(global.Date, 'now').mockReturnValue(45000);
         await statisticsService.setUptime();
+        nowSpy.mockReturnValue(50000);
 
-        expect(redis.set).toHaveBeenCalledWith('iplayarr_uptime', now);
-    });
-
-    it('getUptime returns difference between now and stored uptime', async () => {
-        const now = 50000;
-        const past = now - 5000;
-        jest.spyOn(global.Date, 'now').mockReturnValue(now);
-        (redis.get as jest.Mock).mockResolvedValue(past.toString());
-
-        const result = await statisticsService.getUptime();
-
-        expect(result).toBe(5000);
+        expect(await statisticsService.getUptime()).toBe(5000);
+        nowSpy.mockRestore();
     });
 
     it('getUptime returns 0 if uptime is not set', async () => {
-        (redis.get as jest.Mock).mockResolvedValue(null);
+        (statisticsService as any).startedAt = 0;
 
-        const result = await statisticsService.getUptime();
-
-        expect(result).toBe(0);
+        expect(await statisticsService.getUptime()).toBe(0);
     });
 
-    describe('RedisCacheService.getCacheSizes', () => {
+    describe('CacheService.getCacheSizes', () => {
         it('returns the correct cache sizes for search and schedule', async () => {
             const getCacheSizeInMBSpy = jest
-                .spyOn(RedisCacheService, 'getCacheSizeInMB')
+                .spyOn(CacheService, 'getCacheSizeInMB')
                 .mockImplementation((patterns: string[]) => {
-                    if (patterns.includes('search_cache_*')) return Promise.resolve('1.23');
-                    if (patterns.includes('schedule_cache_*')) return Promise.resolve('4.56');
+                    if (patterns.includes('search_cache')) return Promise.resolve('1.23');
+                    if (patterns.includes('schedule_cache')) return Promise.resolve('4.56');
                     return Promise.resolve('0.00');
                 });
 
@@ -200,8 +184,8 @@ describe('statisticsService', () => {
             })
 
             expect(getCacheSizeInMBSpy).toHaveBeenCalledTimes(2);
-            expect(getCacheSizeInMBSpy).toHaveBeenCalledWith(['search_cache_*']);
-            expect(getCacheSizeInMBSpy).toHaveBeenCalledWith(['schedule_cache_*']);
+            expect(getCacheSizeInMBSpy).toHaveBeenCalledWith(['search_cache']);
+            expect(getCacheSizeInMBSpy).toHaveBeenCalledWith(['schedule_cache']);
         });
     });
 });

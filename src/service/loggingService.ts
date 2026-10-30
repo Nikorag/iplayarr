@@ -3,7 +3,6 @@ import 'winston-daily-rotate-file';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-import { redis } from '../service/redis/redisService';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import configService from './configService';
@@ -32,6 +31,9 @@ const fileLogger = isTest
     ),
         transports: [transport as DailyRotateFile],
 });
+
+const MAX_BUFFERED_LOGS = 250;
+const recentLogs: LogLine[] = [];
 
 const loggingService = {
     log: (...params: any[]) => {
@@ -65,15 +67,14 @@ const loggingService = {
     publish: (logLine: LogLine) => {
         socketService.emit('log', logLine);
 
-        redis.multi()
-            .rpush('iplayarr_logs', JSON.stringify(logLine))
-            .ltrim('iplayarr_logs', -250, -1)
-            .exec();
+        recentLogs.push(logLine);
+        if (recentLogs.length > MAX_BUFFERED_LOGS) {
+            recentLogs.shift();
+        }
     },
 
     pushInitialLogs: async (socketId: string) => {
-        const logLines = await redis.lrange('iplayarr_logs', 0, -1);
-        logLines.map((line) => JSON.parse(line) as LogLine).forEach((logLine) => {
+        recentLogs.forEach((logLine) => {
             socketService.publish(socketId, 'log', logLine);
         });
     }

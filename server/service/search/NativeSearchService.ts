@@ -144,14 +144,14 @@ class NativeSearchService implements AbstractSearchService {
         });
         try {
             return lunrIndex.search(term);
-        } catch (e) {
+        } catch {
             const cleanTerm = term.replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
             if (!cleanTerm) {
                 return [];
             }
             try {
                 return lunrIndex.search(cleanTerm);
-            } catch (err) {
+            } catch {
                 return [];
             }
         }

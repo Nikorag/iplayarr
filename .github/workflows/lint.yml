@@ -27,7 +27,7 @@ jobs:
                   node-version: 23
 
             - name: Install Node.js dependencies
-              run: npm ci
+              run: npm install
 
             - name: Reset any package-lock changes
               run: git checkout -- package-lock.json

@@ -3,6 +3,7 @@
 import searchFacade from '../../server/facade/searchFacade';
 import CacheService from '../../server/service/cache/cacheService';
 import configService from '../../server/service/configService';
+import metricsService from '../../server/service/metricsService';
 import getIplayerSearchService from '../../server/service/search/GetIplayerSearchService';
 import nativeSearchService from '../../server/service/search/NativeSearchService';
 import synonymService from '../../server/service/synonymService';
@@ -81,5 +82,44 @@ describe('SearchFacade', () => {
 
     expect(getIplayerSearchService.search).toHaveBeenCalled();
     expect(results).toHaveLength(1);
+  });
+
+  describe('metrics', () => {
+    const searches = () => metricsService.collect().find(({ name }) => name == 'iplayarr_searches_total')?.samples;
+
+    beforeEach(() => {
+      metricsService.reset();
+      (synonymService.getSynonym as jest.Mock).mockResolvedValue(undefined);
+      (CacheService.prototype.get as jest.Mock).mockResolvedValue(undefined);
+    });
+
+    it('records a successful search against the active backend', async () => {
+      (configService.getParameter as jest.Mock).mockResolvedValue('true');
+      (nativeSearchService.search as jest.Mock).mockResolvedValue(mockResults);
+      (nativeSearchService.processCompletedSearch as jest.Mock).mockImplementation((results) => results);
+
+      await searchFacade.search('Test Show');
+
+      expect(searches()).toEqual([{ labels: { source: 'native', outcome: 'success' }, value: 1 }]);
+    });
+
+    it('records a failed search and still throws', async () => {
+      (configService.getParameter as jest.Mock).mockResolvedValue('false');
+      (getIplayerSearchService.search as jest.Mock).mockRejectedValue(new Error('exit 2'));
+
+      await expect(searchFacade.search('Test Show')).rejects.toThrow('exit 2');
+
+      expect(searches()).toEqual([{ labels: { source: 'get_iplayer', outcome: 'error' }, value: 1 }]);
+    });
+
+    it('does not count a cache hit as a search', async () => {
+      (configService.getParameter as jest.Mock).mockResolvedValue('true');
+      (CacheService.prototype.get as jest.Mock).mockResolvedValue(mockResults);
+      (nativeSearchService.processCompletedSearch as jest.Mock).mockImplementation((results) => results);
+
+      await searchFacade.search('Test Show');
+
+      expect(searches()).toEqual([]);
+    });
   });
 });

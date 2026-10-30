@@ -1,4 +1,5 @@
 import configService from '../service/configService';
+import metricsService from '../service/metricsService';
 import { AbstractScheduleService } from '../service/schedule/AbstractScheduleService';
 import GetIplayerScheduleService from '../service/schedule/GetIplayerScheduleService';
 import NativeScheduleService from '../service/schedule/NativeScheduleService';
@@ -8,7 +9,13 @@ import { IPlayerSearchResult } from '../types/IPlayerSearchResult';
 class ScheduleFacade {
     async refreshCache () : Promise<void> {
         const service = await this.#getService();
-        await service.refreshCache();
+        try {
+            await service.refreshCache();
+        } catch (error) {
+            metricsService.recordRefresh(error);
+            throw error;
+        }
+        metricsService.recordRefresh();
     }
 
     async getFeed () : Promise<IPlayerSearchResult[]> {

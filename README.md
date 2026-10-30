@@ -19,6 +19,10 @@ iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to in
 
 ## 📰 News
 
+### Live TV for Jellyfin
+
+iPlayarr can now serve the live BBC channels to Jellyfin as an M3U tuner with an XMLTV guide, either redirecting Jellyfin to the BBC or proxying the stream through iPlayarr. See [Live TV (Jellyfin)](#live-tv-jellyfin).
+
 ### iPlayarr is now a single Nuxt application
 
 The Express backend and the separate Vue frontend have been replaced by one [Nuxt](https://nuxt.com) application. The UI, the API (including the Newznab and SABnzbd endpoints that Sonarr and Radarr talk to) and the background tasks now run in a single process, and the frontend and API are served from the same port, `4404` by default.
@@ -177,6 +181,37 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 
 To access the web frontend, visit `http://Your_Docker_Host:4404`.
 From here, you can manage settings, view logs, and monitor downloads.
+
+## Live TV (Jellyfin)
+
+iPlayarr can serve the live BBC channels (BBC One, Two, Three, Four, News, Parliament, CBBC, CBeebies, BBC Scotland, BBC ALBA and S4C) to **Jellyfin** as an M3U tuner with an XMLTV programme guide.
+
+1. In iPlayarr, go to **Settings → Live TV (Jellyfin)**, set **Live TV Enabled?** to _Enabled_, make sure an **API Key** is set, and save.
+2. In Jellyfin, go to **Dashboard → Live TV** and add an **M3U Tuner** with the playlist URL shown in iPlayarr's settings, e.g. `http://iplayarr:4404/tv/<API_KEY>/playlist.m3u`.
+3. Add an **XMLTV** guide provider with `http://iplayarr:4404/tv/<API_KEY>/guide.xml`, then map the channels. They share ids with the playlist, so Jellyfin normally matches them automatically.
+
+### Redirect or proxy
+
+How the video reaches Jellyfin is your choice:
+
+| Mode         | What happens                                                                              | Use it when                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **redirect** | iPlayarr answers with a redirect and Jellyfin streams directly from the BBC (the default) | Jellyfin is on a UK connection. It's the lightest option, iPlayarr carries no video   |
+| **proxy**    | iPlayarr fetches the stream and relays every playlist and segment to Jellyfin             | Jellyfin can't reach the BBC itself (not in the UK, or restricted), only iPlayarr can |
+
+Set the default in **Settings → Stream Delivery** (`LIVE_TV_MODE`). To use a different mode for one Jellyfin tuner, add `?mode=redirect` or `?mode=proxy` to the end of its playlist URL, e.g. `http://iplayarr:4404/tv/<API_KEY>/playlist.m3u?mode=proxy`.
+
+Notes:
+
+- The BBC only serves live streams to UK IP addresses, so whichever machine connects to the BBC (Jellyfin in redirect mode, iPlayarr in proxy mode) must be in the UK.
+- The URLs contain your API key, so treat them like a password. Changing the API key changes the URLs, and the tuner must be updated in Jellyfin.
+- Streams are whatever the BBC offers for live viewing, up to 720p. The guide covers yesterday, today and tomorrow and refreshes hourly.
+- If you run iPlayarr behind a reverse proxy, forward the `Host` (or `X-Forwarded-Host`/`X-Forwarded-Proto`) headers, as they're used to build the stream URLs in the playlist.
+
+| Property        | Description                                       |
+| --------------- | ------------------------------------------------- |
+| LIVE_TV_ENABLED | `true` to enable Live TV (default `false`)        |
+| LIVE_TV_MODE    | Default delivery: `redirect` (default) or `proxy` |
 
 ## Development Setup
 

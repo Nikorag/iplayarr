@@ -45,6 +45,8 @@ const configService = {
         DOWNLOAD_CLIENT: 'GET_IPLAYER',
         OUTPUT_FORMAT: 'mp4',
         AUTH_TYPE: 'form',
+        LIVE_TV_ENABLED: 'false',
+        LIVE_TV_MODE: 'redirect',
     } as ConfigMap,
 
     getParameter: async (parameter: IplayarrParameter): Promise<string | undefined> => {

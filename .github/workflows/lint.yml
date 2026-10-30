@@ -24,10 +24,10 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v1
               with:
-                  node-version: 23
+                  node-version: 24
 
             - name: Install Node.js dependencies
-              run: npm ci
+              run: npm install
 
             - name: Reset any package-lock changes
               run: git checkout -- package-lock.json

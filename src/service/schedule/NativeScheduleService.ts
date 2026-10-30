@@ -26,7 +26,8 @@ class NativeScheduleService implements AbstractScheduleService {
 	const { sizeFactor } = await getQualityProfile();
 
         const rssHours: string = (await configService.getParameter(IplayarrParameter.RSS_FEED_HOURS)) as string;
-        const dupedPids = await Promise.all(ChannelSchedule.map(channel => this.getChannelPids(channel, rssHours)));
+        const scheduleLimit = pLimit(5);
+        const dupedPids = await Promise.all(ChannelSchedule.map(channel => scheduleLimit(() => this.getChannelPids(channel, rssHours))));
         const pids = [...new Set(dupedPids.flat())];
 
         const chunks = splitArrayIntoChunks(pids, 5);
@@ -101,7 +102,7 @@ class NativeScheduleService implements AbstractScheduleService {
 
         const allPids: Set<string> = new Set();
 
-        while (date.getDate() != new Date().getDate()) {
+        while (date.toDateString() !== new Date().toDateString()) {
             date.setDate(date.getDate() + 1);
 
             const year = date.getFullYear();
@@ -143,8 +144,8 @@ class NativeScheduleService implements AbstractScheduleService {
             });
 
             return filtered;
-        } catch {
-            loggingService.error(`Error fetching schedule page: ${url}`);
+        } catch (error) {
+            loggingService.error(`Error fetching schedule page: ${url} — ${error}`);
             return [];
         }
     }

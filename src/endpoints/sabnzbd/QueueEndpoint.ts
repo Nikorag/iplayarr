@@ -15,7 +15,7 @@ import {
     SabNZBQueueEntry,
 } from '../../types/responses/sabnzbd/QueueResponse';
 import { TrueFalseResponse } from '../../types/responses/sabnzbd/TrueFalseResponse';
-import { formatBytes } from '../../utils/formatters';
+import { formatBytes, formatSabnzbdSpeedKbps } from '../../utils/formatters';
 import { AbstractSabNZBDActionEndpoint, ActionQueryString } from './AbstractSabNZBDActionEndpoint';
 
 
@@ -47,7 +47,7 @@ const actionDirectory: EndpointDirectory = {
             noofslots_total: queue.length,
             noofslots: queue.length,
             finish: iplayerComplete.length,
-            speed: `${formatBytes(totalSpeedKbs * 1024)}/s`,
+            speed: formatSabnzbdSpeedKbps(totalSpeedKbs),
             size: formatBytes(totalMb * 1024 * 1024),
             sizeleft: formatBytes(totalMbLeft * 1024 * 1024),
             kbpersec: totalSpeedKbs.toFixed(2),

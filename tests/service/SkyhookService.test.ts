@@ -35,7 +35,8 @@ describe('SkyhookService URL construction', () => {
         await SkyhookService.searchSeries(seriesName);
 
         expect(mockedAxios.get).toHaveBeenCalledWith(
-            `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`
+            `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`,
+            { headers: { 'User-Agent': 'Sonarr' } }
         );
     });
 
@@ -81,7 +82,8 @@ describe('SkyhookService URL construction', () => {
         await SkyhookService.findEpisode(tvdbId, episodeName);
 
         expect(mockedAxios.get).toHaveBeenCalledWith(
-            `https://skyhook.sonarr.tv/v1/tvdb/shows/en/${tvdbId}`
+            `https://skyhook.sonarr.tv/v1/tvdb/shows/en/${tvdbId}`,
+            { headers: { 'User-Agent': 'Sonarr' } }
         );
     });
 

@@ -82,6 +82,12 @@ describe('episodeCacheService', () => {
         expect(Array.isArray(result)).toBe(true);
     });
 
+    it('should handle search terms that cause Lunr parse errors in searchEpisodeCache gracefully', async () => {
+        await episodeCacheService.cacheEpisodesForUrl('https://www.bbc.co.uk/programmes/abcd');
+        const result = await episodeCacheService.searchEpisodeCache('Avengers --1080p');
+        expect(Array.isArray(result)).toBe(true);
+    });
+
     it('should get episode cache for URL', async () => {
         await episodeCacheService.cacheEpisodesForUrl('https://www.bbc.co.uk/programmes/abcd');
         const result = await episodeCacheService.getEpisodeCacheForUrl('https://www.bbc.co.uk/programmes/abcd');

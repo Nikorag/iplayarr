@@ -8,17 +8,17 @@ import { IplayarrParameter } from '../../types/IplayarrParameters';
 import { IPlayerDetails } from '../../types/IPlayerDetails';
 import { IPlayerSearchResult } from '../../types/IPlayerSearchResult';
 import { getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
+import CacheService from '../cache/cacheService';
 import configService from '../configService';
 import iplayerDetailsService from '../iplayerDetailsService';
 import loggingService from '../loggingService';
-import RedisCacheService from '../redis/redisCacheService';
 import NativeSearchService from '../search/NativeSearchService';
 import synonymService from '../synonymService';
 import { AbstractScheduleService } from './AbstractScheduleService';
 
 class NativeScheduleService implements AbstractScheduleService {
-    scheduleCache: RedisCacheService<IPlayerSearchResult[]> = new RedisCacheService('schedule_cache', 5400);
-    cacheTime: RedisCacheService<number> = new RedisCacheService('schedule_cache_time', 5400);
+    scheduleCache: CacheService<IPlayerSearchResult[]> = new CacheService('schedule_cache', 5400);
+    cacheTime: CacheService<number> = new CacheService('schedule_cache_time', 5400);
     caching: boolean = false;
 
 

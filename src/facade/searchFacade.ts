@@ -1,5 +1,5 @@
+import CacheService from '../service/cache/cacheService';
 import configService from '../service/configService';
-import RedisCacheService from '../service/redis/redisCacheService';
 import AbstractSearchService from '../service/search/AbstractSearchService';
 import getIplayerSearchService from '../service/search/GetIplayerSearchService';
 import nativeSearchService from '../service/search/NativeSearchService';
@@ -16,7 +16,7 @@ interface SearchTerm {
 }
 
 class SearchFacade {
-    searchCache: RedisCacheService<IPlayerSearchResult[]> = new RedisCacheService('search_cache', 300);
+    searchCache: CacheService<IPlayerSearchResult[]> = new CacheService('search_cache', 300);
 
     async search(inputTerm: string, season?: number, episode?: number): Promise<IPlayerSearchResult[]> {
         if (inputTerm == '*') {

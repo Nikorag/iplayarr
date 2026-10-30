@@ -105,6 +105,10 @@ There's a few more optional settings too:
 | HIDE_DONATE      | If you don't like the Kofi donate links you can hide them                                 |
 | PUID             | Host User ID for file permissions                                                         |
 | PGID             | Host Group ID for file permissions                                                        |
+| DATABASE_URL     | Use Postgres instead of SQLite, see [Database](#database)                                 |
+| REDIS_HOST       | Use Redis for caching instead of memory, see [Caching](#caching)                          |
+
+> **Upgrading from a Redis-based version?** Nothing to do, see [Migrating from Redis](#migrating-from-redis).
 
 ### Usage
 
@@ -161,7 +165,7 @@ To run iPlayarr locally for development:
 ### Prerequisites
 
 - Node.js (see `.node-version` for current version)
-- Docker (for local dev instance of Redis)
+- Docker (optional, only needed for a local Postgres or Redis instance)
 
 ### Installation
 
@@ -171,11 +175,7 @@ To run iPlayarr locally for development:
 npm run install:both
 ```
 
-2. Start Redis using Docker (or see Redis section below to use another instance):
-
-```bash
-npm run serve:redis
-```
+2. Start the development server. By default this uses a local SQLite file at `./config/iplayarr.db` and an in-memory cache, so there's nothing else to run. To develop against Postgres, see the [Database](#database) section (`npm run serve:postgres` starts a local one).
 
 3. Start the development server (runs backend and frontend concurrently):
 
@@ -197,13 +197,63 @@ The application will be available at:
 | `npm run lint`       | Run ESLint                                |
 | `npm run prettier`   | Check code formatting                     |
 
-## Redis
+## Database
 
-iPlayarr uses Redis for storage. This is built into the container and **doesn't require any additional setup**, but if you would like to use a standalone redis instance, set the following settings:
+iPlayarr stores its settings, apps, synonyms, history, statistics and login sessions in a database. By default this is a **SQLite** file that is created automatically and **doesn't require any additional setup**. In Docker it lives in the `/config` volume (`/config/iplayarr.db`), so make sure that's mounted.
+
+To use **Postgres** instead, set `DATABASE_URL`. The schema is created and upgraded automatically on startup.
+
+| Property     | Description                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| DATABASE_URL | Postgres connection string, e.g. `postgres://user:password@host:5432/iplayarr`. If unset, SQLite is used |
+| DATABASE_SSL | Set to `true` to connect to Postgres over TLS                                                            |
+| SQLITE_PATH  | Location of the SQLite file (default `/config/iplayarr.db` in Docker, `./config/iplayarr.db` otherwise)  |
+
+```yml
+services:
+    iplayarr:
+        image: 'nikorag/iplayarr:latest'
+        environment:
+            - 'DATABASE_URL=postgres://iplayarr:secret@postgres:5432/iplayarr'
+        depends_on:
+            - postgres
+    postgres:
+        image: postgres:16-alpine
+        environment:
+            - 'POSTGRES_USER=iplayarr'
+            - 'POSTGRES_PASSWORD=secret'
+            - 'POSTGRES_DB=iplayarr'
+        volumes:
+            - './postgres:/var/lib/postgresql/data'
+```
+
+Back up SQLite by copying the `iplayarr.db` file (plus `-wal`/`-shm` files if present, ideally with the container stopped), or Postgres with `pg_dump`.
+
+## Caching
+
+Search results, schedule and metadata lookups are cached **in memory** by default. This cache is cleared when iPlayarr restarts, and rebuilds itself as needed.
+
+If you would prefer a persistent or shared cache, you can optionally point iPlayarr at a Redis instance by setting the following. Redis is **only** used for caching, never for your data.
 
 - REDIS_HOST
-- REDIS_PORT
+- REDIS_PORT (optional, default 6379)
 - REDIS_PASSWORD (optional)
 - REDIS_SSL (optionally 'true')
 
-If these are all set, it will not start the bundled version of Redis.
+If `REDIS_HOST` isn't set, the in-memory cache is used.
+
+## Migrating from Redis
+
+Earlier versions of iPlayarr kept all their data in Redis (either the copy bundled in the container, or an external one via `REDIS_HOST`). Upgrading is automatic: on first start, iPlayarr imports your existing data and then carries on as normal.
+
+What is migrated: settings, apps, synonyms, history, cached off-schedule series, search/grab statistics and logged-in sessions (so you won't even be logged out). Search/schedule/metadata caches and the live log buffer aren't migrated, they simply rebuild.
+
+- **Bundled Redis (the default):** keep your `/config` volume mounted as before. iPlayarr reads the old `dump.rdb` from it, using a temporary, throwaway Redis process on a _copy_ of the file. Your `dump.rdb` is never modified and is left in place as a backup, once you're happy you can delete it.
+- **External Redis (`REDIS_HOST` set):** leave the `REDIS_*` variables as they are. Your data is imported once from that instance, which is then (if you keep `REDIS_HOST`) used purely as the cache. If you don't want a Redis cache, remove the variables after the first successful start.
+
+The migration only runs once (it's recorded in the database) and never overwrites anything that already exists in the new database. If it can't read your old data, iPlayarr stops with an error rather than starting empty, and nothing is changed. Fix the problem and restart, or set `SKIP_REDIS_MIGRATION=true` to deliberately start from scratch.
+
+| Property             | Description                                                      |
+| -------------------- | ---------------------------------------------------------------- |
+| SKIP_REDIS_MIGRATION | Set to `true` to skip importing old Redis data                   |
+| REDIS_DATA_DIR       | Where to look for the old bundled `dump.rdb` (default `/config`) |

@@ -4,10 +4,10 @@ import { pidRegex, searchResultLimit } from '../constants/iPlayarrConstants';
 import { IPlayerDetails } from '../types/IPlayerDetails';
 import { IPlayerEpisodeMetadata, IPlayerEpisodesResponse, IPlayerMetadataResponse } from '../types/responses/IPlayerMetadataResponse';
 import { calculateSeasonAndEpisode } from '../utils/Utils';
-import RedisCacheService from './redis/redisCacheService';
+import CacheService from './cache/cacheService';
 
 class IPlayerDetailsService {
-    metadataCache: RedisCacheService<IPlayerMetadataResponse> = new RedisCacheService('metadata_cache', 86400); // 24 hours
+    metadataCache: CacheService<IPlayerMetadataResponse> = new CacheService('metadata_cache', 86400); // 24 hours
 
     async detailsForEpisodeMetadata(episodes: IPlayerEpisodeMetadata[]): Promise<IPlayerDetails[]> {
         const results = await Promise.allSettled(

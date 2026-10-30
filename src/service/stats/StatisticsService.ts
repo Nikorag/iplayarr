@@ -1,17 +1,17 @@
 import { GrabHistoryEntry } from '../../types/data/GrabHistoryEntry';
 import { SearchHistoryEntry } from '../../types/data/SearchHistoryEntry';
 import { AbstractFIFOQueue } from '../../types/utils/AbstractFIFOQueue';
-import { RedisFIFOQueue } from '../../types/utils/RedisFIFOQueue';
-import RedisCacheService from '../redis/redisCacheService';
-import { redis } from '../redis/redisService';
+import { DatabaseFIFOQueue } from '../../types/utils/DatabaseFIFOQueue';
+import CacheService from '../cache/cacheService';
 
 class StatisticsService {
     searchHistory: AbstractFIFOQueue<SearchHistoryEntry>;
     grabHistory: AbstractFIFOQueue<GrabHistoryEntry>;
+    private startedAt = 0;
 
     constructor() {
-        this.searchHistory = new RedisFIFOQueue('search-history', 500);
-        this.grabHistory = new RedisFIFOQueue('grab-history', 500);
+        this.searchHistory = new DatabaseFIFOQueue('search-history', 500);
+        this.grabHistory = new DatabaseFIFOQueue('grab-history', 500);
     }
 
     addSearch(entry: SearchHistoryEntry): void {
@@ -39,20 +39,15 @@ class StatisticsService {
     }
 
     async setUptime(): Promise<void> {
-        await redis.set('iplayarr_uptime', Date.now());
+        this.startedAt = Date.now();
     }
 
     async getUptime(): Promise<number> {
-        const uptime = await redis.get('iplayarr_uptime');
-        if (uptime) {
-            return Date.now() - parseInt(uptime);
-        } else {
-            return 0;
-        }
+        return this.startedAt ? Date.now() - this.startedAt : 0;
     }
 
     async getCacheSizes(): Promise<{ [key: string]: string }> {
-        const [search_size, schedule_size] = await Promise.all([RedisCacheService.getCacheSizeInMB(['search_cache_*']), RedisCacheService.getCacheSizeInMB(['schedule_cache_*'])]);
+        const [search_size, schedule_size] = await Promise.all([CacheService.getCacheSizeInMB(['search_cache']), CacheService.getCacheSizeInMB(['schedule_cache'])]);
 
         return {
             search: search_size,

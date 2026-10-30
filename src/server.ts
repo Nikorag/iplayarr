@@ -6,11 +6,12 @@ import http, { Server } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 
+import { getDatabase } from './db/database';
+import { migrateFromRedisIfNeeded } from './migration/redisMigrationService';
 import ApiRoute from './routes/ApiRoute';
 import AuthRoute, { addAuthMiddleware } from './routes/AuthRoute';
 import JsonApiRoute from './routes/JsonApiRoute';
 import loggingService from './service/loggingService';
-import { redis } from './service/redis/redisService';
 import socketService from './service/socketService';
 import StatisticsService from './service/stats/StatisticsService';
 import taskService from './service/taskService';
@@ -41,10 +42,10 @@ app.use('/auth', AuthRoute);
 // Healthcheck endpoint (unauthenticated)
 app.get('/ping', async (_req: Request, res: Response) => {
     try {
-        await redis.ping();
+        await (await getDatabase()).ping();
         res.json({ status: 'OK' });
     } catch (error : any) {
-        res.status(503).json({ status: 'ERROR', message: `Redis error - ${error?.message}`});
+        res.status(503).json({ status: 'ERROR', message: `Database error - ${error?.message}`});
     }
 });
 
@@ -73,9 +74,19 @@ const server: Server = http.createServer(app);
 const io = isDebug ? new SocketIOServer(server, { cors: {} }) : new SocketIOServer(server);
 socketService.registerIo(io);
 
-server.listen(port, () => {
-    loggingService.log(`Server running at http://localhost:${port}`);
-    StatisticsService.setUptime();
+const start = async () => {
+    // Open the database (applying schema migrations) and import any legacy Redis data before serving requests
+    await migrateFromRedisIfNeeded((...args) => loggingService.log(...args));
+
+    server.listen(port, () => {
+        loggingService.log(`Server running at http://localhost:${port}`);
+        StatisticsService.setUptime();
+    });
+};
+
+start().catch((error) => {
+    loggingService.error(`Failed to start iPlayarr: ${error?.message ?? error}`);
+    process.exit(1);
 });
 
 //Cron

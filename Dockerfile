@@ -1,4 +1,5 @@
-# Use Redis Alpine as a source for the binary
+# Redis is no longer run by iPlayarr. The binary is only kept so existing installs can
+# import their old bundled-Redis data (dump.rdb) into the new database on first start.
 FROM redis:alpine AS redis
 
 # Main build stage
@@ -33,6 +34,11 @@ RUN wget -qO- https://github.com/get-iplayer/get_iplayer/archive/v${GET_IPLAYER_
 ENV GET_IPLAYER_EXEC=/iplayer/get_iplayer
 ENV STORAGE_LOCATION=/node-persist
 ENV CACHE_LOCATION=/data
+# SQLite database lives in the /config volume (same place the old bundled Redis kept its dump.rdb).
+# Set DATABASE_URL to a postgres:// connection string to use Postgres instead.
+ENV SQLITE_PATH=/config/iplayarr.db
+ENV REDIS_DATA_DIR=/config
+ENV REDIS_SERVER_BIN=/redis/redis-server
 
 WORKDIR /ytdlp
 
@@ -42,7 +48,7 @@ RUN chmod +x ./yt-dlp
 
 ENV YTDLP_EXEC=/ytdlp/yt-dlp
 
-# Copy Redis binary from the Redis Alpine image
+# Copy Redis binary (used only by the one-off legacy data migration)
 WORKDIR /redis
 COPY --from=redis /usr/local/bin/redis-server /redis/redis-server
 RUN chmod +x /redis/redis-server

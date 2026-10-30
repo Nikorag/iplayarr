@@ -73,8 +73,8 @@ const server: Server = http.createServer(app);
 const io = isDebug ? new SocketIOServer(server, { cors: {} }) : new SocketIOServer(server);
 socketService.registerIo(io);
 
-server.listen(port, () => {
-    loggingService.log(`Server running at http://localhost:${port}`);
+server.listen(port, '0.0.0.0', () => {
+    loggingService.log(`Server running at http://0.0.0.0:${port}`);
     StatisticsService.setUptime();
 });
 

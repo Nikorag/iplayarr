@@ -6,7 +6,7 @@ import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QueuedStorage } from '../types/QueuedStorage';
 import { EpisodeCacheDefinition } from '../types/responses/EpisodeCacheTypes';
 import { IPlayerEpisodeMetadata } from '../types/responses/IPlayerMetadataResponse';
-import { createNZBName, getQualityProfile, removeAllQueryParams, sanitizeLunrQuery, splitArrayIntoChunks } from '../utils/Utils';
+import { createNZBName, getQualityProfile, removeAllQueryParams, splitArrayIntoChunks } from '../utils/Utils';
 import iplayerDetailsService from './iplayerDetailsService';
 
 const storage: QueuedStorage = new QueuedStorage();
@@ -35,11 +35,19 @@ const episodeCacheService = {
 
     searchEpisodeCache: async (term: string): Promise<IPlayerSearchResult[]> => {
         await episodeCacheService.buildIndex();
-        const sanitizedTerm = sanitizeLunrQuery(term);
-        if (!sanitizedTerm) {
-            return [];
+        let lunrResult: lunr.Index.Result[] = [];
+        try {
+            lunrResult = lunrIndex.search(term);
+        } catch (e) {
+            const cleanTerm = term.replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (cleanTerm) {
+                try {
+                    lunrResult = lunrIndex.search(cleanTerm);
+                } catch (err) {
+                    lunrResult = [];
+                }
+            }
         }
-        const lunrResult = lunrIndex.search(sanitizedTerm);
         const results = await Promise.all(lunrResult.map(({ ref }) => storage.getItem(`offSchedule_${ref}`)));
         return results
             .filter((res) => res)
@@ -124,8 +132,16 @@ const episodeCacheService = {
 
             const seriesList: IPlayerEpisodeMetadata[] = await iplayerDetailsService.getSeriesEpisodes(brandPid);
 
-            const episodes = (await Promise.all(seriesList.filter(({ type }) => type == 'series').map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id)))).flat();
-            episodes.push(...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null));
+            const episodes = (
+                await Promise.all(
+                    seriesList
+                        .filter(({ type }) => type == 'series')
+                        .map(({ id }) => iplayerDetailsService.getSeriesEpisodes(id))
+                )
+            ).flat();
+            episodes.push(
+                ...seriesList.filter(({ type, release_date_time }) => type == 'episode' && release_date_time != null)
+            );
 
             const chunks = splitArrayIntoChunks(episodes, 5);
 
@@ -149,7 +165,7 @@ const episodeCacheService = {
             return false;
         }
         return false;
-    }
+    },
 };
 
 async function createResult(term: string, details: IPlayerDetails, sizeFactor: number): Promise<IPlayerSearchResult> {

@@ -1,7 +1,15 @@
 <template>
-    <SettingsPageToolbar :icons="['delete']" delete-label="Remove" @delete-queue-item="deleteItems" />
+    <SettingsPageToolbar
+        :icons="['delete', 'filter']"
+        delete-label="Remove"
+        :filter-options="filterOptions"
+        :selected-filter="filter"
+        :filter-enabled="filter !== 'All'"
+        @delete-queue-item="deleteItems"
+        @select-filter="selectFilter"
+    />
     <div class="inner-content scroll-x">
-        <QueueTable ref="queueTable" :queue="queue" :history="history" />
+        <QueueTable ref="queueTable" :queue="queue" :history="history" :filter="filter" />
     </div>
 </template>
 
@@ -14,14 +22,6 @@ import { ipFetch } from '@/lib/ipFetch';
 
 import QueueTable from '../components/queue/QueueTable.vue';
 
-// const filterOptions = ref([
-//     'ALL',
-//     'COMPLETE',
-//     'IN PROGRESS',
-//     'QUEUED'
-// ]);
-// const filter = ref('ALL');
-
 const queue = inject('queue');
 const history = inject('history');
 
@@ -29,6 +29,13 @@ const queueTable = ref(null);
 
 const apps = ref([]);
 provide('apps', apps);
+
+const filterOptions = ref(['All', 'In Progress', 'Queued', 'Complete']);
+const filter = ref('All');
+
+const selectFilter = (option) => {
+    filter.value = option;
+};
 
 onMounted(async () => {
     apps.value = (await ipFetch('json-api/apps')).data;

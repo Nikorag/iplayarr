@@ -20,8 +20,8 @@
             </tr>
         </thead>
         <tbody>
-            <QueueTableRow v-for="item in queue" :key="item.id" ref="queueRows" :item="item" />
-            <QueueTableRow v-for="item in history" :key="item.id" ref="historyRows" :item="item" />
+            <QueueTableRow v-for="item in filteredQueue" :key="item.id" ref="queueRows" :item="item" />
+            <QueueTableRow v-for="item in filteredHistory" :key="item.id" ref="historyRows" :item="item" />
         </tbody>
     </table>
 </template>
@@ -32,7 +32,7 @@ import { computed, defineExpose, defineProps, ref, watch } from 'vue';
 import CheckInput from '../common/form/CheckInput.vue';
 import QueueTableRow from './QueueTableRow.vue';
 
-defineProps({
+const props = defineProps({
     queue: {
         type: Array,
         required: true,
@@ -42,6 +42,24 @@ defineProps({
         type: Array,
         required: true,
     },
+
+    filter: {
+        type: String,
+        required: false,
+        default: 'All',
+    },
+});
+
+const filteredQueue = computed(() => {
+    if (props.filter === 'In Progress') return props.queue.filter(({ status }) => status === 'Downloading');
+    if (props.filter === 'Queued') return props.queue.filter(({ status }) => status === 'Queued');
+    if (props.filter === 'Complete') return [];
+    return props.queue;
+});
+
+const filteredHistory = computed(() => {
+    if (props.filter === 'All' || props.filter === 'Complete') return props.history;
+    return [];
 });
 
 const allChecked = ref(false);

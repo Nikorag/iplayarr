@@ -18,7 +18,18 @@ class NativeSearchService implements AbstractSearchService {
     async search(term: string, synonym?: Synonym): Promise<IPlayerSearchResult[]> {
         const { sizeFactor } = await getQualityProfile();
         const url = `https://ibl.api.bbc.co.uk/ibl/v1/new-search?q=${encodeURIComponent(term)}`;
-        const response: AxiosResponse<IPlayerNewSearchResponse> = await axios.get(url);
+        let response: AxiosResponse<IPlayerNewSearchResponse>;
+        try {
+            response = await axios.get(url, { timeout: 10000 });
+        } catch (err) {
+            // axios rejects (doesn't resolve with a non-200 status) on 4xx/5xx by default.
+            // A single bad query — an odd synonym, an unexpected character — must not take
+            // down the whole process; every other in-flight search on this instance would
+            // die with it, and the Newznab endpoint would drop its response mid-stream from
+            // Sonarr/Radarr's point of view. Log and degrade to zero results instead.
+            loggingService.error(`NativeSearchService: BBC search failed for term '${term}': ${err}`);
+            return [];
+        }
         if (response.status == 200) {
             const {
                 new_search: { results },

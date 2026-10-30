@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import iplayerDetailsService from '../../../server/service/iplayerDetailsService';
+import metricsService from '../../../server/service/metricsService';
 import NativeSearchService from '../../../server/service/search/NativeSearchService';
 import { IPlayerSearchResult, VideoType } from '../../../server/types/IPlayerSearchResult';
 import { IPlayerEpisodeMetadata } from '../../../server/types/responses/IPlayerMetadataResponse';
@@ -95,6 +96,19 @@ describe('NativeSearchService', () => {
             const results = await NativeSearchService.search(mockTerm);
 
             expect(results).toHaveLength(0); // Should return empty array when no results
+        });
+
+        it('should count a failed BBC request as an upstream error and return no results', async () => {
+            metricsService.reset();
+            (axios.get as jest.Mock).mockReset();
+            (axios.get as jest.Mock).mockRejectedValueOnce(new Error('503'));
+
+            const results = await NativeSearchService.search(mockTerm);
+
+            expect(results).toEqual([]);
+            expect(
+                metricsService.collect().find(({ name }) => name == 'iplayarr_upstream_errors_total')?.samples
+            ).toEqual([{ labels: { service: 'bbc_search' }, value: 1 }]);
         });
 
         it('should handle search terms that cause Lunr parse errors gracefully', async () => {

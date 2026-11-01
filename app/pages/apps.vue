@@ -53,6 +53,7 @@ import ListEditor from '@/components/common/ListEditor.vue';
 import AppForm from '@/components/modals/AppForm.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
+import toastService from '@/lib/toastService';
 import { deepCopy } from '@/lib/utils';
 
 const apps = ref([]);
@@ -89,7 +90,14 @@ const deleteApp = async ({ id, name }) => {
             'Indexers and Download Clients in the target Arr, will NOT be deleted'
         )
     ) {
-        await ipFetch('json-api/apps', 'DELETE', { id });
+        try {
+            const { ok, data } = await ipFetch('json-api/apps', 'DELETE', { id });
+            if (!ok) {
+                toastService.error(`Failed to delete ${name}: ${data.message ?? 'unknown error'}`);
+            }
+        } catch (err) {
+            toastService.error(`Failed to delete ${name}: ${err.message}`);
+        }
         await refreshApps();
     }
 };

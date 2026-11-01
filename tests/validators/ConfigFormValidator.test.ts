@@ -75,6 +75,12 @@ describe('ConfigFormValidator', () => {
         expect(result.REFRESH_SCHEDULE).toMatch(/valid cron expression/);
     });
 
+    it('should accept the supported Live TV modes and reject others', async () => {
+        expect((await validator.validate({ LIVE_TV_MODE: 'redirect' })).LIVE_TV_MODE).toBeUndefined();
+        expect((await validator.validate({ LIVE_TV_MODE: 'proxy' })).LIVE_TV_MODE).toBeUndefined();
+        expect((await validator.validate({ LIVE_TV_MODE: 'tunnel' })).LIVE_TV_MODE).toMatch(/redirect or proxy/);
+    });
+
     it('should catch invalid Handlebars template', async () => {
         const input = {
             TV_FILENAME_TEMPLATE: '{{invalid',

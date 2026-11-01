@@ -25,12 +25,23 @@ const testStatus = ref('INITIAL');
 
 const test = async () => {
     testStatus.value = 'PENDING';
-    const { data, ok } = await ipFetch('json-api/apps/test', 'POST', props.app);
-    if (!ok) {
-        dialogService.alert('Connection Error', `Error Connecting to ${capitalize(props.app.type)} : ${data.message}`);
+    try {
+        const { data, ok } = await ipFetch('json-api/apps/test', 'POST', props.app);
+        if (!ok) {
+            dialogService.alert(
+                'Connection Error',
+                `Error Connecting to ${capitalize(props.app.type)} : ${data.message}`
+            );
+            testStatus.value = 'INITIAL';
+        } else {
+            testStatus.value = 'SUCCESS';
+        }
+    } catch (err) {
+        dialogService.alert(
+            'Connection Error',
+            `Error Connecting to ${capitalize(props.app.type)} : ${err.message}`
+        );
         testStatus.value = 'INITIAL';
-    } else {
-        testStatus.value = 'SUCCESS';
     }
 };
 

@@ -72,6 +72,7 @@ describe('App Router', () => {
             expect(res.body).toEqual({
                 error: ApiError.INVALID_INPUT,
                 invalid_fields: { download_client_name: 'DC error' },
+                message: 'Failed to create the download client: DC error',
             });
         });
 
@@ -98,6 +99,7 @@ describe('App Router', () => {
             expect(res.body).toEqual({
                 error: ApiError.INVALID_INPUT,
                 invalid_fields: { name: 'Error Saving App' },
+                message: 'Error saving app',
             });
         });
     });

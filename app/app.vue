@@ -7,6 +7,7 @@
         </div>
     </div>
     <ModalsContainer />
+    <ToastContainer />
 </template>
 
 <script setup>
@@ -18,6 +19,7 @@ import { connectSocket } from '@/lib/socket';
 
 import LeftHandNav from './components/common/LeftHandNav.vue';
 import NavBar from './components/common/NavBar.vue';
+import ToastContainer from './components/common/ToastContainer.vue';
 import { enforceMaxLength } from './lib/utils';
 
 const authState = inject('authState');

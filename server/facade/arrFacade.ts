@@ -14,6 +14,9 @@ class ArrFacade {
     getDownloadClient(app: App): Promise<DownloadClientResponse | undefined> {
         return this.getService(app).getDownloadClient(app);
     }
+    deleteDownloadClient(app: App, id: number): Promise<void> {
+        return this.getService(app).deleteDownloadClient(app, id);
+    }
 
     upsertIndexer(form: CreateIndexerForm, app: App, allowCreate: boolean): Promise<number> {
         return this.getService(app).upsertIndexer(form, app, allowCreate);

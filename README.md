@@ -178,6 +178,40 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 To access the web frontend, visit `http://Your_Docker_Host:4404`.
 From here, you can manage settings, view logs, and monitor downloads.
 
+### Diagnostics
+
+The **Diagnostics** page runs a set of health checks and shows what needs attention: database connectivity, whether the BBC iPlayer API is reachable, the installed `get_iplayer` version (and whether a newer release exists), `yt-dlp` and `ffmpeg` when your settings need them, free space and write access on the download and complete directories, and the outcome of the last search, download and index refresh. The same report is available as JSON at `/json-api/diagnostics` for logged in users.
+
+### Prometheus Metrics
+
+iPlayarr exposes metrics in the Prometheus text format at `/metrics`. Authenticate with your `API_KEY`, either as a bearer token or as `?apikey=`. A logged in browser session also works, and with `AUTH_TYPE=none` the endpoint is open.
+
+```yaml
+scrape_configs:
+    - job_name: iplayarr
+      metrics_path: /metrics
+      authorization:
+          credentials: <your API_KEY>
+      static_configs:
+          - targets: ['Your_Docker_Host:4404']
+```
+
+| Metric                                             | Type    | Description                                                 |
+| -------------------------------------------------- | ------- | ----------------------------------------------------------- |
+| `iplayarr_info{version}`                           | gauge   | Build information                                           |
+| `iplayarr_uptime_seconds`                          | gauge   | Seconds since start-up                                      |
+| `iplayarr_queue_items{status}`                     | gauge   | Items in the download queue (`downloading`, `queued`)       |
+| `iplayarr_searches_total{source,outcome}`          | counter | Searches by backend (`native`, `get_iplayer`) and result    |
+| `iplayarr_search_duration_seconds_total{source}`   | counter | Time spent searching                                        |
+| `iplayarr_downloads_total{outcome}`                | counter | Finished downloads (`completed`, `failed`, `cancelled`)     |
+| `iplayarr_index_refreshes_total{outcome}`          | counter | Schedule index refreshes                                    |
+| `iplayarr_upstream_errors_total{service}`          | counter | BBC search errors that were handled and returned no results |
+| `iplayarr_last_search_success_timestamp_seconds`   | gauge   | Unix time of the last successful search                     |
+| `iplayarr_last_download_success_timestamp_seconds` | gauge   | Unix time of the last successful download                   |
+| `process_resident_memory_bytes`                    | gauge   | Resident memory                                             |
+
+Counters are held in memory and reset when iPlayarr restarts. The two `last_*_success` gauges only appear once something has succeeded, so an alert such as `time() - iplayarr_last_download_success_timestamp_seconds > 604800` won't fire straight after a restart. Searches answered from the cache aren't counted.
+
 ## Development Setup
 
 To run iPlayarr locally for development:

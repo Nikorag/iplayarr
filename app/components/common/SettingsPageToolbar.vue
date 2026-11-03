@@ -47,6 +47,14 @@
                 </div>
             </button>
             <button
+                v-if="icons.some((i) => i == 'refresh')"
+                class="SettingsPageToolbar-button clickable"
+                @click="emit('refresh')"
+            >
+                <font-awesome-icon :icon="['fas', 'rotate']" />
+                <div class="SettingsPageToolbar-label">Re-run Checks</div>
+            </button>
+            <button
                 v-if="icons.some((i) => i == 'arrImport')"
                 class="SettingsPageToolbar-button clickable"
                 @click="emit('arrImport')"
@@ -97,6 +105,7 @@ const emit = defineEmits([
     'selectFilter',
     'deleteQueueItem',
     'arrImport',
+    'refresh',
 ]);
 const showFilterDropdown = ref(false);
 const dropdownDiv = ref(null);

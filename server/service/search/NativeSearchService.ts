@@ -14,6 +14,7 @@ import { Synonym } from '../../types/Synonym';
 import { createNZBName, getQualityProfile, splitArrayIntoChunks } from '../../utils/Utils';
 import iplayerDetailsService from '../iplayerDetailsService';
 import loggingService from '../loggingService';
+import metricsService from '../metricsService';
 import AbstractSearchService from './AbstractSearchService';
 
 class NativeSearchService implements AbstractSearchService {
@@ -30,6 +31,7 @@ class NativeSearchService implements AbstractSearchService {
             // die with it, and the Newznab endpoint would drop its response mid-stream from
             // Sonarr/Radarr's point of view. Log and degrade to zero results instead.
             loggingService.error(`NativeSearchService: BBC search failed for term '${term}': ${err}`);
+            metricsService.recordUpstreamError('bbc_search');
             return [];
         }
         if (response.status == 200) {

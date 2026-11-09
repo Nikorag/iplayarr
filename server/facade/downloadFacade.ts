@@ -1,5 +1,5 @@
 import { ChildProcess } from 'child_process';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 import { progressRegex, timestampFile } from '../constants/iPlayarrConstants';
@@ -17,7 +17,7 @@ import { DownloadClient } from '../types/enums/DownloadClient';
 import { IplayarrParameter } from '../types/IplayarrParameters';
 import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
-import { convertToMB, copyWithFallback, getETA } from '../utils/Utils';
+import { convertToMB, copyWithFallbackAsync, getETA } from '../utils/Utils';
 
 class DownloadFacade {
     async download(pid: string): Promise<ChildProcess> {
@@ -76,7 +76,7 @@ class DownloadFacade {
                     let lastOriginalSize = -1;
                     const maxAttempts = 100; // ~5 minutes at 3s apart
                     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                        const files = fs.readdirSync(directory);
+                        const files = await fs.readdir(directory);
                         const processedFile = files.find((file) => isVideo(file) && !isOriginal(file));
                         const originalFile = files.find((file) => isVideo(file) && isOriginal(file));
 
@@ -86,7 +86,7 @@ class DownloadFacade {
                         }
 
                         if (originalFile) {
-                            const size = fs.statSync(path.join(directory, originalFile)).size;
+                            const size = (await fs.stat(path.join(directory, originalFile))).size;
                             if (size === lastOriginalSize) {
                                 videoFile = originalFile;
                                 break;
@@ -107,7 +107,7 @@ class DownloadFacade {
                         loggingService.debug(pid, `Found video file ${oldPath}, moving to ${newPath}`);
 
                         try {
-                            copyWithFallback(oldPath, newPath);
+                            await copyWithFallbackAsync(oldPath, newPath);
                         } catch (copyErr: any) {
                             if (copyErr.code === 'ENOENT') {
                                 loggingService.error(pid, `${oldPath} vanished immediately before copy for '${queueItem.nzbName}'`);
@@ -120,7 +120,7 @@ class DownloadFacade {
 
                     // Delete the uuid directory and file after moving it
                     loggingService.debug(pid, `Deleting old directory ${directory}`);
-                    fs.rmSync(directory, { recursive: true, force: true });
+                    await fs.rm(directory, { recursive: true, force: true });
 
                     if (videoFile) {
                         await historyService.addHistory(queueItem);
@@ -166,8 +166,8 @@ class DownloadFacade {
             throw new Error('DOWNLOAD_DIR is not set. Configure the download directory in Settings or via the DOWNLOAD_DIR environment variable.');
         }
         const pidDir = `${downloadDir}/${pid}`;
-        fs.mkdirSync(pidDir, { recursive: true });
-        fs.writeFileSync(`${pidDir}/${timestampFile}`, '');
+        await fs.mkdir(pidDir, { recursive: true });
+        await fs.writeFile(`${pidDir}/${timestampFile}`, '');
         return pidDir;
     }
 
@@ -201,39 +201,37 @@ class DownloadFacade {
     async cleanupFailedDownloads(): Promise<void> {
         const downloadDir = (await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR)) as string;
         const threeHoursAgo: number = Date.now() - 3 * 60 * 60 * 1000;
-        fs.readdir(downloadDir, { withFileTypes: true }, (err, entries) => {
-            if (err) {
-                console.error('Error reading directory:', err);
-                return;
+        let entries;
+        try {
+            entries = await fs.readdir(downloadDir, { withFileTypes: true });
+        } catch (err) {
+            console.error('Error reading directory:', err);
+            return;
+        }
+
+        for (const entry of entries) {
+            if (!entry.isDirectory()) continue;
+
+            if (queueService.getFromQueue(entry.name)) continue;
+
+            const dirPath: string = path.join(downloadDir, entry.name);
+            const filePath: string = path.join(dirPath, timestampFile);
+
+            try {
+                const stats = await fs.stat(filePath);
+                if (stats.mtimeMs < threeHoursAgo) {
+                    try {
+                        await fs.rm(dirPath, { recursive: true, force: true });
+                        loggingService.log(`Deleted old directory: ${dirPath}`);
+                    } catch (err) {
+                        loggingService.error(`Error deleting ${dirPath}:`, err);
+                    }
+                }
+            } catch (err: any) {
+                // Ignore missing files
+                if (err.code !== 'ENOENT') console.error(`Error checking ${filePath}:`, err);
             }
-
-            entries.forEach((entry) => {
-                if (!entry.isDirectory()) return;
-
-                if (queueService.getFromQueue(entry.name)) return;
-
-                const dirPath: string = path.join(downloadDir, entry.name);
-                const filePath: string = path.join(dirPath, timestampFile);
-
-                fs.stat(filePath, (err, stats) => {
-                    if (err) {
-                        // Ignore missing files
-                        if (err.code !== 'ENOENT') console.error(`Error checking ${filePath}:`, err);
-                        return;
-                    }
-
-                    if (stats.mtimeMs < threeHoursAgo) {
-                        fs.rm(dirPath, { recursive: true, force: true }, (err) => {
-                            if (err) {
-                                loggingService.error(`Error deleting ${dirPath}:`, err);
-                            } else {
-                                loggingService.log(`Deleted old directory: ${dirPath}`);
-                            }
-                        });
-                    }
-                });
-            });
-        });
+        }
     }
 }
 

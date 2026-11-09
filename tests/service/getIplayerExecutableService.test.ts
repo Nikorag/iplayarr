@@ -1,9 +1,5 @@
-import fs from 'fs';
-
 import configService from '../../server/service/configService';
 import { GetIplayerExecutableService } from '../../server/service/getIplayerExecutableService';
-import historyService from '../../server/service/historyService';
-import queueService from '../../server/service/queueService';
 import SkyhookService from '../../server/service/skyhook/SkyhookService';
 import socketService from '../../server/service/socketService';
 import synonymService from '../../server/service/synonymService';
@@ -199,53 +195,6 @@ describe('GetIplayerExecutableService', () => {
             const result = service.parseProgress(mockPid, mockData);
 
             expect(result).toBeUndefined();
-        });
-    });
-
-    describe('processCompletedDownload', () => {
-        it('should handle completed download and move files', async () => {
-            const mockPid = '12345';
-            const mockQueueItem = { nzbName: 'mock_nzb' };
-            const mockDownloadDir = '/mock/download';
-            const mockCompleteDir = '/mock/complete';
-            const mockFiles = ['mockfile.mp4'];
-
-            queueService.getFromQueue = jest.fn().mockReturnValue(mockQueueItem);
-
-            (configService.getParameters as jest.Mock).mockImplementation(() => {
-                return [mockDownloadDir, mockCompleteDir];
-            });
-
-            fs.readdirSync = jest.fn().mockReturnValue(mockFiles);
-            fs.copyFileSync = jest.fn();
-            fs.rmSync = jest.fn();
-
-            await service.processCompletedDownload(mockPid, 0);
-
-            expect(fs.copyFileSync).toHaveBeenCalled();
-            expect(fs.rmSync).toHaveBeenCalled();
-            expect(historyService.addHistory).toHaveBeenCalled();
-        });
-
-        it('should remove from queue even if no MP4 file found', async () => {
-            const mockPid = '12345';
-            const mockQueueItem = { nzbName: 'mock_nzb' };
-            const mockDownloadDir = '/mock/download';
-            const mockCompleteDir = '/mock/complete';
-
-            queueService.getFromQueue = jest.fn().mockReturnValue(mockQueueItem);
-
-            (configService.getParameters as jest.Mock).mockImplementation(() => {
-                return [mockDownloadDir, mockCompleteDir];
-            });
-
-            fs.readdirSync = jest.fn().mockReturnValue([]);
-            fs.copyFileSync = jest.fn();
-            fs.rmSync = jest.fn();
-
-            await service.processCompletedDownload(mockPid, 0);
-
-            expect(queueService.removeFromQueue).toHaveBeenCalled();
         });
     });
 

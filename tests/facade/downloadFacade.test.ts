@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 
 import { timestampFile } from '../../server/constants/iPlayarrConstants';
 import downloadFacade from '../../server/facade/downloadFacade';
@@ -15,16 +15,14 @@ jest.mock('bcrypt', () => ({
     compare: jest.fn().mockResolvedValue(false),
 }));
 
-jest.mock('fs', () => ({
-    mkdirSync: jest.fn(),
-    writeFileSync: jest.fn(),
-    readdirSync: jest.fn(),
-    copyFileSync: jest.fn(),
-    rmSync: jest.fn(),
+jest.mock('fs/promises', () => ({
+    mkdir: jest.fn(),
+    writeFile: jest.fn(),
+    readdir: jest.fn(),
+    copyFile: jest.fn(),
     rm: jest.fn(),
     stat: jest.fn(),
-    statSync: jest.fn(),
-    readdir: jest.fn(),
+    unlink: jest.fn(),
 }));
 
 jest.mock('child_process', () => ({
@@ -95,8 +93,8 @@ describe('DownloadFacade', () => {
 
             // Asserts
             expect(configService.getParameter).toHaveBeenCalledWith('DOWNLOAD_DIR');
-            expect(fs.mkdirSync).toHaveBeenCalledWith(pidDir, { recursive: true });
-            expect(fs.writeFileSync).toHaveBeenCalledWith(`${pidDir}/${timestampFile}`, '');
+            expect(fs.mkdir).toHaveBeenCalledWith(pidDir, { recursive: true });
+            expect(fs.writeFile).toHaveBeenCalledWith(`${pidDir}/${timestampFile}`, '');
 
             expect(configService.getParameter).toHaveBeenCalledWith('DOWNLOAD_CLIENT');
             expect(GetIplayerDownloadService.download).toHaveBeenCalledWith(pid, pidDir);
@@ -152,23 +150,23 @@ describe('DownloadFacade', () => {
         }
 
         it('prefers a processed (non-_original) file when both exist', async () => {
-            (fs.readdirSync as jest.Mock).mockReturnValue(['episode_original.mp4', 'episode.mp4']);
+            (fs.readdir as unknown as jest.Mock).mockResolvedValue(['episode_original.mp4', 'episode.mp4']);
 
             await triggerClose(0);
 
-            expect(fs.copyFileSync).toHaveBeenCalledWith(
+            expect(fs.copyFile).toHaveBeenCalledWith(
                 expect.stringContaining('/episode.mp4'),
                 expect.any(String)
             );
         });
 
         it('falls back to the _original file once its size is stable', async () => {
-            (fs.readdirSync as jest.Mock).mockReturnValue(['episode_original.mp4']);
-            (fs.statSync as jest.Mock).mockReturnValue({ size: 12345 });
+            (fs.readdir as unknown as jest.Mock).mockResolvedValue(['episode_original.mp4']);
+            (fs.stat as unknown as jest.Mock).mockResolvedValue({ size: 12345 });
 
             await triggerClose(0);
 
-            expect(fs.copyFileSync).toHaveBeenCalledWith(
+            expect(fs.copyFile).toHaveBeenCalledWith(
                 expect.stringContaining('episode_original.mp4'),
                 expect.any(String)
             );
@@ -195,7 +193,7 @@ describe('DownloadFacade', () => {
             beforeEach(() => metricsService.reset());
 
             it('records a completed download', async () => {
-                (fs.readdirSync as jest.Mock).mockReturnValue(['episode.mp4']);
+                (fs.readdir as unknown as jest.Mock).mockResolvedValue(['episode.mp4']);
 
                 await triggerClose(0);
 
@@ -203,9 +201,7 @@ describe('DownloadFacade', () => {
             });
 
             it('records a download whose post-processing throws as failed', async () => {
-                (fs.readdirSync as jest.Mock).mockImplementation(() => {
-                    throw new Error('disk gone');
-                });
+                (fs.readdir as unknown as jest.Mock).mockRejectedValue(new Error('disk gone'));
 
                 await triggerClose(0);
 
@@ -240,18 +236,15 @@ describe('DownloadFacade', () => {
             };
 
             (configService.getParameter as jest.Mock).mockResolvedValue(downloadDir);
-            (fs.readdir as unknown as jest.Mock).mockImplementation((_path, opts, cb) => cb(null, [mockDirEntry]));
-            (fs.stat as unknown as jest.Mock).mockImplementation((_path, cb) =>
-                cb(null, { mtimeMs: threeHoursAgo - 10000 })
-            );
-            (fs.rm as unknown as jest.Mock).mockImplementation((_path, opts, cb) => cb(null));
+            (fs.readdir as unknown as jest.Mock).mockResolvedValue([mockDirEntry]);
+            (fs.stat as unknown as jest.Mock).mockResolvedValue({ mtimeMs: threeHoursAgo - 10000 });
+            (fs.rm as unknown as jest.Mock).mockResolvedValue(undefined);
 
             await downloadFacade.cleanupFailedDownloads();
 
             expect(fs.rm).toHaveBeenCalledWith(
                 expect.stringContaining('oldDir'),
-                { recursive: true, force: true },
-                expect.any(Function)
+                { recursive: true, force: true }
             );
         });
 
@@ -265,8 +258,8 @@ describe('DownloadFacade', () => {
             };
 
             (configService.getParameter as jest.Mock).mockResolvedValue(downloadDir);
-            (fs.readdir as unknown as jest.Mock).mockImplementation((_path, opts, cb) => cb(null, [mockDirEntry]));
-            (fs.stat as unknown as jest.Mock).mockImplementation((_path, cb) => cb(null, { mtimeMs: now }));
+            (fs.readdir as unknown as jest.Mock).mockResolvedValue([mockDirEntry]);
+            (fs.stat as unknown as jest.Mock).mockResolvedValue({ mtimeMs: now });
 
             await downloadFacade.cleanupFailedDownloads();
 

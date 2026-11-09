@@ -1,10 +1,12 @@
 import bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import fs from 'fs';
+import fsp from 'fs/promises';
 import { getRequestProtocol, getRequestURL, H3Event } from 'h3';
 import Handlebars from 'handlebars';
 import { deromanize } from 'romans';
 import { pipeline } from 'stream';
+import { pipeline as pipelineAsync } from 'stream/promises';
 
 import { episodeRegex, getIplayerSeriesRegex, nativeSeriesRegex } from '../constants/iPlayarrConstants';
 import appService from '../service/appService';
@@ -262,6 +264,26 @@ export function sanitizeLunrQuery(term: string): string {
 
 // Method accounts for CIFS filesystems where copyFile fails due to EPERM errors.
 // Under the hood copyFileSync uses rename which can fail on some network filesystems.
+/**
+ * Non-blocking version of copyWithFallback: copies a file without blocking the event loop,
+ * falling back to a stream copy on EPERM (e.g. some CIFS mounts), and waits for the copy to finish.
+ */
+export async function copyWithFallbackAsync(src: string, dst: string): Promise<void> {
+    try {
+        await fsp.copyFile(src, dst);
+        return;
+    } catch (err: any) {
+        if (err.code !== 'EPERM') throw err;
+    }
+
+    try {
+        await pipelineAsync(fs.createReadStream(src), fs.createWriteStream(dst));
+    } catch (err) {
+        await fsp.unlink(dst).catch(() => undefined);
+        throw err;
+    }
+}
+
 export function copyWithFallback(src: string, dst: string) {
     try {
         fs.copyFileSync(src, dst);

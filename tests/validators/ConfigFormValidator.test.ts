@@ -57,8 +57,28 @@ describe('ConfigFormValidator', () => {
         };
 
         const result = await validator.validate(input);
-        expect(result.ACTIVE_LIMIT).toMatch(/positive number/);
+        expect(result.ACTIVE_LIMIT).toMatch(/at least 1/);
         expect(result.RSS_FEED_HOURS).toMatch(/must be a number/);
+    });
+
+    it.each([[0], ['0'], [-1], [1.5], ['2.5']])('rejects a download limit of %p', async (limit) => {
+        const result = await validator.validate({
+            DOWNLOAD_DIR: '/valid/path',
+            COMPLETE_DIR: '/valid/path',
+            ACTIVE_LIMIT: limit,
+            RSS_FEED_HOURS: 1,
+        });
+        expect(result.ACTIVE_LIMIT).toMatch(/at least 1/);
+    });
+
+    it.each([[1], ['1'], [5], ['3']])('accepts a download limit of %p', async (limit) => {
+        const result = await validator.validate({
+            DOWNLOAD_DIR: '/valid/path',
+            COMPLETE_DIR: '/valid/path',
+            ACTIVE_LIMIT: limit,
+            RSS_FEED_HOURS: 1,
+        });
+        expect(result.ACTIVE_LIMIT).toBeUndefined();
     });
 
     it('should validate missing auth', async () => {

@@ -9,6 +9,7 @@ import GetIplayerDownloadService from '../service/download/GetIplayerDownloadSer
 import YTDLPDownloadService from '../service/download/YTDLPDownloadService';
 import historyService from '../service/historyService';
 import loggingService from '../service/loggingService';
+import metricsService from '../service/metricsService';
 import queueService from '../service/queueService';
 import socketService from '../service/socketService';
 import { DownloadDetails } from '../types/DownloadDetails';
@@ -26,6 +27,7 @@ class DownloadFacade {
 
         process.on('error', (err) => {
             loggingService.error(pid, `Download process error: ${err.message}`);
+            metricsService.recordDownload('failed', err.message);
             queueService.removeFromQueue(pid);
         });
         process.stderr?.on('data', this.#processError);
@@ -121,10 +123,17 @@ class DownloadFacade {
                     fs.rmSync(directory, { recursive: true, force: true });
 
                     await historyService.addHistory(queueItem);
-                } catch (err) {
+                    metricsService.recordDownload('completed');
+                } catch (err: any) {
                     loggingService.error(err);
+                    metricsService.recordDownload('failed', err?.message ?? String(err));
                 }
             }
+        } else if (code === null) {
+            // Killed by a signal, which is how a cancelled download ends
+            metricsService.recordDownload('cancelled');
+        } else {
+            metricsService.recordDownload('failed', `Exited with code ${code}`);
         }
         queueService.removeFromQueue(pid);
     }

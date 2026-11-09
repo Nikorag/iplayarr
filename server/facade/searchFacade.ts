@@ -1,5 +1,6 @@
 import CacheService from '../service/cache/cacheService';
 import configService from '../service/configService';
+import metricsService from '../service/metricsService';
 import AbstractSearchService from '../service/search/AbstractSearchService';
 import getIplayerSearchService from '../service/search/GetIplayerSearchService';
 import nativeSearchService from '../service/search/NativeSearchService';
@@ -28,7 +29,15 @@ class SearchFacade {
 
         let results: IPlayerSearchResult[] | undefined = await this.searchCache.get(term);
         if (!results) {
-            results = await service.search(term, synonym);
+            const startedAt = Date.now();
+            const source = service === nativeSearchService ? 'native' : 'get_iplayer';
+            try {
+                results = await service.search(term, synonym);
+            } catch (error) {
+                metricsService.recordSearch(source, Date.now() - startedAt, error);
+                throw error;
+            }
+            metricsService.recordSearch(source, Date.now() - startedAt);
             this.searchCache.set(term, results as IPlayerSearchResult[]);
         } else {
             //Fix the results which are stored as string

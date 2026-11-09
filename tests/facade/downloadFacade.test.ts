@@ -5,6 +5,7 @@ import downloadFacade from '../../server/facade/downloadFacade';
 import configService from '../../server/service/configService';
 import GetIplayerDownloadService from '../../server/service/download/GetIplayerDownloadService';
 import historyService from '../../server/service/historyService';
+import metricsService from '../../server/service/metricsService';
 import queueService from '../../server/service/queueService';
 import { DownloadClient } from '../../server/types/enums/DownloadClient';
 
@@ -117,9 +118,10 @@ describe('DownloadFacade', () => {
 
         afterEach(() => {
             jest.useRealTimers();
+            (queueService.getFromQueue as jest.Mock).mockReset();
         });
 
-        async function triggerClose(code: number): Promise<void> {
+        async function triggerClose(code: number | null): Promise<void> {
             const downloadDir = '/downloads';
 
             (configService.getParameter as jest.Mock)
@@ -170,6 +172,45 @@ describe('DownloadFacade', () => {
                 expect.any(String)
             );
             expect(historyService.addHistory).toHaveBeenCalledWith(queueItem);
+        });
+
+        describe('metrics', () => {
+            const downloads = () => metricsService.collect().find(({ name }) => name == 'iplayarr_downloads_total')?.samples;
+
+            beforeEach(() => metricsService.reset());
+
+            it('records a completed download', async () => {
+                (fs.readdirSync as jest.Mock).mockReturnValue(['episode.mp4']);
+
+                await triggerClose(0);
+
+                expect(downloads()).toEqual([{ labels: { outcome: 'completed' }, value: 1 }]);
+            });
+
+            it('records a download whose post-processing throws as failed', async () => {
+                (fs.readdirSync as jest.Mock).mockImplementation(() => {
+                    throw new Error('disk gone');
+                });
+
+                await triggerClose(0);
+
+                expect(downloads()).toEqual([{ labels: { outcome: 'failed' }, value: 1 }]);
+                expect(metricsService.getLastEvents().download).toMatchObject({ ok: false, error: 'disk gone' });
+            });
+
+            it('records a non-zero exit as failed', async () => {
+                await triggerClose(1);
+
+                expect(downloads()).toEqual([{ labels: { outcome: 'failed' }, value: 1 }]);
+                expect(metricsService.getLastEvents().download?.error).toBe('Exited with code 1');
+            });
+
+            it('records a signal exit as cancelled without marking downloads unhealthy', async () => {
+                await triggerClose(null);
+
+                expect(downloads()).toEqual([{ labels: { outcome: 'cancelled' }, value: 1 }]);
+                expect(metricsService.getLastEvents().download).toBeUndefined();
+            });
         });
     });
 

@@ -86,6 +86,9 @@ function joinOrReturn(input: string | any[]): string {
             .map((item: any) => {
                 if (typeof item === 'string') {
                     return item;
+                } else if (Buffer.isBuffer(item)) {
+                    // Child process output arrives as a Buffer; stringifying one gives {"type":"Buffer","data":[69,82,...]}
+                    return item.toString().trim();
                 } else {
                     return JSON.stringify(item, null, 2);
                 }

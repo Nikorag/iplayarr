@@ -126,8 +126,8 @@ There's a few more optional settings too:
 | ACTIVE_LIMIT     | How many downloads are allowed simultaneously, defaults to 3                              |
 | REFRESH_SCHEDULE | Cron expression for when to proactively refresh schedule, defaults to hourly, on the hour |
 | HIDE_DONATE      | If you don't like the Kofi donate links you can hide them                                 |
-| PUID             | Host User ID for file permissions                                                         |
-| PGID             | Host Group ID for file permissions                                                        |
+| PUID             | User ID iPlayarr runs as. Set it to the same ID as Sonarr/Radarr, see [Permissions](#permissions-and-files-left-in-the-complete-folder) |
+| PGID             | Group ID iPlayarr runs as. Set it to the same ID as Sonarr/Radarr                         |
 | DATABASE_URL     | Use Postgres instead of SQLite, see [Database](#database)                                 |
 | REDIS_HOST       | Use Redis for caching instead of memory, see [Caching](#caching)                          |
 
@@ -147,7 +147,7 @@ The default details are:
 
 > **Info:** The best way to add iPlayarr to Sonarr or Radarr is to use the "Apps" section of the web UI in iPlayarr
 
-iPlayarr presents itself as both an indexer and a download client on port 4404. You can configure it automatically in the Settings menu or manually as follows:
+iPlayarr presents itself as both an indexer and a download client on port 4404. You can configure it automatically from the **Apps** page or manually as follows:
 
 **Add iPlayarr manually as a Download Client**
 
@@ -175,6 +175,15 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 | URL             | http://Your_Docker_Host:4404 |
 | API Key         | API_KEY from above           |
 | Download Client | iPlayarr (created above)     |
+
+### Permissions and files left in the complete folder
+
+If downloads finish but Sonarr or Radarr can't import them (they sit in the complete folder, or "Import failed, path does not exist or is not accessible"), it is almost always one of these:
+
+- **`PUID` and `PGID` don't match.** iPlayarr writes the finished file as the user and group in `PUID`/`PGID`. Set them to the same values Sonarr/Radarr run as (check their `PUID`/`PGID`, or `id <user>` on the host), otherwise they may not be able to read or move the file. This is especially common on **Synology** and other NAS systems, where containers run as root by default.
+- **iPlayarr was added to Sonarr/Radarr by hand.** Use the **Apps** page to create the indexer and download client instead: it sets them up with the settings iPlayarr expects. Hand-made entries have caused files to be left behind on Synology.
+- **Different paths in different containers.** iPlayarr reports the complete folder to Sonarr/Radarr, so that same path has to exist inside the Sonarr/Radarr container (mount the same host folder at the same container path, or add a Remote Path Mapping in Sonarr/Radarr).
+- **Too many simultaneous downloads.** The default limit is 3 (`ACTIVE_LIMIT`, or *Download Limit* in Settings). A few Synology users have found that setting it to `1` stopped imports failing, then raising it again if it stays reliable. This is a workaround reported by users rather than a known fix, so treat it as something to try.
 
 ### Web Interface
 

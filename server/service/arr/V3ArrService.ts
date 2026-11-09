@@ -167,6 +167,12 @@ export class V3ArrService implements AbstractArrService {
 
 
 
+    #isArrStatus(data: unknown): boolean {
+        if (typeof data !== 'object' || data === null || Array.isArray(data)) return false;
+        const status = data as Record<string, unknown>;
+        return typeof status.version === 'string' || typeof status.appName === 'string';
+    }
+
     async testConnection(app: App): Promise<boolean | string> {
         const url: string = `${this.getApiUrl(app)}/system/status`;
 
@@ -176,8 +182,14 @@ export class V3ArrService implements AbstractArrService {
                     'X-Api-Key': app.api_key,
                 },
             });
-            if (response.status == 200) return true;
-            return `Unexpected response status ${response.status}`;
+            if (response.status != 200) return `Unexpected response status ${response.status}`;
+            // A real *arr app answers with a JSON status object. Anything else (an HTML page from a
+            // reverse proxy, a login screen, a bare host with no port) isn't an *arr API, even if it
+            // returns HTTP 200.
+            if (!this.#isArrStatus(response.data)) {
+                return 'The URL did not return a valid response from the app. Check the URL, port and URL base.';
+            }
+            return true;
         } catch (error) {
             return formatArrError(error);
         }
@@ -192,8 +204,11 @@ export class V3ArrService implements AbstractArrService {
                     'X-Api-Key': app.api_key,
                 },
             });
-            if (response.status == 200) return response.data;
-            return [];
+            if (response.status != 200) return [];
+            if (!Array.isArray(response.data)) {
+                throw new Error('unexpected response from the app. Check the URL, port and URL base');
+            }
+            return response.data;
         } catch (error) {
             throw new Error(`Unable to load tags: ${formatArrError(error)}`);
         }

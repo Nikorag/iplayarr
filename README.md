@@ -2,7 +2,6 @@
 
 iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to integrate **get_iplayer** for searching and downloading iPlayer content directly. It acts as both an **indexer** and a **download client**, allowing seamless automation of TV and movie downloads.
 
-[![Discord](https://img.shields.io/discord/1359619754456907856?label=Discord&logo=discord&style=flat)](https://discord.com/channels/1359619754456907856)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/nikorag/iplayarr/build.yml?logo=github)
 [![Coverage Status](https://coveralls.io/repos/github/Nikorag/iplayarr/badge.svg?branch=main)](https://coveralls.io/github/Nikorag/iplayarr?branch=main)
 

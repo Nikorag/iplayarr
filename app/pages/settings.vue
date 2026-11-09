@@ -117,6 +117,33 @@
             </InfoBar>
         </template>
 
+        <legend class="sub">Live TV (Jellyfin)</legend>
+        <SelectInput
+            v-model="config.LIVE_TV_ENABLED"
+            :advanced="false"
+            name="Live TV Enabled?"
+            tooltip="Serve the BBC channels as an M3U playlist and XMLTV guide for Jellyfin Live TV."
+            :error="validationErrors.config?.LIVE_TV_ENABLED"
+            :options="trueOrFalse"
+        />
+        <template v-if="config.LIVE_TV_ENABLED == 'true'">
+            <SelectInput
+                v-model="config.LIVE_TV_MODE"
+                :advanced="false"
+                name="Stream Delivery"
+                tooltip="Redirect sends Jellyfin straight to the BBC. Proxy relays the stream through iPlayarr."
+                :error="validationErrors.config?.LIVE_TV_MODE"
+                :options="liveTvModes"
+            />
+            <InfoBar v-if="!config.API_KEY">Set an API Key and save to get your Live TV URLs.</InfoBar>
+            <InfoBar v-else>
+                In Jellyfin, add an <strong>M3U Tuner</strong> using <strong>{{ liveTvUrl('playlist.m3u') }}</strong>
+                and an <strong>XMLTV</strong> guide using <strong>{{ liveTvUrl('guide.xml') }}</strong>. Add
+                <strong>?mode=redirect</strong> or <strong>?mode=proxy</strong> to the playlist URL to override the
+                delivery setting for that tuner. Save any changes first.
+            </InfoBar>
+        </template>
+
         <legend class="sub">Authentication</legend>
         <SelectInput
                 v-model="config.AUTH_TYPE"
@@ -220,6 +247,13 @@ const trueOrFalse = ref([
     { key: 'true', value: 'Enabled' },
     { key: 'false', value: 'Disabled' },
 ]);
+
+const liveTvModes = ref([
+    { key: 'redirect', value: 'Redirect (Jellyfin connects to the BBC)' },
+    { key: 'proxy', value: 'Proxy (via iPlayarr)' },
+]);
+
+const liveTvUrl = (file) => `${window.location.origin}/tv/${config.value.API_KEY}/${file}`;
 
 const authTypes = ref([
     { key: 'form', value: 'Form' },

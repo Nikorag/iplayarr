@@ -11,7 +11,8 @@ export enum QueueEntryStatus {
     FORWARDED = 'Forwarded',
     COMPLETE = 'Complete',
     CANCELLED = 'Cancelled',
-    REMOVED = 'Removed'
+    REMOVED = 'Removed',
+    FAILED = 'Failed',
 }
 
 export interface SabNZBDQueueResponse {

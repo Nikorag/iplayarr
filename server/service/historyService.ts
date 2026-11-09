@@ -22,6 +22,20 @@ const historyService = {
         socketService.emit('history', history);
     },
 
+    addFailure: async (item: QueueEntry, failMessage: string): Promise<void> => {
+        const historyItem: QueueEntry = {
+            ...item,
+            status: QueueEntryStatus.FAILED,
+            failMessage,
+            details: { ...item.details, eta: '', speed: 0 },
+            process: undefined,
+        };
+        const history: QueueEntry[] = await historyService.getHistory();
+        history.push(historyItem);
+        await storage.setItem('history', history);
+        socketService.emit('history', history);
+    },
+
     addRelay: async (item: QueueEntry): Promise<void> => {
         const history: QueueEntry[] = await historyService.getHistory();
         history.push(item);

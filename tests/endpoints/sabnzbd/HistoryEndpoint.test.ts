@@ -87,5 +87,31 @@ describe('sabnzbdActionEndpoint', () => {
                 size: '1 MB',
             });
         });
+
+        it('reports failed entries to SABnzbd with a Failed status and fail message', async () => {
+            (historyService.getHistory as jest.Mock).mockResolvedValue([
+                {
+                    pid: 'bad',
+                    nzbName: 'badfile',
+                    status: QueueEntryStatus.FAILED,
+                    failMessage: 'no video file',
+                    details: {},
+                    type: VideoType.TV,
+                },
+            ]);
+            (configService.getParameter as jest.Mock).mockResolvedValueOnce('/complete');
+            (configService.getParameter as jest.Mock).mockResolvedValueOnce('mp4');
+
+            const result = await handler(makeEvent({ query: req.query }));
+
+            expect(result.history.slots).toHaveLength(1);
+            expect(result.history.slots[0]).toMatchObject({
+                nzo_id: 'bad',
+                status: 'Failed',
+                fail_message: 'no video file',
+                bytes: 0,
+                downloaded: 0,
+            });
+        });
     });
 });

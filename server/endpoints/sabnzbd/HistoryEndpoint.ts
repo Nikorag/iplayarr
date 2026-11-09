@@ -8,6 +8,7 @@ import { QueueEntry } from '../../types/QueueEntry';
 import {
     historyEntrySkeleton,
     historySkeleton,
+    HistoryStatus,
     SABNZBDHistoryEntryResponse,
     SabNZBDHistoryResponse,
 } from '../../types/responses/sabnzbd/HistoryResponse';
@@ -49,19 +50,22 @@ const actionDirectory: EndpointDirectory = {
 };
 
 function createHistoryEntry(completeDir: string, item: QueueEntry, outputFormat: string): SABNZBDHistoryEntryResponse {
+    const failed = item.status == QueueEntryStatus.FAILED;
+    const sizeMB = (item.details?.size as number) ?? 0;
     return {
         ...historyEntrySkeleton,
+        ...(failed ? { status: HistoryStatus.FAILED, fail_message: item.failMessage ?? 'Download failed' } : {}),
         duplicate_key: item.pid,
-        size: formatBytes((item.details?.size as number) * sizeFactor),
+        size: formatBytes(sizeMB * sizeFactor),
         nzb_name: `${item.nzbName}.nzb`,
         storage: `${completeDir}/${item.nzbName}.${outputFormat}`,
-        completed: (item.details?.size as number) * sizeFactor,
-        downloaded: (item.details?.size as number) * sizeFactor,
+        completed: failed ? 0 : sizeMB * sizeFactor,
+        downloaded: failed ? 0 : sizeMB * sizeFactor,
         nzo_id: item.pid,
         path: `${completeDir}/${item.nzbName}.${outputFormat}`,
         name: `${item.nzbName}.${outputFormat}`,
         url: `${item.nzbName}.nzb`,
-        bytes: (item.details?.size as number) * sizeFactor,
+        bytes: sizeMB * sizeFactor,
     } as SABNZBDHistoryEntryResponse;
 }
 

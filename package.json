@@ -8,6 +8,7 @@
         "serve:postgres": "docker compose --profile postgres up -d",
         "db:generate": "drizzle-kit generate --config drizzle.sqlite.config.ts && drizzle-kit generate --config drizzle.pg.config.ts",
         "test": "cross-env NODE_ENV=test jest --collectCoverageFrom 'server/**/*.{js,ts}'",
+        "test:integration": "cross-env NODE_ENV=test jest --runInBand --config jest.integration.config.js",
         "test:watch": "jest --watch",
         "lint": "eslint . --ext .ts",
         "lint:fix": "npm run lint -- --fix",

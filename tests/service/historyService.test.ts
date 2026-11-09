@@ -83,6 +83,20 @@ describe('historyService', () => {
         );
     });
 
+    it('addFailure stores item with FAILED status and the failure message', async () => {
+        await historyService.addFailure(sampleEntry, 'no video file');
+        expect(mockSetItem).toHaveBeenCalledWith(
+            'history',
+            expect.arrayContaining([
+                expect.objectContaining({
+                    pid: '123',
+                    status: QueueEntryStatus.FAILED,
+                    failMessage: 'no video file',
+                }),
+            ])
+        );
+    });
+
     it('removeHistory filters out entry by PID', async () => {
         mockGetItem.mockResolvedValue([
             { ...sampleEntry, pid: '123' },

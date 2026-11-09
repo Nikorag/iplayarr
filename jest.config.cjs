@@ -5,7 +5,7 @@ module.exports = {
     transform: {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
     },
-    testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+    testPathIgnorePatterns: ['/node_modules/', '/dist/', '/tests/integration/'],
     reporters: [
         'default',
         [

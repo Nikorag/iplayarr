@@ -122,8 +122,17 @@ class DownloadFacade {
                     loggingService.debug(pid, `Deleting old directory ${directory}`);
                     fs.rmSync(directory, { recursive: true, force: true });
 
-                    await historyService.addHistory(queueItem);
-                    metricsService.recordDownload('completed');
+                    if (videoFile) {
+                        await historyService.addHistory(queueItem);
+                        metricsService.recordDownload('completed');
+                    } else {
+                        // get-iplayer can exit 0 without producing a file. Report it as failed so Sonarr/Radarr
+                        // don't try to import a file that doesn't exist.
+                        const message = `get_iplayer exited successfully but no video file was produced for '${queueItem.nzbName}'`;
+                        loggingService.error(pid, message);
+                        await historyService.addFailure(queueItem, message);
+                        metricsService.recordDownload('failed', message);
+                    }
                 } catch (err: any) {
                     loggingService.error(err);
                     metricsService.recordDownload('failed', err?.message ?? String(err));

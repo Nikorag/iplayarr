@@ -1,5 +1,6 @@
 export enum HistoryStatus {
     COMPLETED = 'Completed',
+    FAILED = 'Failed',
 }
 
 export const historySkeleton: Partial<SabNZBDHistoryResponse> = {

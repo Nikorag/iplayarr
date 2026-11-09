@@ -63,6 +63,7 @@ jest.mock('../../server/service/socketService', () => ({
 
 jest.mock('../../server/service/historyService', () => ({
     addHistory: jest.fn(),
+    addFailure: jest.fn(),
 }));
 
 describe('DownloadFacade', () => {
@@ -121,7 +122,7 @@ describe('DownloadFacade', () => {
             (queueService.getFromQueue as jest.Mock).mockReset();
         });
 
-        async function triggerClose(code: number | null): Promise<void> {
+        async function triggerClose(code: number | null, advanceMs: number = 10000): Promise<void> {
             const downloadDir = '/downloads';
 
             (configService.getParameter as jest.Mock)
@@ -146,7 +147,7 @@ describe('DownloadFacade', () => {
                 .mockResolvedValueOnce('mp4'); // OUTPUT_FORMAT
 
             const closePromise = closeHandler(code);
-            await jest.advanceTimersByTimeAsync(10000);
+            await jest.advanceTimersByTimeAsync(advanceMs);
             await closePromise;
         }
 
@@ -172,6 +173,20 @@ describe('DownloadFacade', () => {
                 expect.any(String)
             );
             expect(historyService.addHistory).toHaveBeenCalledWith(queueItem);
+        });
+
+        it('records a failure, not a completion, when get_iplayer exits 0 without producing a video file', async () => {
+            (fs.readdirSync as jest.Mock).mockReturnValue([]);
+
+            // The facade polls for up to ~5 minutes before giving up
+            await triggerClose(0, 310000);
+
+            expect(historyService.addHistory).not.toHaveBeenCalled();
+            expect(historyService.addFailure).toHaveBeenCalledWith(
+                queueItem,
+                expect.stringContaining('no video file was produced')
+            );
+            expect(metricsService.getLastEvents().download).toMatchObject({ ok: false });
         });
 
         describe('metrics', () => {

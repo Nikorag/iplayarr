@@ -9,6 +9,7 @@ import GetIplayerDownloadService from '../service/download/GetIplayerDownloadSer
 import YTDLPDownloadService from '../service/download/YTDLPDownloadService';
 import historyService from '../service/historyService';
 import loggingService from '../service/loggingService';
+import metricsService from '../service/metricsService';
 import queueService from '../service/queueService';
 import socketService from '../service/socketService';
 import { DownloadDetails } from '../types/DownloadDetails';
@@ -26,6 +27,7 @@ class DownloadFacade {
 
         process.on('error', (err) => {
             loggingService.error(pid, `Download process error: ${err.message}`);
+            metricsService.recordDownload('failed', err.message);
             queueService.removeFromQueue(pid);
         });
         process.stderr?.on('data', this.#processError);
@@ -122,17 +124,25 @@ class DownloadFacade {
 
                     if (videoFile) {
                         await historyService.addHistory(queueItem);
+                        metricsService.recordDownload('completed');
                     } else {
                         // get-iplayer can exit 0 without producing a file. Report it as failed so Sonarr/Radarr
                         // don't try to import a file that doesn't exist.
                         const message = `get_iplayer exited successfully but no video file was produced for '${queueItem.nzbName}'`;
                         loggingService.error(pid, message);
                         await historyService.addFailure(queueItem, message);
+                        metricsService.recordDownload('failed', message);
                     }
-                } catch (err) {
+                } catch (err: any) {
                     loggingService.error(err);
+                    metricsService.recordDownload('failed', err?.message ?? String(err));
                 }
             }
+        } else if (code === null) {
+            // Killed by a signal, which is how a cancelled download ends
+            metricsService.recordDownload('cancelled');
+        } else {
+            metricsService.recordDownload('failed', `Exited with code ${code}`);
         }
         queueService.removeFromQueue(pid);
     }

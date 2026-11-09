@@ -1,7 +1,7 @@
 <template>
     <IPlayarrModal title="Select App">
-        <ListEditor v-slot="{ item }" :show-add="false" :items="apps">
-            <a @click.prevent="emit('selectApp', item)">
+        <ListEditor v-slot="{ item }" :show-add="false" :items="apps" selectable @select="emit('selectApp', $event)">
+            <div>
                 <div class="major">
                     <img class="appImg" :src="`/img/${item.type.toLowerCase()}.svg`" />
                     <span class="appName">
@@ -11,7 +11,7 @@
                 <div class="sub">
                     {{ item.url }}
                 </div>
-            </a>
+            </div>
         </ListEditor>
     </IPlayarrModal>
 </template>

@@ -9,9 +9,10 @@
             v-slot="{ item }"
             :items="cacheDefinitions"
             :actions="[
-                ['refresh', refreshCacheDefinition],
-                ['trash', remove],
+                ['refresh', refreshCacheDefinition, 'Refresh cache'],
+                ['trash', remove, 'Delete cache definition'],
             ]"
+            add-label="Add cache definition"
             @create="openForm"
         >
             <div class="major">
@@ -37,13 +38,22 @@ import ListEditor from '@/components/common/ListEditor.vue';
 import OffScheduleForm from '@/components/modals/OffScheduleForm.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
+import toastService from '@/lib/toastService';
 import { deepCopy } from '@/lib/utils';
 
 const cacheDefinitions = ref([]);
 const router = useRouter();
 
 const refreshCacheDefinitions = async () => {
-    cacheDefinitions.value = (await ipFetch('json-api/offSchedule')).data;
+    try {
+        const response = await ipFetch('json-api/offSchedule');
+        if (!response.ok) {
+            throw new Error(response.data?.message || 'The server returned an error');
+        }
+        cacheDefinitions.value = response.data;
+    } catch (err) {
+        toastService.error(`Unable to load cache definitions: ${err.message || 'the server could not be reached'}`);
+    }
 };
 
 onMounted(refreshCacheDefinitions);
@@ -54,12 +64,10 @@ const openForm = (cacheDef) => {
         attrs: {
             inputObj: deepCopy(cacheDef),
             action: cacheDef ? 'Edit' : 'Create',
-            onSave: async (form, success) => {
-                const result = await saveCacheDefinition(form);
-                if (result) {
-                    formModal.close();
-                    success();
-                }
+            save: saveCacheDefinition,
+            onSaved: () => {
+                formModal.close();
+                refreshCacheDefinitions();
             },
         },
     });
@@ -70,26 +78,33 @@ const remove = async ({ id }) => {
     if (
         await dialogService.confirm('Delete Cache Definition', 'Are you sure you want to delete this Cache Definition?')
     ) {
-        await ipFetch('json-api/offSchedule', 'DELETE', { id });
+        try {
+            const { ok, data } = await ipFetch('json-api/offSchedule', 'DELETE', { id });
+            if (!ok) {
+                toastService.error(`Failed to delete: ${data?.message ?? 'unknown error'}`);
+            }
+        } catch (err) {
+            toastService.error(`Failed to delete: ${err.message}`);
+        }
         refreshCacheDefinitions();
     }
 };
 
-const saveCacheDefinition = async (form) => {
-    const method = form.id ? 'PUT' : 'POST';
-    const response = await ipFetch('json-api/offSchedule', method, form);
-    if (response.ok) {
-        refreshCacheDefinitions();
-        return true;
-    } else {
-        dialogService.alert('Validation Error', response.data.invalid_fields?.url);
-        return false;
-    }
-};
+// Returns the response so the form can show what went wrong and stay open until the save works
+const saveCacheDefinition = (form) => ipFetch('json-api/offSchedule', form.id ? 'PUT' : 'POST', form);
 
 const refreshCacheDefinition = async (def) => {
     if (await dialogService.confirm('Refresh Cache', `Are you sure you want to refresh the cache for ${def.name}?`)) {
-        await ipFetch('json-api/offSchedule/refresh', 'POST', def);
+        try {
+            const { ok, data } = await ipFetch('json-api/offSchedule/refresh', 'POST', def);
+            if (!ok) {
+                toastService.error(`Failed to refresh ${def.name}: ${data?.message ?? 'unknown error'}`);
+                return;
+            }
+        } catch (err) {
+            toastService.error(`Failed to refresh ${def.name}: ${err.message}`);
+            return;
+        }
         if (await dialogService.confirm('Show Results?', `Show Results for ${def.name}?`)) {
             router.push(`/search?searchTerm=${def.name}`);
         }

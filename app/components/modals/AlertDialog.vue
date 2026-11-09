@@ -4,7 +4,8 @@
         :show-cancel="showCancel"
         cancel-label="Cancel"
         :show-confirm="true"
-        confirm-label="OK"
+        :confirm-label="confirmLabel"
+        :confirm-variant="confirmVariant"
         @cancel="emit('cancel')"
         @confirm="emit('confirm', selected)"
     >
@@ -37,6 +38,15 @@ const props = defineProps({
         default: false,
     },
     options: Array,
+    confirmLabel: {
+        type: String,
+        default: 'OK',
+    },
+    // 'danger' for confirming something destructive
+    confirmVariant: {
+        type: String,
+        default: 'primary',
+    },
 });
 
 const selected = ref(props.options ? props.options[0] : true);

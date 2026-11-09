@@ -134,6 +134,20 @@ button:focus {
     box-shadow: none;
 }
 
+@keyframes iplayarr-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation: iplayarr-spin 1.25s linear infinite;
+}
+
 .iplayarr-modal {
     display: flex;
     align-items: center;
@@ -146,14 +160,83 @@ button:focus {
 }
 
 .iplayarr-modal-content {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
     padding: 20px;
+    width: fit-content;
+    max-height: 90vh;
     border-radius: 8px;
+    background-color: @nav-background-color;
     box-shadow: 0 4px 10px @primary-box-shadow;
 
+    // The header and footer stay put, only the form scrolls, so Save/Cancel are always reachable
     .modal-inner {
+        flex: 1 1 auto;
+        min-height: 0;
         overflow-y: auto;
-        @media (min-width: @mobile-breakpoint) {
-            max-height: 75vh;
+        // keep a focused control's ring from being clipped by the scroll container
+        padding: 2px 4px;
+        margin: 0 -4px;
+    }
+
+    .modal-footer {
+        display: flex;
+        flex: 0 0 auto;
+        justify-content: flex-end;
+        gap: 12px;
+        padding-top: 16px;
+        margin-top: 12px;
+        border-top: 1px solid @login-panel-header-color;
+
+        button {
+            min-width: 90px;
+            min-height: 36px;
+            padding: 6px 16px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid @settings-button-border-color;
+            background-color: @settings-button-background-color;
+            color: @primary-text-color;
+            transition:
+                background-color 150ms ease,
+                border-color 150ms ease;
+
+            &:hover:not(:disabled) {
+                border-color: @settings-button-hover-border-color;
+                background-color: @settings-button-hover-background-color;
+            }
+
+            &:focus-visible {
+                outline: 2px solid @primary-color;
+                outline-offset: 2px;
+            }
+
+            &.primary {
+                border-color: @login-button-border-color;
+                background-color: @primary-color;
+
+                &:hover:not(:disabled) {
+                    background-color: darken(@primary-color, 6%);
+                    border-color: @login-button-border-color;
+                }
+            }
+
+            &.danger {
+                border-color: @error-color;
+                background-color: @error-color;
+
+                &:hover:not(:disabled) {
+                    background-color: darken(@error-color, 6%);
+                    border-color: @error-color;
+                }
+            }
+
+            &:disabled {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
         }
     }
 
@@ -162,53 +245,21 @@ button:focus {
         max-width: 80%;
     }
 
-    width: fit-content;
-    background-color: @nav-background-color;
-
     @media (max-width: @mobile-breakpoint) {
-        padding-top: 3rem;
         width: 100vw;
-        height: 100vh;
+        height: 100%;
         max-width: 100%;
         max-height: 100%;
+        padding: 16px;
         border-radius: 0;
-        min-width: none;
 
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
+        .modal-footer {
+            // keep clear of the home indicator on notched phones
+            padding-bottom: env(safe-area-inset-bottom, 0);
 
-    .button-container {
-        justify-content: flex-end;
-        text-align: right;
-        max-width: 650px;
-
-        @media (max-width: @mobile-breakpoint) {
-            &.floor {
-                margin-top: auto;
-                margin-bottom: 3rem;
-            }
-            box-sizing: border-box;
-        }
-
-        button {
-            background-color: @settings-button-background-color;
-            border: 1px solid @settings-button-border-color;
-            padding: 6px 16px;
-            font-size: 14px;
-            color: @primary-text-color;
-            border-radius: 4px;
-            margin-left: 1rem;
-            cursor: pointer;
-
-            &.cancel {
-                background-color: @error-color;
-            }
-
-            &:hover:not(:disabled) {
-                border-color: @settings-button-hover-border-color;
-                background-color: @settings-button-hover-background-color;
+            button {
+                flex: 1 1 0;
+                min-height: 44px;
             }
         }
     }

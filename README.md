@@ -5,7 +5,7 @@ iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to in
 ![Build Status](https://img.shields.io/github/actions/workflow/status/nikorag/iplayarr/build.yml?logo=github)
 [![Coverage Status](https://coveralls.io/repos/github/Nikorag/iplayarr/badge.svg?branch=main)](https://coveralls.io/github/Nikorag/iplayarr?branch=main)
 
-> [!AI Generated Code Update]
+> **AI Generated Code Update**
 > Since releaseing iPlayarr in 2024 I've struggled with the upkeep of the mounting issues. As such, I've been using Claude code to work through the backlog.
 >
 > Changes it produces are still manually tested and checked
@@ -13,8 +13,8 @@ iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to in
 > If you prefer not to use AI generated code please stick to the 0.x.x releases which are prior to this update
 >
 > I realise it's a polarising topic in software development, but without this, iPlayarr would be receiving no updates at all.
->
-> - Nikorag
+> Thanks
+> Nikorag
 
 ## 📸 Screenshots
 

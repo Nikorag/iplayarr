@@ -8,6 +8,7 @@ import { QueueEntry } from '../types/QueueEntry';
 import { QueueEntryStatus } from '../types/responses/sabnzbd/QueueResponse';
 import configService from './configService';
 import historyService from './historyService';
+import loggingService from './loggingService';
 import socketService from './socketService';
 import StatisticsService from './stats/StatisticsService';
 
@@ -24,7 +25,7 @@ const queueService = {
             appId,
         };
         queue.push(queueEntry);
-        queueService.moveQueue();
+        queueService.moveQueue().catch((err) => loggingService.error(pid, `Failed to process queue: ${err?.message ?? err}`));
 
         StatisticsService.addGrab({
             pid,
@@ -40,12 +41,22 @@ const queueService = {
             (await configService.getParameter(IplayarrParameter.ACTIVE_LIMIT)) as string
         );
 
+        loggingService.debug(`moveQueue: activeLimit=${activeLimit}, queued=${queue.length}`);
         let activeQueue: QueueEntry[] = queue.filter(({ status }) => status == QueueEntryStatus.DOWNLOADING);
         let idleQueue: QueueEntry[] = queue.filter(({ status }) => status == QueueEntryStatus.QUEUED);
         while (activeQueue.length < activeLimit && idleQueue.length > 0) {
             const next = idleQueue.shift() as QueueEntry;
 
-            const downloadProcess: ChildProcess = await downloadFacade.download(next.pid);
+            let downloadProcess: ChildProcess;
+            try {
+                downloadProcess = await downloadFacade.download(next.pid);
+            } catch (err: any) {
+                loggingService.error(next.pid, `Failed to start download for '${next.nzbName}': ${err?.message ?? err}`);
+                queue = queue.filter(({ pid }) => pid != next.pid);
+                activeQueue = queue.filter(({ status }) => status == QueueEntryStatus.DOWNLOADING);
+                idleQueue = queue.filter(({ status }) => status == QueueEntryStatus.QUEUED);
+                continue;
+            }
             next.status = QueueEntryStatus.DOWNLOADING;
             next.process = downloadProcess;
             next.details = { ...next.details, start: new Date() };

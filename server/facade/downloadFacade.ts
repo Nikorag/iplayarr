@@ -24,6 +24,10 @@ class DownloadFacade {
         const service: AbstractDownloadService = await this.#getService();
         const process: ChildProcess = await service.download(pid, pidDir);
 
+        process.on('error', (err) => {
+            loggingService.error(pid, `Download process error: ${err.message}`);
+            queueService.removeFromQueue(pid);
+        });
         process.stderr?.on('data', this.#processError);
         process.stdout?.on('data', (data) => this.#processOutput(pid, data));
         process.on('close', (code) => this.#processComplete(pid, pidDir, code, service));
@@ -140,6 +144,9 @@ class DownloadFacade {
 
     async #createPidDirectory(pid: string): Promise<string> {
         const downloadDir: string = (await configService.getParameter(IplayarrParameter.DOWNLOAD_DIR)) as string;
+        if (!downloadDir) {
+            throw new Error('DOWNLOAD_DIR is not set. Configure the download directory in Settings or via the DOWNLOAD_DIR environment variable.');
+        }
         const pidDir = `${downloadDir}/${pid}`;
         fs.mkdirSync(pidDir, { recursive: true });
         fs.writeFileSync(`${pidDir}/${timestampFile}`, '');

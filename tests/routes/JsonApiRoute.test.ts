@@ -13,11 +13,13 @@ jest.mock('../../server/facade/scheduleFacade');
 jest.mock('../../server/facade/searchFacade');
 jest.mock('../../server/service/iplayerDetailsService');
 jest.mock('../../server/service/queueService');
+jest.mock('../../server/service/loggingService');
 
 import nzbFacade from '../../server/facade/nzbFacade';
 import scheduleFacade from '../../server/facade/scheduleFacade';
 import searchFacade from '../../server/facade/searchFacade';
 import iplayerDetailsService from '../../server/service/iplayerDetailsService';
+import loggingService from '../../server/service/loggingService';
 import queueService from '../../server/service/queueService';
 import { ApiError } from '../../server/types/responses/ApiResponse';
 
@@ -129,13 +131,24 @@ describe('JsonApiRoute', () => {
     describe('GET /cache-refresh', () => {
         it('should trigger cache refresh and return success', async () => {
             const refreshCacheMock = scheduleFacade.refreshCache as jest.Mock;
-            refreshCacheMock.mockImplementation(() => { });
+            refreshCacheMock.mockResolvedValue(undefined);
 
             const res = await request(app).get('/cache-refresh');
 
             expect(refreshCacheMock).toHaveBeenCalled();
             expect(res.status).toBe(200);
             expect(res.body).toEqual({ status: true });
+        });
+
+        it('still responds and logs the failure when the background refresh fails', async () => {
+            const refreshCacheMock = scheduleFacade.refreshCache as jest.Mock;
+            refreshCacheMock.mockRejectedValue(new Error('BBC is down'));
+
+            const res = await request(app).get('/cache-refresh');
+            await new Promise((resolve) => setImmediate(resolve));
+
+            expect(res.status).toBe(200);
+            expect(loggingService.error).toHaveBeenCalledWith(expect.stringContaining('BBC is down'));
         });
     });
 });

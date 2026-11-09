@@ -21,6 +21,11 @@ jest.mock('../../../server/service/synonymService');
 describe('NativeScheduleService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        // The service is a singleton, so clear state left over from earlier tests
+        NativeScheduleService.caching = false;
+        NativeScheduleService.lastRefreshAttempt = 0;
+        NativeScheduleService.failedPages = 0;
+        NativeScheduleService.retryBaseDelayMs = 0;
     });
 
     describe('refreshCache', () => {
@@ -86,6 +91,84 @@ describe('NativeScheduleService', () => {
         });
     });
 
+    describe('refreshCache resilience', () => {
+        const recent = (pid: string, hoursAgo = 1) => ({
+            pid,
+            title: pid,
+            pubDate: new Date(Date.now() - hoursAgo * 3600 * 1000).toISOString(),
+        });
+
+        const arrange = (previous: any[] | undefined) => {
+            (Utils.getQualityProfile as jest.Mock).mockResolvedValue({ sizeFactor: 1 });
+            (configService.getParameter as jest.Mock).mockResolvedValue('24');
+            (Utils.splitArrayIntoChunks as jest.Mock).mockImplementation((pids: string[]) => (pids.length ? [pids] : []));
+            (iplayerDetailsService.details as jest.Mock).mockResolvedValue([]);
+            jest.spyOn(synonymService, 'getSynonym').mockResolvedValue(undefined);
+            NativeScheduleService.scheduleCache.get = jest.fn().mockResolvedValue(previous);
+            const feedSet = jest.fn();
+            const timeSet = jest.fn();
+            NativeScheduleService.scheduleCache.set = feedSet;
+            NativeScheduleService.cacheTime.set = timeSet;
+            return { feedSet, timeSet };
+        };
+
+        it('skips a refresh while another is still running', async () => {
+            const { feedSet } = arrange(undefined);
+            NativeScheduleService.caching = true;
+
+            await NativeScheduleService.refreshCache();
+
+            expect(feedSet).not.toHaveBeenCalled();
+            expect(Utils.getQualityProfile).not.toHaveBeenCalled();
+        });
+
+        it('releases the in-progress flag when a refresh throws', async () => {
+            arrange(undefined);
+            (Utils.getQualityProfile as jest.Mock).mockRejectedValue(new Error('db down'));
+
+            await expect(NativeScheduleService.refreshCache()).rejects.toThrow('db down');
+
+            expect(NativeScheduleService.caching).toBe(false);
+        });
+
+        it('keeps the previous feed when every schedule page failed', async () => {
+            const { feedSet, timeSet } = arrange([recent('keep-me')]);
+            (axios.get as jest.Mock).mockRejectedValue(new Error('boom'));
+            jest.spyOn(loggingService, 'error').mockImplementation(jest.fn());
+
+            await NativeScheduleService.refreshCache();
+
+            expect(NativeScheduleService.failedPages).toBeGreaterThan(0);
+            // The merged feed is exactly the previous one, nothing was lost
+            expect(feedSet).toHaveBeenCalledWith('schedule', [expect.objectContaining({ pid: 'keep-me' })]);
+            // ...and it is due another refresh well before the normal interval
+            const [, lastCached] = timeSet.mock.calls[0];
+            expect(lastCached).toBeLessThan(Date.now() - 2000 * 1000);
+        });
+
+        it('drops previous programmes that are older than the RSS window when filling gaps', async () => {
+            const { feedSet } = arrange([recent('fresh', 2), recent('ancient', 100)]);
+            (axios.get as jest.Mock).mockRejectedValue(new Error('boom'));
+            jest.spyOn(loggingService, 'error').mockImplementation(jest.fn());
+
+            await NativeScheduleService.refreshCache();
+
+            const [, feed] = feedSet.mock.calls[0];
+            expect(feed.map((r: any) => r.pid)).toEqual(['fresh']);
+        });
+
+        it('does not wipe a good feed when nothing at all was found', async () => {
+            const { feedSet, timeSet } = arrange([recent('a', 100)]);
+            (axios.get as jest.Mock).mockRejectedValue(new Error('boom'));
+            jest.spyOn(loggingService, 'error').mockImplementation(jest.fn());
+
+            await NativeScheduleService.refreshCache();
+
+            expect(feedSet).not.toHaveBeenCalled();
+            expect(timeSet).toHaveBeenCalledWith('last_cached', expect.any(Number));
+        });
+    });
+
     describe('getFeed', () => {
         it('should refresh cache if stale and return cached results', async () => {
             const now = Date.now();
@@ -111,6 +194,44 @@ describe('NativeScheduleService', () => {
 
             expect(errorMock).toHaveBeenCalledWith('No results found in schedule cache');
             expect(results).toEqual([]);
+        });
+    });
+
+    describe('getFeed background refresh', () => {
+        const staleFeed = () => {
+            NativeScheduleService.cacheTime.get = jest.fn().mockResolvedValue(Date.now() - 3000 * 1000);
+            NativeScheduleService.scheduleCache.get = jest.fn().mockResolvedValue([]);
+        };
+
+        it('reports a failed background refresh instead of leaving an unhandled rejection', async () => {
+            staleFeed();
+            const errorMock = jest.spyOn(loggingService, 'error').mockImplementation(jest.fn());
+            jest.spyOn(NativeScheduleService, 'refreshCache').mockRejectedValue(new Error('BBC is down'));
+
+            await NativeScheduleService.getFeed();
+            await new Promise((resolve) => setImmediate(resolve));
+
+            expect(errorMock).toHaveBeenCalledWith(expect.stringContaining('BBC is down'));
+        });
+
+        it('does not start another refresh within the minimum interval of the last attempt', async () => {
+            staleFeed();
+            NativeScheduleService.lastRefreshAttempt = Date.now() - 60 * 1000;
+            const refreshSpy = jest.spyOn(NativeScheduleService, 'refreshCache').mockResolvedValue();
+
+            await NativeScheduleService.getFeed();
+
+            expect(refreshSpy).not.toHaveBeenCalled();
+        });
+
+        it('refreshes again once the minimum interval has passed', async () => {
+            staleFeed();
+            NativeScheduleService.lastRefreshAttempt = Date.now() - 6 * 60 * 1000;
+            const refreshSpy = jest.spyOn(NativeScheduleService, 'refreshCache').mockResolvedValue();
+
+            await NativeScheduleService.getFeed();
+
+            expect(refreshSpy).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -141,6 +262,75 @@ describe('NativeScheduleService', () => {
 
             expect(pids).toEqual([]);
             expect(logSpy).toHaveBeenCalled();
+        });
+    });
+    describe('schedule page retries', () => {
+        const page = '<div class="programme__titles"><a href="/programmes/abc123" aria-label="27 Apr 07:00: Show"></a></div>';
+        const httpError = (status: number, headers: Record<string, string> = {}) =>
+            Object.assign(new Error(`HTTP ${status}`), { response: { status, headers } });
+
+        beforeEach(() => {
+            jest.spyOn(loggingService, 'error').mockImplementation(jest.fn());
+        });
+
+        it('retries a 429 and uses the page once it loads', async () => {
+            (axios.get as jest.Mock)
+                .mockRejectedValueOnce(httpError(429))
+                .mockRejectedValueOnce(httpError(429))
+                .mockResolvedValueOnce({ data: page });
+
+            const pids = await NativeScheduleService.getPidsFromSchedulePage('https://schedule');
+
+            expect(pids).toEqual(['abc123']);
+            expect(axios.get).toHaveBeenCalledTimes(3);
+            expect(NativeScheduleService.failedPages).toBe(0);
+        });
+
+        it('retries a 5xx and a dropped connection', async () => {
+            (axios.get as jest.Mock)
+                .mockRejectedValueOnce(httpError(503))
+                .mockRejectedValueOnce(Object.assign(new Error('reset'), { code: 'ECONNRESET' }))
+                .mockResolvedValueOnce({ data: page });
+
+            expect(await NativeScheduleService.getPidsFromSchedulePage('https://schedule')).toEqual(['abc123']);
+        });
+
+        it('honours Retry-After, capped at 30 seconds', async () => {
+            jest.useFakeTimers();
+            try {
+                (axios.get as jest.Mock)
+                    .mockRejectedValueOnce(httpError(429, { 'retry-after': '120' }))
+                    .mockResolvedValueOnce({ data: page });
+
+                const pending = NativeScheduleService.getPidsFromSchedulePage('https://schedule');
+                await jest.advanceTimersByTimeAsync(29_000);
+                expect(axios.get).toHaveBeenCalledTimes(1);
+                await jest.advanceTimersByTimeAsync(1_500);
+
+                expect(await pending).toEqual(['abc123']);
+                expect(axios.get).toHaveBeenCalledTimes(2);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('gives up after three attempts and counts the page as failed', async () => {
+            (axios.get as jest.Mock).mockRejectedValue(httpError(429));
+
+            const pids = await NativeScheduleService.getPidsFromSchedulePage('https://schedule');
+
+            expect(pids).toEqual([]);
+            expect(axios.get).toHaveBeenCalledTimes(3);
+            expect(NativeScheduleService.failedPages).toBe(1);
+        });
+
+        it('does not retry errors that are not a rate limit, server error or network failure', async () => {
+            (axios.get as jest.Mock).mockRejectedValue(httpError(404));
+
+            await NativeScheduleService.getPidsFromSchedulePage('https://schedule');
+
+            expect(axios.get).toHaveBeenCalledTimes(1);
+            expect(NativeScheduleService.failedPages).toBe(1);
         });
     });
 });

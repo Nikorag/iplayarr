@@ -1,7 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import arrFacade from '../../server/facade/arrFacade';
 import nzbFacade from '../../server/facade/nzbFacade';
 import appService from '../../server/service/appService';
+import configService from '../../server/service/configService';
 import socketService from '../../server/service/socketService';
 import { App } from '../../server/types/App';
 import { AppType } from '../../server/types/AppType';
@@ -115,5 +117,32 @@ describe('appService', () => {
             expect.objectContaining({ status: 'In Progress' })
         );
         expect(mockCreateUpdate).toHaveBeenCalled();
+    });
+
+    describe('createUpdateIntegrations without an API key', () => {
+        const form = (): App =>
+            ({
+                id: 'abc',
+                type: AppType.SONARR,
+                url: 'http://sonarr',
+                api_key: 'key',
+                iplayarr: { host: 'iplayarr', port: 4404, useSSL: false },
+                download_client: { name: 'iPlayarr' },
+            }) as any;
+
+        beforeEach(() => {
+            // An earlier test spies on this method and leaves the mock in place
+            (appService.createUpdateIntegrations as unknown as jest.SpyInstance).mockRestore?.();
+        });
+
+        it('fails with a clear error instead of calling the app', async () => {
+            (configService.getParameter as jest.Mock).mockResolvedValue(undefined);
+
+            await expect(appService.createUpdateIntegrations(form())).rejects.toMatchObject({
+                message: expect.stringContaining('no API key'),
+                type: 'download_client',
+            });
+            expect(arrFacade.upsertDownloadClient).not.toHaveBeenCalled();
+        });
     });
 });

@@ -114,6 +114,17 @@ const appService = {
     },
 };
 
+// *arr apps authenticate against iPlayarr with its API key, so creating a download client or indexer
+// without one can only fail with an unhelpful "Request failed" error from the other side.
+function requireApiKey(apiKey: string | undefined, type: 'download_client' | 'indexer'): void {
+    if (!apiKey) {
+        throw {
+            message: 'iPlayarr has no API key. Set one in Settings and save before adding Sonarr/Radarr.',
+            type,
+        };
+    }
+}
+
 const createUpdateFeature: Record<AppFeature, (form: App, allowCreate: boolean) => Promise<App>> =
     {
         [AppFeature.DOWNLOAD_CLIENT]: async (
@@ -123,6 +134,7 @@ const createUpdateFeature: Record<AppFeature, (form: App, allowCreate: boolean) 
             const API_KEY: string = (await configService.getParameter(IplayarrParameter.API_KEY)) as string;
 
             if (form.download_client?.name) {
+                requireApiKey(API_KEY, 'download_client');
                 const createDownloadClientForm: CreateDownloadClientForm = {
                     name: form.download_client.name,
                     host: form.iplayarr.host as string,
@@ -152,6 +164,7 @@ const createUpdateFeature: Record<AppFeature, (form: App, allowCreate: boolean) 
             const API_KEY: string = (await configService.getParameter(IplayarrParameter.API_KEY)) as string;
 
             if (form.download_client?.id && form.indexer?.name) {
+                requireApiKey(API_KEY, 'indexer');
                 const useSSL: boolean =
                     typeof form.iplayarr.useSSL === 'boolean' ? form.iplayarr.useSSL : form.iplayarr.useSSL === 'true';
                 const createIndexerForm: CreateIndexerForm = {

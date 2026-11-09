@@ -81,6 +81,30 @@ describe('V3ArrService', () => {
         });
     });
 
+    describe('testConnection', () => {
+        it('returns true when the app answers with a status object', async () => {
+            mockedAxios.get.mockResolvedValue({ status: 200, data: { appName: 'Sonarr', version: '4.0.17.2952' } });
+            expect(await V3ArrService.testConnection(app)).toBe(true);
+        });
+
+        it('rejects a 200 response that is not a JSON status object (e.g. an HTML page)', async () => {
+            mockedAxios.get.mockResolvedValue({ status: 200, data: '<!doctype html><html></html>' });
+            expect(await V3ArrService.testConnection(app)).toMatch(/did not return a valid response/);
+        });
+
+        it('rejects a 200 response with an empty or array body', async () => {
+            mockedAxios.get.mockResolvedValue({ status: 200, data: [] });
+            expect(await V3ArrService.testConnection(app)).toMatch(/did not return a valid response/);
+            mockedAxios.get.mockResolvedValue({ status: 200, data: {} });
+            expect(await V3ArrService.testConnection(app)).toMatch(/did not return a valid response/);
+        });
+
+        it('reports an unexpected status code', async () => {
+            mockedAxios.get.mockResolvedValue({ status: 204, data: '' });
+            expect(await V3ArrService.testConnection(app)).toBe('Unexpected response status 204');
+        });
+    });
+
     describe('getTags', () => {
         it('should return tags when request succeeds', async () => {
             mockedAxios.get.mockResolvedValue({
@@ -95,6 +119,11 @@ describe('V3ArrService', () => {
         it('should throw on failure', async () => {
             mockedAxios.get.mockRejectedValue(new Error('fail'));
             await expect(V3ArrService.getTags(app)).rejects.toThrow('Unable to load tags: fail');
+        });
+
+        it('should throw a clear error when the response is not an array', async () => {
+            mockedAxios.get.mockResolvedValue({ status: 200, data: '<html>login</html>' });
+            await expect(V3ArrService.getTags(app)).rejects.toThrow(/unexpected response from the app/);
         });
     });
 

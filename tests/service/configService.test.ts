@@ -94,4 +94,27 @@ describe('configService', () => {
     expect(config.DEBUG).toBe('true');
     expect(config.REFRESH_SCHEDULE).toBe('0 * * * *');
   });
+
+  describe('ensureApiKey', () => {
+    afterEach(() => {
+      delete process.env.API_KEY;
+    });
+
+    it('generates and stores an API key when none is set', async () => {
+      await configService.ensureApiKey();
+      expect(mockStorage['config'][IplayarrParameter.API_KEY]).toMatch(/^[0-9a-f-]{36}$/);
+    });
+
+    it('keeps an existing stored API key', async () => {
+      mockStorage['config'] = { [IplayarrParameter.API_KEY]: 'existing-key' };
+      await configService.ensureApiKey();
+      expect(mockStorage['config'][IplayarrParameter.API_KEY]).toBe('existing-key');
+    });
+
+    it('does not override an API key supplied by the environment', async () => {
+      process.env.API_KEY = 'env-key';
+      await configService.ensureApiKey();
+      expect(mockStorage['config']?.[IplayarrParameter.API_KEY]).toBeUndefined();
+    });
+  });
 });

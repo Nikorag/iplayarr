@@ -2,6 +2,7 @@ import { defineNitroPlugin } from 'nitropack/runtime';
 
 import { migrateFromRedisIfNeeded } from '../migration/redisMigrationService';
 import sessionService from '../service/auth/sessionService';
+import configService from '../service/configService';
 import loggingService from '../service/loggingService';
 import StatisticsService from '../service/stats/StatisticsService';
 import taskService from '../service/taskService';
@@ -9,6 +10,8 @@ import taskService from '../service/taskService';
 const start = async () => {
     // Open the database (applying schema migrations) and import any legacy Redis data before serving requests
     await migrateFromRedisIfNeeded((...args) => loggingService.log(...args));
+
+    await configService.ensureApiKey();
 
     sessionService.startPurging();
     StatisticsService.setUptime();

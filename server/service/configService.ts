@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import dotenv from 'dotenv';
 
 import searchFacade from '../facade/searchFacade';
@@ -60,6 +61,14 @@ const configService = {
 
     getParameters: async (...parameters: IplayarrParameter[]): Promise<(string | undefined)[]> => {
         return await Promise.all(parameters.map(configService.getParameter));
+    },
+
+    // Sonarr, Radarr and Prowlarr all authenticate with the API key, and the Newznab/SABnzbd endpoints
+    // reject every request while none is set, so make sure a fresh install has one.
+    ensureApiKey: async (): Promise<void> => {
+        if (!(await configService.getParameter(IplayarrParameter.API_KEY))) {
+            await configService.setParameter(IplayarrParameter.API_KEY, randomUUID());
+        }
     },
 
     setParameter: async (parameter: IplayarrParameter, value: string): Promise<void> => {

@@ -1,15 +1,15 @@
 
-import searchFacade from '../../src/facade/searchFacade';
-import configService from '../../src/service/configService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
+import searchFacade from '../../server/facade/searchFacade';
+import configService from '../../server/service/configService';
+import { IplayarrParameter } from '../../server/types/IplayarrParameters';
 
-jest.mock('../../src/facade/searchFacade', () => ({
+jest.mock('../../server/facade/searchFacade', () => ({
   clearSearchCache: jest.fn(),
 }));
 
 const mockStorage: Record<string, any> = {};
 
-jest.mock('../../src/types/QueuedStorage', () => {
+jest.mock('../../server/types/QueuedStorage', () => {
   return {
     QueuedStorage: jest.fn().mockImplementation(() => ({
       getItem: jest.fn(async (key) => mockStorage[key]),

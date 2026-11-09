@@ -1,10 +1,10 @@
 
-import episodeCacheService from '../../src/service/episodeCacheService';
-import iplayerDetailsService from '../../src/service/iplayerDetailsService';
-import { EpisodeCacheDefinition } from '../../src/types/responses/EpisodeCacheTypes';
+import episodeCacheService from '../../server/service/episodeCacheService';
+import iplayerDetailsService from '../../server/service/iplayerDetailsService';
+import { EpisodeCacheDefinition } from '../../server/types/responses/EpisodeCacheTypes';
 
-jest.mock('../../src/service/iplayerDetailsService');
-jest.mock('../../src/utils/Utils', () => ({
+jest.mock('../../server/service/iplayerDetailsService');
+jest.mock('../../server/utils/Utils', () => ({
     createNZBName: jest.fn(() => Promise.resolve('mocked-nzb-name')),
     getQualityProfile: jest.fn(() => Promise.resolve({ sizeFactor: 100 })),
     removeAllQueryParams: jest.fn((url) => url),
@@ -12,7 +12,7 @@ jest.mock('../../src/utils/Utils', () => ({
     sanitizeLunrQuery: jest.fn((term) => term.replace(/[:+\-*~^]/g, ' ').replace(/\s+/g, ' ').trim()),
 }));
 
-jest.mock('../../src/types/QueuedStorage', () => {
+jest.mock('../../server/types/QueuedStorage', () => {
     const data = new Map();
     return {
         QueuedStorage: jest.fn().mockImplementation(() => ({
@@ -79,6 +79,12 @@ describe('episodeCacheService', () => {
     it('should search episode cache by term', async () => {
         await episodeCacheService.cacheEpisodesForUrl('https://www.bbc.co.uk/programmes/abcd');
         const result = await episodeCacheService.searchEpisodeCache('test');
+        expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('should handle search terms that cause Lunr parse errors in searchEpisodeCache gracefully', async () => {
+        await episodeCacheService.cacheEpisodesForUrl('https://www.bbc.co.uk/programmes/abcd');
+        const result = await episodeCacheService.searchEpisodeCache('Avengers --1080p');
         expect(Array.isArray(result)).toBe(true);
     });
 

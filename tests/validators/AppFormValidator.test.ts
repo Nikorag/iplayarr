@@ -1,7 +1,7 @@
-import appService from '../../src/service/appService';
-import { AppFormValidator } from '../../src/validators/AppFormValidator';
+import appService from '../../server/service/appService';
+import { AppFormValidator } from '../../server/validators/AppFormValidator';
 
-jest.mock('../../src/service/appService');
+jest.mock('../../server/service/appService');
 
 describe('AppFormValidator', () => {
     let validator: AppFormValidator;

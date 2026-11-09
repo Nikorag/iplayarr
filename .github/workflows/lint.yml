@@ -24,16 +24,13 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v1
               with:
-                  node-version: 23
+                  node-version: 24
 
             - name: Install Node.js dependencies
-              run: npm run install:both
+              run: npm install
 
-            - name: Reset any package-lock changes backend
+            - name: Reset any package-lock changes
               run: git checkout -- package-lock.json
-
-            - name: Reset any package-lock changes frontend
-              run: git checkout -- frontend/package-lock.json
 
             - name: Run linters
               uses: wearerequired/lint-action@v2

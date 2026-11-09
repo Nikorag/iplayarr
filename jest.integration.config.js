@@ -3,7 +3,7 @@ module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
     transform: {
-        '^.+\\.tsx?$': ['ts-jest', {}],
+        '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
     },
     testMatch: ['**/tests/integration/**/*.test.ts'],
     testPathIgnorePatterns: ['/node_modules/', '/dist/'],

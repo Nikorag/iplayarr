@@ -1,71 +1,83 @@
-import { Server, Socket } from 'socket.io';
-
-import historyService from '../../src/service/historyService';
-import queueService from '../../src/service/queueService';
-import socketService from '../../src/service/socketService';
+import historyService from '../../server/service/historyService';
+import loggingService from '../../server/service/loggingService';
+import queueService from '../../server/service/queueService';
+import socketService, { SocketPeer } from '../../server/service/socketService';
 
 // Mock dependencies
-jest.mock('../../src/service/historyService');
-jest.mock('../../src/service/queueService');
+jest.mock('../../server/service/historyService');
+jest.mock('../../server/service/queueService');
+jest.mock('../../server/service/loggingService');
 
 describe('socketService', () => {
-    let mockIo: jest.Mocked<Server>;
-    let mockSocket: jest.Mocked<Socket>;
+    let peer: jest.Mocked<SocketPeer>;
+    let otherPeer: jest.Mocked<SocketPeer>;
 
     beforeEach(() => {
-        mockIo = {
-            on: jest.fn(),
-            emit: jest.fn(),
-        } as any;
-
-        mockSocket = {
-            id: 'socket123',
-            emit: jest.fn(),
-            on: jest.fn().mockReturnThis(), // Ensure it returns the Socket object
-        } as any;
+        peer = { id: 'peer123', send: jest.fn() };
+        otherPeer = { id: 'peer456', send: jest.fn() };
 
         (historyService.getHistory as jest.Mock).mockResolvedValue(['mockedHistory']);
         (queueService.getQueue as jest.Mock).mockReturnValue(['mockedQueue']);
     });
 
     afterEach(() => {
+        socketService.removeSocket(peer);
+        socketService.removeSocket(otherPeer);
         jest.clearAllMocks();
     });
 
-    describe('registerIo', () => {
-        it('should register the connection listener', () => {
-            socketService.registerIo(mockIo);
-            expect(mockIo.on).toHaveBeenCalledWith('connection', expect.any(Function));
+    describe('registerSocket', () => {
+        it('should send the current queue and history, and replay recent logs', async () => {
+            await socketService.registerSocket(peer);
+
+            expect(peer.send).toHaveBeenCalledWith(JSON.stringify({ event: 'queue', data: ['mockedQueue'] }));
+            expect(peer.send).toHaveBeenCalledWith(JSON.stringify({ event: 'history', data: ['mockedHistory'] }));
+            expect(loggingService.pushInitialLogs).toHaveBeenCalledWith('peer123');
         });
     });
 
-    describe('registerSocket', () => {
-        it('should register socket, emit queue/history, and handle disconnect', async () => {
-            const disconnectCallback = jest.fn();
-            mockSocket.on.mockImplementation((event, cb) => {
-                if (event === 'disconnect') {
-                    disconnectCallback.mockImplementation(cb);
-                }
-                return mockSocket; // Return mockSocket to satisfy the method chaining
-            });
+    describe('removeSocket', () => {
+        it('should stop sending events to a removed peer', async () => {
+            await socketService.registerSocket(peer);
+            peer.send.mockClear();
 
-            await socketService.registerSocket(mockSocket);
+            socketService.removeSocket(peer);
+            socketService.emit('queue', []);
 
-            expect(mockSocket.emit).toHaveBeenCalledWith('queue', ['mockedQueue']);
-            expect(mockSocket.emit).toHaveBeenCalledWith('history', ['mockedHistory']);
-            expect(mockSocket.on).toHaveBeenCalledWith('disconnect', expect.any(Function));
-
-            // Simulate disconnect
-            disconnectCallback();
+            expect(peer.send).not.toHaveBeenCalled();
         });
     });
 
     describe('emit', () => {
-        it('should emit message using io server', () => {
-            socketService.registerIo(mockIo);
-            socketService.emit('testEvent', { msg: 'hello' });
+        it('should broadcast to every registered peer', async () => {
+            await socketService.registerSocket(peer);
+            await socketService.registerSocket(otherPeer);
+            peer.send.mockClear();
+            otherPeer.send.mockClear();
 
-            expect(mockIo.emit).toHaveBeenCalledWith('testEvent', { msg: 'hello' });
+            socketService.emit('test-event', { foo: 'bar' });
+
+            const expected = JSON.stringify({ event: 'test-event', data: { foo: 'bar' } });
+            expect(peer.send).toHaveBeenCalledWith(expected);
+            expect(otherPeer.send).toHaveBeenCalledWith(expected);
+        });
+    });
+
+    describe('publish', () => {
+        it('should send only to the targeted peer', async () => {
+            await socketService.registerSocket(peer);
+            await socketService.registerSocket(otherPeer);
+            peer.send.mockClear();
+            otherPeer.send.mockClear();
+
+            socketService.publish('peer123', 'custom', 'message');
+
+            expect(peer.send).toHaveBeenCalledWith(JSON.stringify({ event: 'custom', data: 'message' }));
+            expect(otherPeer.send).not.toHaveBeenCalled();
+        });
+
+        it('should do nothing for an unknown peer', () => {
+            expect(() => socketService.publish('missing', 'custom', 'message')).not.toThrow();
         });
     });
 });

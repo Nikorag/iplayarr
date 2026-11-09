@@ -1,8 +1,8 @@
-import nzbFacade from '../../src/facade/nzbFacade';
-import { ConfigFormValidator } from '../../src/validators/ConfigFormValidator';
+import nzbFacade from '../../server/facade/nzbFacade';
+import { ConfigFormValidator } from '../../server/validators/ConfigFormValidator';
 
 // Mock nzbFacade
-jest.mock('../../src/facade/nzbFacade', () => ({
+jest.mock('../../server/facade/nzbFacade', () => ({
     testConnection: jest.fn(),
 }));
 
@@ -73,6 +73,12 @@ describe('ConfigFormValidator', () => {
         };
         const result = await validator.validate(input);
         expect(result.REFRESH_SCHEDULE).toMatch(/valid cron expression/);
+    });
+
+    it('should accept the supported Live TV modes and reject others', async () => {
+        expect((await validator.validate({ LIVE_TV_MODE: 'redirect' })).LIVE_TV_MODE).toBeUndefined();
+        expect((await validator.validate({ LIVE_TV_MODE: 'proxy' })).LIVE_TV_MODE).toBeUndefined();
+        expect((await validator.validate({ LIVE_TV_MODE: 'tunnel' })).LIVE_TV_MODE).toMatch(/redirect or proxy/);
     });
 
     it('should catch invalid Handlebars template', async () => {

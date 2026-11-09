@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-import iplayerDetailsService from '../../src/service/iplayerDetailsService';
-import { IPlayerEpisodeMetadata } from '../../src/types/responses/IPlayerMetadataResponse';
-import * as Utils from '../../src/utils/Utils';
+import iplayerDetailsService from '../../server/service/iplayerDetailsService';
+import { IPlayerEpisodeMetadata } from '../../server/types/responses/IPlayerMetadataResponse';
+import * as Utils from '../../server/utils/Utils';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-jest.mock('../../src/utils/Utils', () => ({
+jest.mock('../../server/utils/Utils', () => ({
     calculateSeasonAndEpisode: jest.fn(),
 }));
 

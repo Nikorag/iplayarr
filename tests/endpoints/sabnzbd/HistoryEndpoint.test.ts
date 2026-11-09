@@ -1,25 +1,20 @@
-import { NextFunction, Request, Response } from 'express';
+import handler from '../../../server/endpoints/sabnzbd/HistoryEndpoint';
+import configService from '../../../server/service/configService';
+import historyService from '../../../server/service/historyService';
+import { IplayarrParameter } from '../../../server/types/IplayarrParameters';
+import { VideoType } from '../../../server/types/IPlayerSearchResult';
+import { QueueEntry } from '../../../server/types/QueueEntry';
+import { QueueEntryStatus } from '../../../server/types/responses/sabnzbd/QueueResponse';
+import { makeEvent } from '../../helpers/h3';
 
-import handler from '../../../src/endpoints/sabnzbd/HistoryEndpoint';
-import configService from '../../../src/service/configService';
-import historyService from '../../../src/service/historyService';
-import { IplayarrParameter } from '../../../src/types/IplayarrParameters';
-import { VideoType } from '../../../src/types/IPlayerSearchResult';
-import { QueueEntry } from '../../../src/types/QueueEntry';
-import { QueueEntryStatus } from '../../../src/types/responses/sabnzbd/QueueResponse';
-
-jest.mock('../../../src/service/configService');
-jest.mock('../../../src/service/historyService');
+jest.mock('../../../server/service/configService');
+jest.mock('../../../server/service/historyService');
 
 describe('sabnzbdActionEndpoint', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
-    let next: NextFunction;
+    let req: { query: Record<string, string> };
 
     beforeEach(() => {
         req = { query: {} };
-        res = { json: jest.fn() };
-        next = jest.fn();
     });
 
     describe('delete handler', () => {
@@ -28,19 +23,19 @@ describe('sabnzbdActionEndpoint', () => {
 
             (configService.getParameter as jest.Mock).mockResolvedValue('true');
 
-            await handler(req as Request, res as Response, next);
+            const result = await handler(makeEvent({ query: req.query }));
 
             expect(configService.getParameter).toHaveBeenCalledWith(IplayarrParameter.ARCHIVE_ENABLED);
             expect(historyService.removeHistory).toHaveBeenCalledWith('test-id', true);
-            expect(res.json).toHaveBeenCalledWith({ status: true });
+            expect(result).toEqual({ status: true });
         });
 
         it('should respond with false when value is missing', async () => {
             req.query = { name: 'delete' };
 
-            await handler(req as Request, res as Response, next);
+            const result = await handler(makeEvent({ query: req.query }));
 
-            expect(res.json).toHaveBeenCalledWith({ status: false });
+            expect(result).toEqual({ status: false });
         });
     });
 
@@ -74,12 +69,12 @@ describe('sabnzbdActionEndpoint', () => {
             (configService.getParameter as jest.Mock).mockResolvedValueOnce('/complete');
             (configService.getParameter as jest.Mock).mockResolvedValueOnce('mp4');
 
-            await handler(req as Request, res as Response, next);
+            const result = await handler(makeEvent({ query: req.query }));
 
             expect(historyService.getHistory).toHaveBeenCalled();
             expect(configService.getParameter).toHaveBeenCalledWith(IplayarrParameter.COMPLETE_DIR);
 
-            const responseArg = (res.json as jest.Mock).mock.calls[0][0];
+            const responseArg = result;
             expect(responseArg.history.slots).toHaveLength(1);
             expect(responseArg.history.slots[0]).toMatchObject({
                 duplicate_key: 'id1',

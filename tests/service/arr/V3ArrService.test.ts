@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-import V3ArrService from '../../../src/service/arr/V3ArrService';
-import { App } from '../../../src/types/App';
-import { AppType } from '../../../src/types/AppType';
-import { CreateIndexerForm } from '../../../src/types/requests/form/CreateIndexerForm';
+import V3ArrService from '../../../server/service/arr/V3ArrService';
+import { App } from '../../../server/types/App';
+import { AppType } from '../../../server/types/AppType';
+import { CreateIndexerForm } from '../../../server/types/requests/form/CreateIndexerForm';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -92,10 +92,9 @@ describe('V3ArrService', () => {
             expect(tags).toEqual([{ id: 1, label: 'HD' }]);
         });
 
-        it('should return empty array on failure', async () => {
+        it('should throw on failure', async () => {
             mockedAxios.get.mockRejectedValue(new Error('fail'));
-            const tags = await V3ArrService.getTags(app);
-            expect(tags).toEqual([]);
+            await expect(V3ArrService.getTags(app)).rejects.toThrow('Unable to load tags: fail');
         });
     });
 
@@ -133,7 +132,7 @@ describe('V3ArrService', () => {
 
             await expect(
                 V3ArrService.upsertIndexer(form, appWithIndexer, false)
-            ).rejects.toThrow('Existing Download Client not found');
+            ).rejects.toThrow('Existing Indexer not found');
         });
     });
 });

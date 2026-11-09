@@ -1,4 +1,4 @@
-import { FixedFIFOQueue } from '../../src/types/utils/FixedFIFOQueue';
+import { FixedFIFOQueue } from '../../server/types/utils/FixedFIFOQueue';
 
 describe('FixedFIFOQueue', () => {
     it('should enqueue and dequeue in FIFO order', async () => {

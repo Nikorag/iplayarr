@@ -1,19 +1,20 @@
 import { AxiosResponse } from 'axios';
 
-import NZBFacade from '../../src/facade/nzbFacade';
-import historyService from '../../src/service/historyService';
-import loggingService from '../../src/service/loggingService';
-import NZBGetService from '../../src/service/nzb/NZBGetService';
-import SabNZBDService from '../../src/service/nzb/SabNZBDService';
-import { App } from '../../src/types/App';
-import { VideoType } from '../../src/types/IPlayerSearchResult';
-import { QueueEntryStatus } from '../../src/types/responses/sabnzbd/QueueResponse';
+import NZBFacade from '../../server/facade/nzbFacade';
+import historyService from '../../server/service/historyService';
+import loggingService from '../../server/service/loggingService';
+import NZBGetService from '../../server/service/nzb/NZBGetService';
+import SabNZBDService from '../../server/service/nzb/SabNZBDService';
+import { App } from '../../server/types/App';
+import { VideoType } from '../../server/types/IPlayerSearchResult';
+import { QueueEntryStatus } from '../../server/types/responses/sabnzbd/QueueResponse';
+import { UploadedFile } from '../../server/types/UploadedFile';
 
 jest.mock('uuid', () => ({ v4: jest.fn(() => 'mock-uuid') }));
-jest.mock('../../src/service/historyService');
-jest.mock('../../src/service/loggingService');
-jest.mock('../../src/service/nzb/NZBGetService');
-jest.mock('../../src/service/nzb/SabNZBDService');
+jest.mock('../../server/service/historyService');
+jest.mock('../../server/service/loggingService');
+jest.mock('../../server/service/nzb/NZBGetService');
+jest.mock('../../server/service/nzb/SabNZBDService');
 
 describe('NZBFacade', () => {
     const app: App = {
@@ -22,7 +23,7 @@ describe('NZBFacade', () => {
         type: 'sabnzbd',
     } as unknown as App;
 
-    const fakeFile = { originalname: 'test.nzb' } as Express.Multer.File;
+    const fakeFile = { originalname: 'test.nzb' } as UploadedFile;
 
     beforeEach(() => {
         jest.clearAllMocks();

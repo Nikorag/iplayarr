@@ -1,8 +1,7 @@
-# <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/frontend/public/iplayarr.png" alt="Description" width="24px"> iPlayarr
+# <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/public/iplayarr.png" alt="Description" width="24px"> iPlayarr
 
 iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to integrate **get_iplayer** for searching and downloading iPlayer content directly. It acts as both an **indexer** and a **download client**, allowing seamless automation of TV and movie downloads.
 
-[![Discord](https://img.shields.io/discord/1359619754456907856?label=Discord&logo=discord&style=flat)](https://discord.com/channels/1359619754456907856)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/nikorag/iplayarr/build.yml?logo=github)
 [![Coverage Status](https://coveralls.io/repos/github/Nikorag/iplayarr/badge.svg?branch=main)](https://coveralls.io/github/Nikorag/iplayarr?branch=main)
 
@@ -16,6 +15,30 @@ iPlayarr is a companion tool for **Sonarr** and **Radarr**, making it easy to in
   <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/search.png" alt="Search View" width="49%">
   <img src="https://raw.githubusercontent.com/Nikorag/iplayarr/refs/heads/main/readme-media/details.png" alt="Details View" width="49%">
 </p>
+
+## 📰 News
+
+### Live TV for Jellyfin
+
+iPlayarr can now serve the live BBC channels to Jellyfin as an M3U tuner with an XMLTV guide, either redirecting Jellyfin to the BBC or proxying the stream through iPlayarr. See [Live TV (Jellyfin)](#live-tv-jellyfin).
+
+### iPlayarr is now a single Nuxt application
+
+The Express backend and the separate Vue frontend have been replaced by one [Nuxt](https://nuxt.com) application. The UI, the API (including the Newznab and SABnzbd endpoints that Sonarr and Radarr talk to) and the background tasks now run in a single process, and the frontend and API are served from the same port, `4404` by default.
+
+What this means for you:
+
+- **Nothing to change in Sonarr, Radarr or Prowlarr.** API URLs, API keys and the endpoints they use are unchanged.
+- **You'll be logged out once.** Login sessions are handled differently, so you'll need to sign in again after upgrading.
+- **Live updates use a native websocket** (`/_ws`) instead of socket.io. If you run iPlayarr behind a reverse proxy, make sure it forwards websocket connections.
+- **Smaller Docker image**, as only the production build is shipped.
+- **Development is simpler**: `npm install` then `npm run dev` runs everything on `http://localhost:4404`, see [Development Setup](#development-setup).
+
+### SQLite is now the default database
+
+iPlayarr no longer runs or needs Redis for your data. Settings, apps, synonyms, history, statistics and login sessions are stored in a **SQLite** file (`/config/iplayarr.db` in Docker), created automatically with no setup. Postgres is supported too by setting `DATABASE_URL`. Redis is now optional and only used for caching.
+
+Upgrading from a Redis-based version is automatic, your existing data is imported on first start. See [Database](#database) and [Migrating from Redis](#migrating-from-redis) for details.
 
 ## Why iPlayarr?
 
@@ -105,6 +128,10 @@ There's a few more optional settings too:
 | HIDE_DONATE      | If you don't like the Kofi donate links you can hide them                                 |
 | PUID             | Host User ID for file permissions                                                         |
 | PGID             | Host Group ID for file permissions                                                        |
+| DATABASE_URL     | Use Postgres instead of SQLite, see [Database](#database)                                 |
+| REDIS_HOST       | Use Redis for caching instead of memory, see [Caching](#caching)                          |
+
+> **Upgrading from a Redis-based version?** Nothing to do, see [Migrating from Redis](#migrating-from-redis).
 
 ### Usage
 
@@ -154,6 +181,71 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 To access the web frontend, visit `http://Your_Docker_Host:4404`.
 From here, you can manage settings, view logs, and monitor downloads.
 
+### Diagnostics
+
+The **Diagnostics** page runs a set of health checks and shows what needs attention: database connectivity, whether the BBC iPlayer API is reachable, the installed `get_iplayer` version (and whether a newer release exists), `yt-dlp` and `ffmpeg` when your settings need them, free space and write access on the download and complete directories, and the outcome of the last search, download and index refresh. The same report is available as JSON at `/json-api/diagnostics` for logged in users.
+
+### Prometheus Metrics
+
+iPlayarr exposes metrics in the Prometheus text format at `/metrics`. Authenticate with your `API_KEY`, either as a bearer token or as `?apikey=`. A logged in browser session also works, and with `AUTH_TYPE=none` the endpoint is open.
+
+```yaml
+scrape_configs:
+    - job_name: iplayarr
+      metrics_path: /metrics
+      authorization:
+          credentials: <your API_KEY>
+      static_configs:
+          - targets: ['Your_Docker_Host:4404']
+```
+
+| Metric                                             | Type    | Description                                                 |
+| -------------------------------------------------- | ------- | ----------------------------------------------------------- |
+| `iplayarr_info{version}`                           | gauge   | Build information                                           |
+| `iplayarr_uptime_seconds`                          | gauge   | Seconds since start-up                                      |
+| `iplayarr_queue_items{status}`                     | gauge   | Items in the download queue (`downloading`, `queued`)       |
+| `iplayarr_searches_total{source,outcome}`          | counter | Searches by backend (`native`, `get_iplayer`) and result    |
+| `iplayarr_search_duration_seconds_total{source}`   | counter | Time spent searching                                        |
+| `iplayarr_downloads_total{outcome}`                | counter | Finished downloads (`completed`, `failed`, `cancelled`)     |
+| `iplayarr_index_refreshes_total{outcome}`          | counter | Schedule index refreshes                                    |
+| `iplayarr_upstream_errors_total{service}`          | counter | BBC search errors that were handled and returned no results |
+| `iplayarr_last_search_success_timestamp_seconds`   | gauge   | Unix time of the last successful search                     |
+| `iplayarr_last_download_success_timestamp_seconds` | gauge   | Unix time of the last successful download                   |
+| `process_resident_memory_bytes`                    | gauge   | Resident memory                                             |
+
+Counters are held in memory and reset when iPlayarr restarts. The two `last_*_success` gauges only appear once something has succeeded, so an alert such as `time() - iplayarr_last_download_success_timestamp_seconds > 604800` won't fire straight after a restart. Searches answered from the cache aren't counted.
+
+## Live TV (Jellyfin)
+
+iPlayarr can serve the live BBC channels (BBC One, Two, Three, Four, News, Parliament, CBBC, CBeebies, BBC Scotland, BBC ALBA and S4C) to **Jellyfin** as an M3U tuner with an XMLTV programme guide.
+
+1. In iPlayarr, go to **Settings → Live TV (Jellyfin)**, set **Live TV Enabled?** to _Enabled_, make sure an **API Key** is set, and save.
+2. In Jellyfin, go to **Dashboard → Live TV** and add an **M3U Tuner** with the playlist URL shown in iPlayarr's settings, e.g. `http://iplayarr:4404/tv/<API_KEY>/playlist.m3u`.
+3. Add an **XMLTV** guide provider with `http://iplayarr:4404/tv/<API_KEY>/guide.xml`, then map the channels. They share ids with the playlist, so Jellyfin normally matches them automatically.
+
+### Redirect or proxy
+
+How the video reaches Jellyfin is your choice:
+
+| Mode         | What happens                                                                              | Use it when                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **redirect** | iPlayarr answers with a redirect and Jellyfin streams directly from the BBC (the default) | Jellyfin is on a UK connection. It's the lightest option, iPlayarr carries no video   |
+| **proxy**    | iPlayarr fetches the stream and relays every playlist and segment to Jellyfin             | Jellyfin can't reach the BBC itself (not in the UK, or restricted), only iPlayarr can |
+
+Set the default in **Settings → Stream Delivery** (`LIVE_TV_MODE`). To use a different mode for one Jellyfin tuner, add `?mode=redirect` or `?mode=proxy` to the end of its playlist URL, e.g. `http://iplayarr:4404/tv/<API_KEY>/playlist.m3u?mode=proxy`.
+
+Notes:
+
+- The BBC only serves live streams to UK IP addresses, so whichever machine connects to the BBC (Jellyfin in redirect mode, iPlayarr in proxy mode) must be in the UK.
+- The URLs contain your API key, so treat them like a password. Changing the API key changes the URLs, and the tuner must be updated in Jellyfin.
+- Streams are whatever the BBC offers for live viewing, up to 720p. The guide covers yesterday, today and tomorrow and refreshes hourly.
+- If you run iPlayarr behind a reverse proxy, forward the `Host` (or `X-Forwarded-Host`/`X-Forwarded-Proto`) headers, as they're used to build the stream URLs in the playlist.
+
+| Property        | Description                                       |
+| --------------- | ------------------------------------------------- |
+| LIVE_TV_ENABLED | `true` to enable Live TV (default `false`)        |
+| LIVE_TV_MODE    | Default delivery: `redirect` (default) or `proxy` |
+
 ## Development Setup
 
 To run iPlayarr locally for development:
@@ -161,49 +253,93 @@ To run iPlayarr locally for development:
 ### Prerequisites
 
 - Node.js (see `.node-version` for current version)
-- Docker (for local dev instance of Redis)
+- Docker (optional, only needed for a local Postgres or Redis instance)
 
 ### Installation
 
-1. Install dependencies for both backend and frontend:
+1. Install dependencies:
 
 ```bash
-npm run install:both
+npm install
 ```
 
-2. Start Redis using Docker (or see Redis section below to use another instance):
+2. By default the dev server uses a local SQLite file at `./config/iplayarr.db`, so there's nothing else to run. To develop against Postgres, see the [Database](#database) section (`npm run serve:postgres` starts a local one).
 
-```bash
-npm run serve:redis
-```
-
-3. Start the development server (runs backend and frontend concurrently):
+3. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-The application will be available at:
-
-- Frontend: `http://localhost:8080` (Vue dev server)
-- Backend API: `http://localhost:4404`
+iPlayarr is a single [Nuxt](https://nuxt.com) application: the Vue frontend lives in `app/` and the API (Nitro server routes, websocket and background tasks) in `server/`. Everything is served from `http://localhost:4404`.
 
 ### Additional Useful Scripts
 
-| Script               | Description                               |
-| -------------------- | ----------------------------------------- |
-| `npm run build:both` | Build backend and frontend for production |
-| `npm test`           | Run tests with coverage                   |
-| `npm run lint`       | Run ESLint                                |
-| `npm run prettier`   | Check code formatting                     |
+| Script             | Description                                               |
+| ------------------ | --------------------------------------------------------- |
+| `npm run build`    | Build for production (output goes to `.output`)           |
+| `npm start`        | Run the production build (port 4404 unless `PORT` is set) |
+| `npm test`         | Run tests with coverage                                   |
+| `npm run lint`     | Run ESLint                                                |
+| `npm run prettier` | Check code formatting                                     |
 
-## Redis
+## Database
 
-iPlayarr uses Redis for storage. This is built into the container and **doesn't require any additional setup**, but if you would like to use a standalone redis instance, set the following settings:
+iPlayarr stores its settings, apps, synonyms, history, statistics and login sessions in a database. By default this is a **SQLite** file that is created automatically and **doesn't require any additional setup**. In Docker it lives in the `/config` volume (`/config/iplayarr.db`), so make sure that's mounted.
+
+To use **Postgres** instead, set `DATABASE_URL`. The schema is created and upgraded automatically on startup.
+
+| Property     | Description                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| DATABASE_URL | Postgres connection string, e.g. `postgres://user:password@host:5432/iplayarr`. If unset, SQLite is used |
+| DATABASE_SSL | Set to `true` to connect to Postgres over TLS                                                            |
+| SQLITE_PATH  | Location of the SQLite file (default `/config/iplayarr.db` in Docker, `./config/iplayarr.db` otherwise)  |
+
+```yml
+services:
+    iplayarr:
+        image: 'nikorag/iplayarr:latest'
+        environment:
+            - 'DATABASE_URL=postgres://iplayarr:secret@postgres:5432/iplayarr'
+        depends_on:
+            - postgres
+    postgres:
+        image: postgres:16-alpine
+        environment:
+            - 'POSTGRES_USER=iplayarr'
+            - 'POSTGRES_PASSWORD=secret'
+            - 'POSTGRES_DB=iplayarr'
+        volumes:
+            - './postgres:/var/lib/postgresql/data'
+```
+
+Back up SQLite by copying the `iplayarr.db` file (plus `-wal`/`-shm` files if present, ideally with the container stopped), or Postgres with `pg_dump`.
+
+## Caching
+
+Search results, schedule and metadata lookups are cached **in memory** by default. This cache is cleared when iPlayarr restarts, and rebuilds itself as needed.
+
+If you would prefer a persistent or shared cache, you can optionally point iPlayarr at a Redis instance by setting the following. Redis is **only** used for caching, never for your data.
 
 - REDIS_HOST
-- REDIS_PORT
+- REDIS_PORT (optional, default 6379)
 - REDIS_PASSWORD (optional)
 - REDIS_SSL (optionally 'true')
 
-If these are all set, it will not start the bundled version of Redis.
+If `REDIS_HOST` isn't set, the in-memory cache is used.
+
+## Migrating from Redis
+
+Earlier versions of iPlayarr kept all their data in Redis (either the copy bundled in the container, or an external one via `REDIS_HOST`). Upgrading is automatic: on first start, iPlayarr imports your existing data and then carries on as normal.
+
+What is migrated: settings, apps, synonyms, history, cached off-schedule series, search/grab statistics. Logged-in sessions aren't carried over, so you'll need to log in again. Search/schedule/metadata caches and the live log buffer aren't migrated, they simply rebuild.
+
+- **Bundled Redis (the default):** keep your `/config` volume mounted as before. iPlayarr reads the old `dump.rdb` from it, using a temporary, throwaway Redis process on a _copy_ of the file. Your `dump.rdb` is never modified and is left in place as a backup, once you're happy you can delete it.
+- **External Redis (`REDIS_HOST` set):** leave the `REDIS_*` variables as they are. Your data is imported once from that instance, which is then (if you keep `REDIS_HOST`) used purely as the cache. If you don't want a Redis cache, remove the variables after the first successful start.
+
+The migration only runs once (it's recorded in the database) and never overwrites anything that already exists in the new database. If it can't read your old data, iPlayarr stops with an error rather than starting empty, and nothing is changed. Fix the problem and restart, or set `SKIP_REDIS_MIGRATION=true` to deliberately start from scratch.
+
+| Property             | Description                                                      |
+| -------------------- | ---------------------------------------------------------------- |
+| SKIP_REDIS_MIGRATION | Set to `true` to skip importing old Redis data                   |
+| REDIS_DATA_DIR       | Where to look for the old bundled `dump.rdb` (default `/config`) |

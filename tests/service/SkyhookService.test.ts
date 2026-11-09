@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-import SkyhookService from '../../src/service/skyhook/SkyhookService';
+import SkyhookService from '../../server/service/skyhook/SkyhookService';
 
 // src/service/skyhook/SkyhookService.test.ts
 
 jest.mock('axios');
-jest.mock('../../src/service/redis/redisCacheService');
+jest.mock('../../server/service/cache/cacheService');
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -35,7 +35,8 @@ describe('SkyhookService URL construction', () => {
         await SkyhookService.searchSeries(seriesName);
 
         expect(mockedAxios.get).toHaveBeenCalledWith(
-            `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`
+            `https://skyhook.sonarr.tv/v1/tvdb/search/en?term=${encodeURIComponent(seriesName)}`,
+            { headers: { 'User-Agent': 'Sonarr' } }
         );
     });
 
@@ -81,7 +82,8 @@ describe('SkyhookService URL construction', () => {
         await SkyhookService.findEpisode(tvdbId, episodeName);
 
         expect(mockedAxios.get).toHaveBeenCalledWith(
-            `https://skyhook.sonarr.tv/v1/tvdb/shows/en/${tvdbId}`
+            `https://skyhook.sonarr.tv/v1/tvdb/shows/en/${tvdbId}`,
+            { headers: { 'User-Agent': 'Sonarr' } }
         );
     });
 

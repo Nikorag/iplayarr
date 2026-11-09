@@ -2,7 +2,7 @@
  * Integration tests — iPlayarr newznab API compatibility.
  *
  * Requirements:
- *   IPLAYARR_URL       (default: http://192.168.107.127:4404)
+ *   IPLAYARR_URL       (default: http://localhost:4404)
  *   IPLAYARR_API_KEY   env var — find in iPlayarr → Settings → API Key
  *
  * Tests the /api endpoint that NZBHydra2, Sonarr, and Radarr use to
@@ -21,8 +21,8 @@ describe('iPlayarr newznab API — compatibility', () => {
     const { iplayarr } = integrationEnv;
     const skipKey = !iplayarr.available;
 
-    // /ping is always unauthenticated — runs regardless of API key
-    test('GET /ping — returns 200 status OK', async () => {
+    // /ping is unauthenticated, but only run when an iPlayarr API key is configured (signals a live instance)
+    (skipKey ? test.skip : test)('GET /ping — returns 200 status OK', async () => {
         const res = await axios.get(`${iplayarr.url}/ping`);
         expect(res.status).toBe(200);
         expect(res.data).toEqual({ status: 'OK' });

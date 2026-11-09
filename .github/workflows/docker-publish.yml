@@ -14,10 +14,84 @@ on:
         types: [published]
     workflow_dispatch:
 
+env:
+    IMAGE: nikorag/iplayarr
+
 jobs:
-    push_to_registry:
-        name: Push Docker image to Docker Hub
+    build:
+        name: Build ${{ matrix.platform }}
+        runs-on: ${{ matrix.runner }}
+        strategy:
+            fail-fast: true
+            matrix:
+                # linux/arm/v7 is not built: rolldown (used by the Nuxt build) has no linux-arm-musleabihf binary for Alpine
+                include:
+                    - platform: linux/amd64
+                      runner: ubuntu-latest
+                    - platform: linux/arm64
+                      runner: ubuntu-24.04-arm
+
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v4
+
+            - name: Prepare
+              run: echo "PLATFORM_PAIR=${PLATFORM//\//-}" >> $GITHUB_ENV
+              env:
+                  PLATFORM: ${{ matrix.platform }}
+
+            - name: Log in to Docker Hub
+              uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            - name: Extract metadata (labels) for Docker
+              id: meta
+              uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+              with:
+                  images: ${{ env.IMAGE }}
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Extract Git tag
+              run: echo "git_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+            - name: Write version to JSON
+              run: |
+                  echo "{\"version\": \"${{ env.git_tag }}\"}" > server/config/version.json
+
+            - name: Build and push by digest
+              id: build
+              uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  platforms: ${{ matrix.platform }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  build-args: |
+                      iplayarr_version=${{ env.git_tag }}
+                  outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+
+            - name: Export digest
+              run: |
+                  mkdir -p ${{ runner.temp }}/digests
+                  digest="${{ steps.build.outputs.digest }}"
+                  touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+            - name: Upload digest
+              uses: actions/upload-artifact@v4
+              with:
+                  name: digests-${{ env.PLATFORM_PAIR }}
+                  path: ${{ runner.temp }}/digests/*
+                  if-no-files-found: error
+                  retention-days: 1
+
+    merge:
+        name: Publish multi-arch image
         runs-on: ubuntu-latest
+        needs: build
         permissions:
             packages: write
             contents: read
@@ -25,8 +99,12 @@ jobs:
             id-token: write
 
         steps:
-            - name: Check out the repo
-              uses: actions/checkout@v4
+            - name: Download digests
+              uses: actions/download-artifact@v4
+              with:
+                  path: ${{ runner.temp }}/digests
+                  pattern: digests-*
+                  merge-multiple: true
 
             - name: Log in to Docker Hub
               uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
@@ -38,40 +116,25 @@ jobs:
               id: meta
               uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
               with:
-                  images: nikorag/iplayarr
-
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+                  images: ${{ env.IMAGE }}
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
-            - name: Extract Git tag
-              id: extract_tag
-              run: echo "git_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-            - name: Write version to JSON
-              run: |
-                  echo "{\"version\": \"${{ env.git_tag }}\"}" > src/config/version.json
-
-            - name: Build and push Docker image
+            - name: Create manifest list and push
               id: push
-              uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-              with:
-                  context: .
-                  file: ./Dockerfile
-                  push: true
-                  platforms: linux/amd64,linux/arm64,linux/arm/v7
-                  tags: |
-                      ${{ steps.meta.outputs.tags }}
-                      nikorag/iplayarr:latest
-                  labels: ${{ steps.meta.outputs.labels }}
-                  build-args: |
-                      iplayarr_version=${{ env.git_tag }}
+              working-directory: ${{ runner.temp }}/digests
+              run: |
+                  docker buildx imagetools create \
+                      $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+                      -t ${{ env.IMAGE }}:latest \
+                      $(printf '${{ env.IMAGE }}@sha256:%s ' *)
+                  digest=$(docker buildx imagetools inspect ${{ env.IMAGE }}:latest --format '{{json .Manifest}}' | jq -r .digest)
+                  echo "digest=$digest" >> $GITHUB_OUTPUT
 
             - name: Generate artifact attestation
               uses: actions/attest-build-provenance@v2
               with:
-                  subject-name: index.docker.io/nikorag/iplayarr
+                  subject-name: index.docker.io/${{ env.IMAGE }}
                   subject-digest: ${{ steps.push.outputs.digest }}
                   push-to-registry: true

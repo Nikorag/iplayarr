@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import searchFacade from '../../src/facade/searchFacade';
-import synonymService from '../../src/service/synonymService';
-import { Synonym } from '../../src/types/Synonym';
+import searchFacade from '../../server/facade/searchFacade';
+import synonymService from '../../server/service/synonymService';
+import { Synonym } from '../../server/types/Synonym';
 
 const mockStorageData: Record<string, any> = {};
-jest.mock('../../src/types/QueuedStorage', () => {
+jest.mock('../../server/types/QueuedStorage', () => {
     const mockStorageInstance = {
         getItem: jest.fn((key: string) => {
             return Promise.resolve(mockStorageData[key]);
@@ -21,7 +21,7 @@ jest.mock('../../src/types/QueuedStorage', () => {
     };
 });
 
-jest.mock('../../src/facade/searchFacade', () => ({
+jest.mock('../../server/facade/searchFacade', () => ({
     __esModule: true,
     default: {
         removeFromSearchCache: jest.fn(),

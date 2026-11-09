@@ -1,11 +1,6 @@
 #!/bin/sh
 set -e
 
-if [[ -z "$REDIS_HOST" ]]; then
-    echo "Starting redis"
-    /redis/redis-server --dir /config &
-fi
-
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 USERNAME="iplayarr"
@@ -39,6 +34,11 @@ else
     echo "CACHE_LOCATION is not set or does not exist"
     exit 1
 fi
+
+# Database directory (SQLite file, and the legacy Redis dump.rdb that gets migrated on first start)
+CONFIG_DIR=$(dirname "${SQLITE_PATH:-/config/iplayarr.db}")
+mkdir -p "${CONFIG_DIR}"
+chown -R "${EXISTING_USER}":"${GROUPNAME}" "${CONFIG_DIR}" || { echo "Failed to change ownership of ${CONFIG_DIR} to ${PUID}:${PGID}"; exit 1; }
 
 if [ -n "$LOG_DIR" ] && [ -d "$LOG_DIR" ]; then
     chown -R "${EXISTING_USER}":"${GROUPNAME}" "${LOG_DIR}" || { echo "Failed to change ownership of ${LOG_DIR} to ${PUID}:${PGID}"; exit 1; }

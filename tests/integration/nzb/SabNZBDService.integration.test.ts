@@ -4,18 +4,16 @@
  * Requirements:
  *   SABNZBD_URL + SABNZBD_API_KEY env vars
  *
- * SABnzbd lives on vlan107 and is NOT reachable from the host.
- * Run via: make test integration-sabnzbd
- * (executes inside the iplayarr container where SABnzbd is reachable)
+ * iPlayarr's own host/port (IPLAYARR_URL) is used for the NZB passthrough details.
  *
  * Tests are skipped (not failed) when env vars are absent.
  */
 
 import axios from 'axios';
 
-import SabNZBDService from '../../../src/service/nzb/SabNZBDService';
-import { App } from '../../../src/types/App';
-import { AppType } from '../../../src/types/AppType';
+import SabNZBDService from '../../../server/service/nzb/SabNZBDService';
+import { App } from '../../../server/types/App';
+import { AppType } from '../../../server/types/AppType';
 import { integrationEnv } from '../setup.integration';
 
 // Minimal valid NZB XML — enough for SABnzbd to accept the file
@@ -41,7 +39,7 @@ describe('SabNZBDService — SABnzbd integration', () => {
         api_key: sabnzbd.apiKey,
         name: 'sabnzbd',
         type: AppType.SABNZBD,
-        iplayarr: { host: '192.168.107.127', port: 4404, useSSL: false },
+        iplayarr: { host: new URL(integrationEnv.iplayarr.url).hostname, port: Number(new URL(integrationEnv.iplayarr.url).port) || 4404, useSSL: new URL(integrationEnv.iplayarr.url).protocol === 'https:' },
     } as App;
 
     // Track the NZB ID returned by addFile so we can delete it from the queue in afterAll.

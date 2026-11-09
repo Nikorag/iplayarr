@@ -1,19 +1,19 @@
 import { spawn } from 'child_process';
 
-import { IPlayerSearchResult, VideoType } from '../../../src/service/../types/IPlayerSearchResult';
-import episodeCacheService from '../../../src/service/episodeCacheService';
-import getIplayerExecutableService from '../../../src/service/getIplayerExecutableService';
-import loggingService from '../../../src/service/loggingService';
-import getIplayerSearchService from '../../../src/service/search/GetIplayerSearchService';
+import { IPlayerSearchResult, VideoType } from '../../../server/service/../types/IPlayerSearchResult';
+import episodeCacheService from '../../../server/service/episodeCacheService';
+import getIplayerExecutableService from '../../../server/service/getIplayerExecutableService';
+import loggingService from '../../../server/service/loggingService';
+import getIplayerSearchService from '../../../server/service/search/GetIplayerSearchService';
 
 // Mocks
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
 }));
 
-jest.mock('../../../src/service/getIplayerExecutableService');
-jest.mock('../../../src/service/loggingService');
-jest.mock('../../../src/service/episodeCacheService');
+jest.mock('../../../server/service/getIplayerExecutableService');
+jest.mock('../../../server/service/loggingService');
+jest.mock('../../../server/service/episodeCacheService');
 
 describe('GetIplayerSearchService', () => {
     const mockSearchParameters = jest.fn();

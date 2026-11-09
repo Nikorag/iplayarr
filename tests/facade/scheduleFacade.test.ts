@@ -1,15 +1,16 @@
-import scheduleFacade from '../../src/facade/scheduleFacade';
-import configService from '../../src/service/configService';
-import GetIplayerScheduleService from '../../src/service/schedule/GetIplayerScheduleService';
-import NativeScheduleService from '../../src/service/schedule/NativeScheduleService';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
+import scheduleFacade from '../../server/facade/scheduleFacade';
+import configService from '../../server/service/configService';
+import metricsService from '../../server/service/metricsService';
+import GetIplayerScheduleService from '../../server/service/schedule/GetIplayerScheduleService';
+import NativeScheduleService from '../../server/service/schedule/NativeScheduleService';
+import { IplayarrParameter } from '../../server/types/IplayarrParameters';
 
-jest.mock('../../src/service/configService');
-jest.mock('../../src/service/schedule/GetIplayerScheduleService', () => ({
+jest.mock('../../server/service/configService');
+jest.mock('../../server/service/schedule/GetIplayerScheduleService', () => ({
     refreshCache: jest.fn(),
     getFeed: jest.fn()
 }));
-jest.mock('../../src/service/schedule/NativeScheduleService', () => ({
+jest.mock('../../server/service/schedule/NativeScheduleService', () => ({
     refreshCache: jest.fn(),
     getFeed: jest.fn()
 }));
@@ -38,6 +39,28 @@ describe('ScheduleFacade', () => {
 
       expect(configService.getParameter).toHaveBeenCalledWith(IplayarrParameter.NATIVE_SEARCH);
       expect(GetIplayerScheduleService.refreshCache).toHaveBeenCalled();
+    });
+  });
+
+  describe('refreshCache metrics', () => {
+    beforeEach(() => metricsService.reset());
+
+    it('records a successful refresh', async () => {
+      (configService.getParameter as jest.Mock).mockResolvedValue('true');
+      (NativeScheduleService.refreshCache as jest.Mock).mockResolvedValue(undefined);
+
+      await scheduleFacade.refreshCache();
+
+      expect(metricsService.getLastEvents().refresh).toMatchObject({ ok: true });
+    });
+
+    it('records a failed refresh and still throws', async () => {
+      (configService.getParameter as jest.Mock).mockResolvedValue('true');
+      (NativeScheduleService.refreshCache as jest.Mock).mockRejectedValue(new Error('bbc down'));
+
+      await expect(scheduleFacade.refreshCache()).rejects.toThrow('bbc down');
+
+      expect(metricsService.getLastEvents().refresh).toMatchObject({ ok: false, error: 'bbc down' });
     });
   });
 

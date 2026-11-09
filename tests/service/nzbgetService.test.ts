@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-import nzbGetService from '../../src/service/nzb/NZBGetService';
-import { App } from '../../src/types/App';
+import nzbGetService from '../../server/service/nzb/NZBGetService';
+import { App } from '../../server/types/App';
+import { UploadedFile } from '../../server/types/UploadedFile';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -85,7 +86,7 @@ describe('nzbGetService', () => {
                 originalname: 'test.nzb',
                 buffer: Buffer.from('dummy content'),
                 mimetype: 'application/octet-stream',
-            } as Express.Multer.File;
+            } as UploadedFile;
 
             const files = [mockFile];
 
@@ -129,7 +130,7 @@ describe('nzbGetService', () => {
                 originalname: 'test.nzb',
                 buffer: Buffer.from('dummy content'),
                 mimetype: 'application/octet-stream',
-            } as Express.Multer.File;
+            } as UploadedFile;
 
             const files = [mockFile];
 
@@ -156,7 +157,7 @@ describe('nzbGetService', () => {
                 originalname: 'test.nzb',
                 buffer: Buffer.from('dummy content'),
                 mimetype: 'application/octet-stream',
-            } as Express.Multer.File;
+            } as UploadedFile;
 
             const files = [mockFile];
 

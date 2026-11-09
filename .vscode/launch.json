@@ -7,24 +7,10 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Backend",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": ["run", "serve:backend"],
-            "console": "integratedTerminal"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Frontend",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": ["run", "serve:frontend"],
-            "console": "integratedTerminal"
-        }
-    ],
-    "compounds": [
-        {
             "name": "Dev",
-            "configurations": ["Backend", "Frontend"]
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
+            "console": "integratedTerminal"
         }
     ]
 }

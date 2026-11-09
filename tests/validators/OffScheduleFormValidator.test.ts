@@ -1,8 +1,8 @@
-import iplayerDetailsService from '../../src/service/iplayerDetailsService';
-import { OffScheduleFormValidator } from '../../src/validators/OffScheduleFormValidator';
+import iplayerDetailsService from '../../server/service/iplayerDetailsService';
+import { OffScheduleFormValidator } from '../../server/validators/OffScheduleFormValidator';
 
 // Mock the iplayerDetailsService
-jest.mock('../../src/service/iplayerDetailsService', () => ({
+jest.mock('../../server/service/iplayerDetailsService', () => ({
     findBrandForUrl: jest.fn(),
 }));
 

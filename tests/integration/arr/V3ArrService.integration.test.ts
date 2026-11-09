@@ -11,11 +11,11 @@
 
 import axios from 'axios';
 
-import V3ArrService from '../../../src/service/arr/V3ArrService';
-import { App } from '../../../src/types/App';
-import { AppType } from '../../../src/types/AppType';
-import { CreateDownloadClientForm } from '../../../src/types/requests/form/CreateDownloadClientForm';
-import { CreateIndexerForm } from '../../../src/types/requests/form/CreateIndexerForm';
+import V3ArrService from '../../../server/service/arr/V3ArrService';
+import { App } from '../../../server/types/App';
+import { AppType } from '../../../server/types/AppType';
+import { CreateDownloadClientForm } from '../../../server/types/requests/form/CreateDownloadClientForm';
+import { CreateIndexerForm } from '../../../server/types/requests/form/CreateIndexerForm';
 import { integrationEnv, testSuffix } from '../setup.integration';
 
 // ── helpers ──────────────────────────────────────────────────────────────────

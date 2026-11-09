@@ -1,13 +1,13 @@
 import { spawn } from 'child_process';
 
-import downloadFacade from '../../../src/facade/downloadFacade';
-import getIplayerExecutableService from '../../../src/service/getIplayerExecutableService';
-import GetIplayerScheduleService from '../../../src/service/schedule/GetIplayerScheduleService';
-import GetIplayerSearchService from '../../../src/service/search/GetIplayerSearchService';
+import downloadFacade from '../../../server/facade/downloadFacade';
+import getIplayerExecutableService from '../../../server/service/getIplayerExecutableService';
+import GetIplayerScheduleService from '../../../server/service/schedule/GetIplayerScheduleService';
+import GetIplayerSearchService from '../../../server/service/search/GetIplayerSearchService';
 
 
-jest.mock('../../../src/service/getIplayerExecutableService');
-jest.mock('../../../src/service/search/GetIplayerSearchService');
+jest.mock('../../../server/service/getIplayerExecutableService');
+jest.mock('../../../server/service/search/GetIplayerSearchService');
 
 jest.mock('child_process', () => ({
     spawn: jest.fn(),

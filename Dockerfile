@@ -1,8 +1,9 @@
-# Use Redis Alpine as a source for the binary
+# Redis is no longer run by iPlayarr. The binary is only kept so existing installs can
+# import their old bundled-Redis data (dump.rdb) into the new database on first start.
 FROM redis:alpine AS redis
 
 # Main build stage
-FROM node:20-alpine3.20
+FROM node:24-alpine3.20
 
 RUN apk --update add \
     ffmpeg \
@@ -19,7 +20,7 @@ RUN apk --update add \
 # Symlink AtomicParsley
 RUN ln -s `which atomicparsley` /usr/local/bin/AtomicParsley
 
-RUN mkdir -p /data/output /data/config /config /data /node-persist /app/frontend /logs
+RUN mkdir -p /data/output /data/config /config /data /node-persist /app /logs
 
 WORKDIR /iplayer
 
@@ -33,6 +34,11 @@ RUN wget -qO- https://github.com/get-iplayer/get_iplayer/archive/v${GET_IPLAYER_
 ENV GET_IPLAYER_EXEC=/iplayer/get_iplayer
 ENV STORAGE_LOCATION=/node-persist
 ENV CACHE_LOCATION=/data
+# SQLite database lives in the /config volume (same place the old bundled Redis kept its dump.rdb).
+# Set DATABASE_URL to a postgres:// connection string to use Postgres instead.
+ENV SQLITE_PATH=/config/iplayarr.db
+ENV REDIS_DATA_DIR=/config
+ENV REDIS_SERVER_BIN=/redis/redis-server
 
 WORKDIR /ytdlp
 
@@ -42,7 +48,7 @@ RUN chmod +x ./yt-dlp
 
 ENV YTDLP_EXEC=/ytdlp/yt-dlp
 
-# Copy Redis binary from the Redis Alpine image
+# Copy Redis binary (used only by the one-off legacy data migration)
 WORKDIR /redis
 COPY --from=redis /usr/local/bin/redis-server /redis/redis-server
 RUN chmod +x /redis/redis-server
@@ -51,12 +57,19 @@ RUN chmod +x /redis/redis-server
 WORKDIR /app
 
 COPY package*.json ./
-COPY frontend/package*.json ./frontend/
 
-RUN npm run install:both
+RUN npm install --no-audit --no-fund
 COPY . .
-RUN npm run build:both
-RUN rm -rf /app/src /app/frontend/src
+RUN npm run build
+
+# The Nuxt build is self-contained, but only bundles the files it can statically trace. Native modules are
+# copied over from the install above so that platforms without prebuilt binaries still get the compiled ones.
+RUN for module in better-sqlite3 bcrypt; do \
+        rm -rf .output/server/node_modules/$module && cp -a node_modules/$module .output/server/node_modules/$module; \
+    done
+
+# Only the build output, database migrations and start script are needed at runtime
+RUN rm -rf node_modules .nuxt app server tests
 
 ENV LOG_DIR=/logs
 

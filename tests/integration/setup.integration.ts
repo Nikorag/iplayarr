@@ -36,16 +36,14 @@ export const integrationEnv: IntegrationEnv = {
         available: !!(process.env.SABNZBD_URL && process.env.SABNZBD_API_KEY),
     },
     nzbhydra2: {
-        // NZBHydra2 and iPlayarr have well-known LAN defaults on this stack (vlan107),
-        // so available is keyed only on the API key — the URL defaults are safe to use.
-        url: process.env.NZBHYDRA2_URL || 'http://192.168.107.30:5076',
+        url: process.env.NZBHYDRA2_URL || '',
         apiKey: process.env.NZBHYDRA2_API_KEY || '',
-        available: !!(process.env.NZBHYDRA2_API_KEY),
+        available: !!(process.env.NZBHYDRA2_URL && process.env.NZBHYDRA2_API_KEY),
     },
     iplayarr: {
-        url: process.env.IPLAYARR_URL || 'http://192.168.107.127:4404',
+        url: process.env.IPLAYARR_URL || 'http://localhost:4404',
         apiKey: process.env.IPLAYARR_API_KEY || '',
-        available: !!(process.env.IPLAYARR_API_KEY),
+        available: !!process.env.IPLAYARR_API_KEY,
     },
 };
 

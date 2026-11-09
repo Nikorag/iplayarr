@@ -1,16 +1,15 @@
 import bcrypt from 'bcrypt';
-import { Request } from 'express';
 
-import appService from '../../src/service/appService';
-import configService from '../../src/service/configService';
-import SkyhookService from '../../src/service/skyhook/SkyhookService';
-import { App } from '../../src/types/App';
-import { AppType } from '../../src/types/AppType';
-import { IplayarrParameter } from '../../src/types/IplayarrParameters';
-import { IPlayerSearchResult, VideoType } from '../../src/types/IPlayerSearchResult';
-import { IPlayerMetadataResponse } from '../../src/types/responses/IPlayerMetadataResponse';
-import { Synonym } from '../../src/types/Synonym';
-import * as Utils from '../../src/utils/Utils';
+import appService from '../../server/service/appService';
+import configService from '../../server/service/configService';
+import SkyhookService from '../../server/service/skyhook/SkyhookService';
+import { App } from '../../server/types/App';
+import { AppType } from '../../server/types/AppType';
+import { IplayarrParameter } from '../../server/types/IplayarrParameters';
+import { IPlayerSearchResult, VideoType } from '../../server/types/IPlayerSearchResult';
+import { IPlayerMetadataResponse } from '../../server/types/responses/IPlayerMetadataResponse';
+import { Synonym } from '../../server/types/Synonym';
+import * as Utils from '../../server/utils/Utils';
 import b008m7xk from '../data/b008m7xk.json';
 import b0211hsl from '../data/b0211hsl.json';
 import m000jbtq from '../data/m000jbtq.json';
@@ -25,13 +24,14 @@ import m00255nq from '../data/m00255nq.json';
 import p00bp2rm from '../data/p00bp2rm.json';
 import p0fq3s31 from '../data/p0fq3s31.json';
 import p09t2pyf from '../data/p09t2pyf.json';
+import { makeEvent } from '../helpers/h3';
 
 jest.mock('bcrypt');
 const mockedBcrypt = jest.mocked(bcrypt);
 
-jest.mock('../../src/service/configService');
-jest.mock('../../src/service/appService');
-jest.mock('../../src/service/skyhook/SkyhookService');
+jest.mock('../../server/service/configService');
+jest.mock('../../server/service/appService');
+jest.mock('../../server/service/skyhook/SkyhookService');
 const mockedConfigService = jest.mocked(configService);
 const mockedAppService = jest.mocked(appService);
 const mockedSkyhookService = jest.mocked(SkyhookService);
@@ -85,13 +85,18 @@ describe('Utils', () => {
 
     describe('getBaseUrl', () => {
         it('returns correct base URL', () => {
-            const req = {
-                protocol: 'http',
-                hostname: 'localhost',
-                socket: { localPort: 3000 },
-            } as unknown as Request;
+            const event = makeEvent({ headers: { host: 'localhost:8080' }, localPort: 3000 });
 
-            expect(Utils.getBaseUrl(req)).toBe('http://localhost:3000');
+            expect(Utils.getBaseUrl(event)).toBe('http://localhost:3000');
+        });
+
+        it('ignores X-Forwarded-Proto, matching the previous Express behaviour', () => {
+            const event = makeEvent({
+                headers: { host: 'localhost:8080', 'x-forwarded-proto': 'https' },
+                localPort: 3000,
+            });
+
+            expect(Utils.getBaseUrl(event)).toBe('http://localhost:3000');
         });
     });
 
@@ -115,13 +120,7 @@ describe('Utils', () => {
                 },
             }) as unknown as App;
 
-        const req = {
-            protocol: 'http',
-            hostname: 'localhost',
-            socket: {
-                localPort: 4404,
-            },
-        } as unknown as Request;
+        const req = makeEvent({ headers: { host: 'localhost:4404' }, localPort: 4404 });
 
         it('builds download link correctly without app', async () => {
             await expect(Utils.createNZBDownloadLink(req, base, 'apikey')).resolves.toBe(
@@ -426,7 +425,7 @@ describe('Utils', () => {
         const synonym: Synonym = {
             id: '',
             from: 'Syno-Nym Bus?',
-            target: "That's a Title!",
+            target: 'That\'s a Title!',
             exemptions: '',
         };
 
@@ -468,22 +467,22 @@ describe('Utils', () => {
 
         it('extracts titles with special characters', () => {
             const [title, episode, series] = Utils.parseEpisodeDetailStrings(
-                "The Apprentice: You're Fired!: Series 19",
+                'The Apprentice: You\'re Fired!: Series 19',
                 '12',
                 '1'
             );
-            expect(title.trim()).toBe("The Apprentice: You're Fired!");
+            expect(title.trim()).toBe('The Apprentice: You\'re Fired!');
             expect(episode).toBe(12);
             expect(series).toBe(19);
         });
 
         it('fall back still extracts titles with special characters', () => {
             const [title, episode, series] = Utils.parseEpisodeDetailStrings(
-                "The Apprentice: You're Fired!",
+                'The Apprentice: You\'re Fired!',
                 '12',
                 '19'
             );
-            expect(title.trim()).toBe("The Apprentice: You're Fired!");
+            expect(title.trim()).toBe('The Apprentice: You\'re Fired!');
             expect(episode).toBe(12);
             expect(series).toBe(19);
         });
@@ -547,7 +546,7 @@ describe('Utils', () => {
                 await assertSeasonAndEpisode(m00255nq, VideoType.TV, 'Return to Paradise', 1, 6, 'Oh Mine Papa'));
 
             it('yearly series', async () =>
-                await assertSeasonAndEpisode(m001zh50, VideoType.TV, "Gardeners' World", 2024, 1, 'Episode 1'));
+                await assertSeasonAndEpisode(m001zh50, VideoType.TV, 'Gardeners\' World', 2024, 1, 'Episode 1'));
 
             it('parsed series title', async () =>
                 await assertSeasonAndEpisode(p09t2pyf, VideoType.TV, 'The Goes Wrong Show', 2, 1, 'Summer Once Again'));

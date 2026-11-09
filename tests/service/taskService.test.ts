@@ -4,6 +4,7 @@ import downloadFacade from '../../server/facade/downloadFacade';
 import scheduleFacade from '../../server/facade/scheduleFacade';
 import configService from '../../server/service/configService';
 import episodeCacheService from '../../server/service/episodeCacheService';
+import loggingService from '../../server/service/loggingService';
 import TaskService from '../../server/service/taskService';
 
 // Mock dependencies
@@ -25,6 +26,10 @@ jest.mock('../../server/facade/downloadFacade', () => ({
 
 jest.mock('../../server/service/episodeCacheService', () => ({
     recacheAllSeries: jest.fn(),
+}));
+
+jest.mock('../../server/service/loggingService', () => ({
+    error: jest.fn(),
 }));
 
 describe('TaskService', () => {
@@ -75,5 +80,42 @@ describe('TaskService', () => {
         expect(scheduleFacade.refreshCache).toHaveBeenCalled();
         expect(downloadFacade.cleanupFailedDownloads).toHaveBeenCalled();
         expect(episodeCacheService.recacheAllSeries).not.toHaveBeenCalled();
+    });
+
+    describe('when a scheduled job fails', () => {
+        const runCron = async () => {
+            (configService.getParameter as jest.Mock)
+                .mockResolvedValueOnce('*/5 * * * *') // REFRESH_SCHEDULE
+                .mockResolvedValueOnce('false'); // NATIVE_SEARCH
+            let job: () => Promise<void> = async () => undefined;
+            (cron.schedule as jest.Mock).mockImplementation((_expression, callback) => {
+                job = callback;
+                return {};
+            });
+            await TaskService.init();
+            await job();
+            // let the un-awaited promise chains settle
+            await new Promise((resolve) => setImmediate(resolve));
+        };
+
+        it('logs a failed schedule refresh instead of leaving an unhandled rejection', async () => {
+            (scheduleFacade.refreshCache as jest.Mock).mockRejectedValueOnce(new Error('BBC is down'));
+
+            await runCron();
+
+            expect(loggingService.error).toHaveBeenCalledWith(expect.stringContaining('BBC is down'));
+            // the rest of the job still ran
+            expect(downloadFacade.cleanupFailedDownloads).toHaveBeenCalled();
+        });
+
+        it('logs a failed recache and a failed cleanup', async () => {
+            (episodeCacheService.recacheAllSeries as jest.Mock).mockRejectedValueOnce(new Error('recache broke'));
+            (downloadFacade.cleanupFailedDownloads as jest.Mock).mockRejectedValueOnce(new Error('cleanup broke'));
+
+            await runCron();
+
+            expect(loggingService.error).toHaveBeenCalledWith(expect.stringContaining('recache broke'));
+            expect(loggingService.error).toHaveBeenCalledWith(expect.stringContaining('cleanup broke'));
+        });
     });
 });

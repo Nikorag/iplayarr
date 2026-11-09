@@ -19,6 +19,25 @@ import { LogLine, LogLineLevel } from '../types/LogLine';
 import { QueueEntry } from '../types/QueueEntry';
 import { convertToMB, copyWithFallbackAsync, getETA } from '../utils/Utils';
 
+const GEOLOCATION_HINT =
+    'The BBC rejected this request because of where it came from. iPlayer only works from a UK IP address, ' +
+    'so if iPlayarr runs behind a VPN check that it exits in the UK and that this container is the one routed through it.';
+
+const GONE_HINT =
+    'The BBC returned 410 Gone for this programme. That can mean it has been replaced with a revised version or ' +
+    'is not available to your connection. Try again later, check the VPN/location, or switch the Download Client to yt-dlp in Settings.';
+
+/** A short explanation for download output that matches a well known cause, if there is one. */
+export const knownProblemHint = (text: string): string | undefined => {
+    if (/geolocation|geo-?restrict|not available in your (country|region)/i.test(text)) {
+        return GEOLOCATION_HINT;
+    }
+    if (/\b410[:\s]+gone\b/i.test(text)) {
+        return GONE_HINT;
+    }
+    return undefined;
+};
+
 class DownloadFacade {
     async download(pid: string): Promise<ChildProcess> {
         const pidDir: string = await this.#createPidDirectory(pid);
@@ -30,19 +49,39 @@ class DownloadFacade {
             metricsService.recordDownload('failed', err.message);
             queueService.removeFromQueue(pid);
         });
-        process.stderr?.on('data', this.#processError);
+        process.stderr?.on('data', (data) => this.#processError(pid, data));
         process.stdout?.on('data', (data) => this.#processOutput(pid, data));
         process.on('close', (code) => this.#processComplete(pid, pidDir, code, service));
 
         return process;
     }
 
-    #processError(data: any): void {
-        loggingService.error(data);
+    #processError(pid: string, data: any): void {
+        const text = data.toString().trim();
+        if (text) {
+            loggingService.error(pid, text);
+            this.#hintAtKnownProblems(pid, text);
+        }
     }
+
+    // Downloads that fail because of where iPlayarr is running look the same as any other failure in the logs,
+    // so point at the usual cause once per download rather than once per retry.
+    #hintAtKnownProblems(pid: string, text: string): void {
+        if (this.#hinted.has(pid)) {
+            return;
+        }
+        const hint = knownProblemHint(text);
+        if (hint) {
+            this.#hinted.add(pid);
+            loggingService.log(pid, hint);
+        }
+    }
+
+    #hinted = new Set<string>();
 
     #processOutput(pid: string, data: any): void {
         console.log(data.toString());
+        this.#hintAtKnownProblems(pid, data.toString());
         const logLine: LogLine = { level: LogLineLevel.INFO, id: pid, message: data.toString(), timestamp: new Date() };
         socketService.emit('log', logLine);
         const downloadDetails: DownloadDetails | undefined = this.#parseProgress(pid, data);
@@ -52,6 +91,7 @@ class DownloadFacade {
     }
 
     async #processComplete(pid: string, directory: string, code: any, service : AbstractDownloadService): Promise<void> {
+        this.#hinted.delete(pid);
         const completeDir = (await configService.getParameter(IplayarrParameter.COMPLETE_DIR)) as string;
 
         const outputFormat = await configService.getParameter(IplayarrParameter.OUTPUT_FORMAT);

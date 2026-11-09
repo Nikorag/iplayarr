@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 
 import { timestampFile } from '../../server/constants/iPlayarrConstants';
-import downloadFacade from '../../server/facade/downloadFacade';
+import downloadFacade, { knownProblemHint } from '../../server/facade/downloadFacade';
 import configService from '../../server/service/configService';
 import GetIplayerDownloadService from '../../server/service/download/GetIplayerDownloadService';
 import historyService from '../../server/service/historyService';
@@ -106,6 +106,83 @@ describe('DownloadFacade', () => {
 
             expect(result).toBe(mockChildProcess);
         });
+    });
+
+    describe('subprocess output', () => {
+        // The facade remembers which downloads it has already explained, so give each test its own
+        let pid = '';
+        let counter = 0;
+        beforeEach(() => {
+            pid = `output-pid-${counter++}`;
+        });
+
+        const startDownload = async () => {
+            (configService.getParameter as jest.Mock)
+                .mockResolvedValueOnce('/downloads')
+                .mockResolvedValueOnce(DownloadClient.GET_IPLAYER);
+            const stderrOn = jest.fn();
+            const stdoutOn = jest.fn();
+            (GetIplayerDownloadService.download as jest.Mock).mockResolvedValue({
+                stdout: { on: stdoutOn },
+                stderr: { on: stderrOn },
+                on: jest.fn(),
+            });
+            await downloadFacade.download(pid);
+            const handler = (on: jest.Mock) => on.mock.calls.find(([event]) => event === 'data')?.[1];
+            return { stderr: handler(stderrOn), stdout: handler(stdoutOn) };
+        };
+
+        it('logs stderr as text against the download, not as a raw Buffer', async () => {
+            const { stderr } = await startDownload();
+
+            stderr(Buffer.from('WARNING: Something went wrong\n'));
+
+            expect(loggingService.error).toHaveBeenCalledWith(pid, 'WARNING: Something went wrong');
+        });
+
+        it('ignores empty stderr output', async () => {
+            const { stderr } = await startDownload();
+
+            stderr(Buffer.from('  \n'));
+
+            expect(loggingService.error).not.toHaveBeenCalled();
+        });
+
+        it('explains a geolocation failure once per download, however often it repeats', async () => {
+            const { stderr } = await startDownload();
+
+            stderr(Buffer.from('ERROR: [bbc.co.uk] m002q8ks: bbc.co.uk returned error: geolocation'));
+            stderr(Buffer.from('ERROR: [bbc.co.uk] m002q8ks: bbc.co.uk returned error: geolocation'));
+
+            expect(loggingService.log).toHaveBeenCalledTimes(1);
+            expect(loggingService.log).toHaveBeenCalledWith(pid, expect.stringContaining('UK IP address'));
+        });
+
+        it('also recognises problems reported on stdout', async () => {
+            const { stdout } = await startDownload();
+
+            stdout(Buffer.from('WARNING: Response: 410 Gone\n'));
+
+            expect(loggingService.log).toHaveBeenCalledWith(pid, expect.stringContaining('410 Gone'));
+        });
+    });
+
+    describe('knownProblemHint', () => {
+        it.each([
+            ['ERROR: bbc.co.uk returned error: geolocation', /UK IP address/],
+            ['This video is not available in your country', /UK IP address/],
+            ['WARNING: Response: 410 Gone', /410 Gone/],
+            ['410: Gone', /410 Gone/],
+        ])('explains %p', (text, expected) => {
+            expect(knownProblemHint(text)).toMatch(expected);
+        });
+
+        it.each([['INFO: Downloaded: 444.74 MB'], ['WARNING: Response: 429 Too Many Requests']])(
+            'has nothing to say about %p',
+            (text) => {
+                expect(knownProblemHint(text)).toBeUndefined();
+            }
+        );
     });
 
     describe('processComplete video file selection (via close handler)', () => {

@@ -34,6 +34,15 @@ describe('loggingService', () => {
         );
     });
 
+    it('logs a Buffer as text, not as a JSON byte array', () => {
+        loggingService.error(Buffer.from('ERROR: geolocation\n'));
+
+        expect(socketService.emit).toHaveBeenCalledWith(
+            'log',
+            expect.objectContaining({ level: LogLineLevel.ERROR, message: 'ERROR: geolocation' })
+        );
+    });
+
     it('should log error messages and emit socket log', () => {
         loggingService.error('something went wrong', { err: true });
 

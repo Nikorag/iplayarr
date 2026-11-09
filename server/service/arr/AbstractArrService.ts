@@ -13,6 +13,7 @@ export interface ArrTag {
 export default interface AbstractArrService {
     upsertDownloadClient(form: CreateDownloadClientForm, app: App, allowCreate: boolean): Promise<number>;
     getDownloadClient(app: App): Promise<DownloadClientResponse | undefined>;
+    deleteDownloadClient(app: App, id: number): Promise<void>;
 
     upsertIndexer(form: CreateIndexerForm, app: App, allowCreate: boolean): Promise<number>;
     getIndexer(app: App): Promise<IndexerResponse | undefined>;

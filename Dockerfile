@@ -3,7 +3,7 @@
 FROM redis:alpine AS redis
 
 # Main build stage
-FROM node:current-alpine3.20
+FROM node:24-alpine3.20
 
 RUN apk --update add \
     ffmpeg \

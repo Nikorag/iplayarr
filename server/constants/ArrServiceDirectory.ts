@@ -1,10 +1,11 @@
 import AbstractArrService from '../service/arr/AbstractArrService';
+import RadarrArrService from '../service/arr/RadarrArrService';
 import V1ArrService from '../service/arr/V1ArrService';
 import V3ArrService from '../service/arr/V3ArrService';
 import { AppType } from '../types/AppType';
 
 export const ArrServiceDirectory: Partial<Record<AppType, AbstractArrService>> = {
     [AppType.SONARR]: V3ArrService,
-    [AppType.RADARR]: V3ArrService,
+    [AppType.RADARR]: RadarrArrService,
     [AppType.PROWLARR]: V1ArrService,
 }

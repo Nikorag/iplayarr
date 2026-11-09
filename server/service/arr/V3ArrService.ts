@@ -10,9 +10,13 @@ import { CreateIndexerForm } from '../../types/requests/form/CreateIndexerForm';
 import { ArrLookupResponse } from '../../types/responses/arr/ArrLookupResponse';
 import { DownloadClientResponse } from '../../types/responses/arr/DownloadClientResponse';
 import { IndexerResponse } from '../../types/responses/arr/IndexerResponse';
+import { formatArrError } from '../../utils/arrError';
 import AbstractArrService, { ArrTag } from './AbstractArrService';
 
 export class V3ArrService implements AbstractArrService {
+    /** Skeleton download client fields that belong to a different app and so are not sent */
+    protected excludedDownloadClientFields: string[] = ['movieCategory'];
+
     async search(app: App, term?: string): Promise<ArrLookupResponse[]> {
         const endpoint: string = app.type == AppType.SONARR ? 'series' : 'movie';
         const url: string = `${this.getApiUrl(app)}/${endpoint}${term ? `/lookup?term=${term}` : ''}`;
@@ -46,11 +50,11 @@ export class V3ArrService implements AbstractArrService {
                 updateMethod = 'put';
                 createIndexerRequest.id = app.indexer.id;
             } else if (!allowCreate) {
-                throw new Error('Existing Download Client not found');
+                throw new Error('Existing Indexer not found');
             }
         }
 
-        const url: string = `${this.getApiUrl(app)}/indexer?apikey=${app.api_key}`;
+        const url: string = `${this.getApiUrl(app)}/indexer`;
         try {
             const {
                 data: { id },
@@ -62,7 +66,7 @@ export class V3ArrService implements AbstractArrService {
 
             return id;
         } catch (err) {
-            throw err;
+            throw new Error(formatArrError(err));
         }
     }
 
@@ -136,7 +140,7 @@ export class V3ArrService implements AbstractArrService {
 
 
     async getIndexer(app: App): Promise<IndexerResponse | undefined> {
-        const url: string = `${this.getApiUrl(app)}/indexer/${app.indexer?.id}?apikey=${app.api_key}`;
+        const url: string = `${this.getApiUrl(app)}/indexer/${app.indexer?.id}`;
 
         try {
             const response = await axios.get(url, {
@@ -157,14 +161,14 @@ export class V3ArrService implements AbstractArrService {
             if (axios.isAxiosError(error) && error.response?.status === 404) {
                 return;
             }
-            throw error;
+            throw new Error(formatArrError(error));
         }
     }
 
 
 
     async testConnection(app: App): Promise<boolean | string> {
-        const url: string = `${app.url}/api?apikey=${app.api_key}`;
+        const url: string = `${this.getApiUrl(app)}/system/status`;
 
         try {
             const response = await axios.get(url, {
@@ -173,17 +177,14 @@ export class V3ArrService implements AbstractArrService {
                 },
             });
             if (response.status == 200) return true;
-            return false;
+            return `Unexpected response status ${response.status}`;
         } catch (error) {
-            if (axios.isAxiosError(error)) {
-                return error.message;
-            }
-            return false;
+            return formatArrError(error);
         }
     }
 
     async getTags(app: App): Promise<ArrTag[]> {
-        const url: string = `${this.getApiUrl(app)}/tag?apikey=${app.api_key}`;
+        const url: string = `${this.getApiUrl(app)}/tag`;
 
         try {
             const response = await axios.get(url, {
@@ -193,13 +194,13 @@ export class V3ArrService implements AbstractArrService {
             });
             if (response.status == 200) return response.data;
             return [];
-        } catch {
-            return [];
+        } catch (error) {
+            throw new Error(`Unable to load tags: ${formatArrError(error)}`);
         }
     }
 
     async createTag(app: App, label: string): Promise<ArrTag | undefined> {
-        const url: string = `${this.getApiUrl(app)}/tag?apikey=${app.api_key}`;
+        const url: string = `${this.getApiUrl(app)}/tag`;
 
         try {
             const response = await axios.post(
@@ -211,10 +212,9 @@ export class V3ArrService implements AbstractArrService {
                     },
                 }
             );
-            if (response.status >= 200) return response.data;
-            return;
-        } catch {
-            return;
+            return response.data;
+        } catch (error) {
+            throw new Error(`Unable to create tag '${label}': ${formatArrError(error)}`);
         }
     }
 
@@ -240,7 +240,7 @@ export class V3ArrService implements AbstractArrService {
                 }
             }
 
-            const url: string = `${this.getApiUrl(app)}/downloadclient?apikey=${app.api_key}`;
+            const url: string = `${this.getApiUrl(app)}/downloadclient`;
             const {
                 data: { id },
             } = await axios[updateMethod](url, createDownloadClientRequest, {
@@ -251,12 +251,25 @@ export class V3ArrService implements AbstractArrService {
 
             return id;
         } catch (err) {
-            throw err;
+            throw new Error(formatArrError(err));
+        }
+    }
+
+    async deleteDownloadClient(app: App, id: number): Promise<void> {
+        try {
+            await axios.delete(`${this.getApiUrl(app)}/downloadclient/${id}`, {
+                headers: {
+                    'X-Api-Key': app.api_key,
+                },
+            });
+        } catch (err) {
+            if (axios.isAxiosError(err) && err.response?.status === 404) return;
+            throw new Error(formatArrError(err));
         }
     }
 
     async getDownloadClient(app: App): Promise<DownloadClientResponse | undefined> {
-        const url: string = `${this.getApiUrl(app)}/downloadclient/${app.download_client?.id}?apikey=${app.api_key}`;
+        const url: string = `${this.getApiUrl(app)}/downloadclient/${app.download_client?.id}`;
 
         try {
             const response = await axios.get(url, {
@@ -278,7 +291,7 @@ export class V3ArrService implements AbstractArrService {
             if (axios.isAxiosError(error) && error.response?.status === 404) {
                 return;
             }
-            throw error;
+            throw new Error(formatArrError(error));
         }
     }
 
@@ -288,7 +301,9 @@ export class V3ArrService implements AbstractArrService {
             name: `${form.name} (iPlayarr)`,
             tags,
             fields: [
-                ...(createDownloadClientRequestSkeleton.fields as CreateDownloadClientRequestField[]),
+                ...(createDownloadClientRequestSkeleton.fields as CreateDownloadClientRequestField[]).filter(
+                    ({ name }) => !this.excludedDownloadClientFields.includes(name as string)
+                ),
                 {
                     order: 0,
                     name: 'host',

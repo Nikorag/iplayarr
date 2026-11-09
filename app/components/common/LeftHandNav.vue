@@ -153,6 +153,19 @@ const handleClickOutside = (event) => {
         }
     }
 
+    // Never underline nav items, whatever the state (the global link style underlines on hover)
+    a,
+    a:link,
+    a:visited,
+    a:hover,
+    a:focus,
+    a:focus-visible,
+    a:active,
+    a *,
+    span {
+        text-decoration: none;
+    }
+
     a,
     span {
         color: @nav-link-color;

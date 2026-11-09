@@ -5,6 +5,7 @@ import downloadFacade from '../../server/facade/downloadFacade';
 import configService from '../../server/service/configService';
 import GetIplayerDownloadService from '../../server/service/download/GetIplayerDownloadService';
 import historyService from '../../server/service/historyService';
+import loggingService from '../../server/service/loggingService';
 import metricsService from '../../server/service/metricsService';
 import queueService from '../../server/service/queueService';
 import { DownloadClient } from '../../server/types/enums/DownloadClient';
@@ -172,6 +173,29 @@ describe('DownloadFacade', () => {
                 expect.any(String)
             );
             expect(historyService.addHistory).toHaveBeenCalledWith(queueItem);
+        });
+
+        it('rescans for the processed file when the _original file vanishes before it can be copied', async () => {
+            // Poll 1 and 2: only the _original file exists with a stable size (tagging still running)
+            // Poll 3: tagging has finished and replaced it with the processed file
+            (fs.readdirSync as jest.Mock)
+                .mockReturnValueOnce(['episode_original.mp4'])
+                .mockReturnValueOnce(['episode_original.mp4'])
+                .mockReturnValue(['episode.mp4']);
+            (fs.statSync as jest.Mock).mockReturnValue({ size: 12345 });
+            (fs.copyFileSync as jest.Mock).mockImplementationOnce(() => {
+                throw Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
+            });
+
+            await triggerClose(0);
+
+            expect(fs.copyFileSync).toHaveBeenCalledTimes(2);
+            expect(fs.copyFileSync).toHaveBeenLastCalledWith(
+                expect.stringContaining('/episode.mp4'),
+                expect.any(String)
+            );
+            expect(historyService.addHistory).toHaveBeenCalledWith(queueItem);
+            expect(loggingService.error).not.toHaveBeenCalled();
         });
 
         describe('metrics', () => {

@@ -80,20 +80,41 @@ class DownloadFacade {
                         const processedFile = files.find((file) => isVideo(file) && !isOriginal(file));
                         const originalFile = files.find((file) => isVideo(file) && isOriginal(file));
 
+                        let candidate: string | undefined;
                         if (processedFile) {
-                            videoFile = processedFile;
-                            break;
-                        }
-
-                        if (originalFile) {
+                            candidate = processedFile;
+                        } else if (originalFile) {
                             const size = fs.statSync(path.join(directory, originalFile)).size;
                             if (size === lastOriginalSize) {
-                                videoFile = originalFile;
-                                break;
+                                candidate = originalFile;
                             }
                             lastOriginalSize = size;
                         } else {
                             lastOriginalSize = -1;
+                        }
+
+                        if (candidate) {
+                            const oldPath = path.join(directory, candidate);
+                            const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
+                            loggingService.debug(pid, `Found video file ${oldPath}, moving to ${newPath}`);
+
+                            try {
+                                copyWithFallback(oldPath, newPath);
+                                videoFile = candidate;
+                                break;
+                            } catch (copyErr: any) {
+                                if (copyErr.code !== 'ENOENT') {
+                                    throw copyErr;
+                                }
+                                // The file we picked disappeared. That means get-iplayer's post-processing
+                                // (e.g. tagging) just finished and replaced it, so go back to polling and
+                                // pick up the processed file rather than abandoning the download.
+                                loggingService.debug(
+                                    pid,
+                                    `${oldPath} vanished before copy for '${queueItem.nzbName}', rescanning for the processed file`
+                                );
+                                lastOriginalSize = -1;
+                            }
                         }
 
                         if (attempt < maxAttempts) {
@@ -101,21 +122,8 @@ class DownloadFacade {
                         }
                     }
 
-                    if (videoFile) {
-                        const oldPath = path.join(directory, videoFile);
-                        const newPath = path.join(completeDir, `${queueItem?.nzbName}.${outputFormat}`);
-                        loggingService.debug(pid, `Found video file ${oldPath}, moving to ${newPath}`);
-
-                        try {
-                            copyWithFallback(oldPath, newPath);
-                        } catch (copyErr: any) {
-                            if (copyErr.code === 'ENOENT') {
-                                loggingService.error(pid, `${oldPath} vanished immediately before copy for '${queueItem.nzbName}'`);
-                                videoFile = undefined;
-                            } else {
-                                throw copyErr;
-                            }
-                        }
+                    if (!videoFile) {
+                        loggingService.error(pid, `No video file was found to move for '${queueItem.nzbName}'`);
                     }
 
                     // Delete the uuid directory and file after moving it

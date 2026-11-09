@@ -57,7 +57,7 @@ export const createProwlarrIndexerRequestSkeleton: Partial<CreateProwlarrIndexer
     language: 'en-US',
     encoding: 'Unicode (UTF-8)',
     enable: true,
-    redirect: false,
+    redirect: true,
     supportsRss: true,
     supportsSearch: true,
     supportsRedirect: true,

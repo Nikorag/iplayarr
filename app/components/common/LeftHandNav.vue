@@ -180,11 +180,14 @@ const handleClickOutside = (event) => {
 @media (max-width: @mobile-breakpoint) {
     .LeftHandNav {
         position: fixed;
-        top: 0px;
+        // Start below the top bar (which stays visible so the menu can be closed) and sit above page
+        // content such as the sticky settings toolbar (z-index 2)
+        top: 60px;
         bottom: 0;
+        height: auto;
+        z-index: 3;
         transform: translateX(-100%);
         transition: transform 0.3s ease-in-out;
-        padding-top: 60px;
     }
 
     .LeftHandNav.show {

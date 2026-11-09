@@ -76,6 +76,67 @@ describe('synonymService', () => {
             const result = await synonymService.getSynonym('ITV');
             expect(result).toBeUndefined();
         });
+
+        describe('tolerant matching', () => {
+            const synonym = (from: string, target: string): Synonym => ({ id: from, from, target, exemptions: '' }) as Synonym;
+
+            it.each([
+                ['Him and Her', 'Him & Her'],
+                ['Him & Her', 'Him and Her'],
+                ['apprentice-uk', 'Apprentice UK'],
+                ['The Apprentice, UK', 'the apprentice uk'],
+                ['Cafe Show', 'Café Show'],
+                ['Welsh Language on Tour (2020)', 'Welsh Language on Tour'],
+                ['Welsh Language on Tour 2020', 'Welsh Language on Tour'],
+            ])('matches a search for %p to a synonym saved as %p', async (input, saved) => {
+                const expected = synonym(saved, 'Anything');
+                mockStorageData['synonyms'] = [expected];
+
+                expect(await synonymService.getSynonym(input)).toEqual(expected);
+            });
+
+            it('matches the target in the same tolerant way', async () => {
+                const expected = synonym('From', 'Iaith ar Daith');
+                mockStorageData['synonyms'] = [expected];
+
+                expect(await synonymService.getSynonym('iaith-ar-daith')).toEqual(expected);
+            });
+
+            it('prefers the closest match over a looser one', async () => {
+                const generic = synonym('Doctor Who', 'Doctor Who (generic)');
+                const specific = synonym('Doctor Who 2005', 'Doctor Who (2005)');
+                mockStorageData['synonyms'] = [generic, specific];
+
+                expect(await synonymService.getSynonym('Doctor Who 2005')).toEqual(specific);
+                expect(await synonymService.getSynonym('doctor who')).toEqual(generic);
+            });
+
+            it('does not match titles that merely contain each other', async () => {
+                mockStorageData['synonyms'] = [synonym('Him', 'Himself')];
+
+                expect(await synonymService.getSynonym('Him and Her')).toBeUndefined();
+                expect(await synonymService.getSynonym('Hi')).toBeUndefined();
+            });
+
+            it('does not treat a different year as a match for a synonym saved with one', async () => {
+                mockStorageData['synonyms'] = [synonym('Doctor Who 2005', 'Doctor Who (2005)')];
+
+                expect(await synonymService.getSynonym('Doctor Who 1963')).toBeUndefined();
+            });
+
+            it('does not match when the search is only punctuation', async () => {
+                mockStorageData['synonyms'] = [synonym('*', '*')];
+
+                expect(await synonymService.getSynonym(' - ')).toBeUndefined();
+            });
+
+            it('keeps non-Latin titles distinct', async () => {
+                mockStorageData['synonyms'] = [synonym('Привет', 'Hello')];
+
+                expect(await synonymService.getSynonym('ЭВМ')).toBeUndefined();
+                expect((await synonymService.getSynonym('привет'))?.target).toBe('Hello');
+            });
+        });
     });
 
     describe('addSynonym', () => {

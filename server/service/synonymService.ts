@@ -3,16 +3,22 @@ import { v4 } from 'uuid';
 import searchFacade from '../facade/searchFacade';
 import { QueuedStorage } from '../types/QueuedStorage';
 import { Synonym } from '../types/Synonym';
+import { normalizeTitle, normalizeTitleWithoutYear } from '../utils/titleMatching';
 
 const storage: QueuedStorage = new QueuedStorage();
 
 const synonymService = {
     getSynonym: async (inputTerm: string): Promise<Synonym | undefined> => {
         const allSynonyms = await synonymService.getAllSynonyms();
-        return allSynonyms.find(
-            ({ from: savedFrom, target: savedTarget }) =>
-                savedFrom.toLocaleLowerCase() == inputTerm.toLocaleLowerCase() ||
-                savedTarget.toLocaleLowerCase() == inputTerm.toLocaleLowerCase()
+        const matches = (value: string, candidate: string) => !!candidate && normalizeTitle(value) === candidate;
+
+        // The closest match wins: the spelling as given (ignoring case, punctuation, accents and "&" vs "and"),
+        // then the same without a trailing year, since a search for "Show 2020" is run as a search for "Show"
+        const exact = normalizeTitle(inputTerm);
+        const withoutYear = normalizeTitleWithoutYear(inputTerm);
+        return (
+            allSynonyms.find(({ from, target }) => matches(from, exact) || matches(target, exact)) ??
+            allSynonyms.find(({ from, target }) => matches(from, withoutYear) || matches(target, withoutYear))
         );
     },
 

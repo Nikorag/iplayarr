@@ -5,6 +5,7 @@ import downloadFacade from '../../server/facade/downloadFacade';
 import configService from '../../server/service/configService';
 import GetIplayerDownloadService from '../../server/service/download/GetIplayerDownloadService';
 import historyService from '../../server/service/historyService';
+import loggingService from '../../server/service/loggingService';
 import metricsService from '../../server/service/metricsService';
 import queueService from '../../server/service/queueService';
 import { DownloadClient } from '../../server/types/enums/DownloadClient';
@@ -173,8 +174,31 @@ describe('DownloadFacade', () => {
             expect(historyService.addHistory).toHaveBeenCalledWith(queueItem);
         });
 
+        it('rescans for the processed file when the _original file vanishes before it can be copied', async () => {
+            // Poll 1 and 2: only the _original file exists with a stable size (tagging still running)
+            // Poll 3: tagging has finished and replaced it with the processed file
+            (fs.readdir as unknown as jest.Mock)
+                .mockResolvedValueOnce(['episode_original.mp4'])
+                .mockResolvedValueOnce(['episode_original.mp4'])
+                .mockResolvedValue(['episode.mp4']);
+            (fs.stat as unknown as jest.Mock).mockResolvedValue({ size: 12345 });
+            (fs.copyFile as jest.Mock).mockRejectedValueOnce(
+                Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' })
+            );
+
+            await triggerClose(0);
+
+            expect(fs.copyFile).toHaveBeenCalledTimes(2);
+            expect(fs.copyFile).toHaveBeenLastCalledWith(
+                expect.stringContaining('/episode.mp4'),
+                expect.any(String)
+            );
+            expect(historyService.addHistory).toHaveBeenCalledWith(queueItem);
+            expect(loggingService.error).not.toHaveBeenCalled();
+        });
+
         it('records a failure, not a completion, when get_iplayer exits 0 without producing a video file', async () => {
-            (fs.readdirSync as jest.Mock).mockReturnValue([]);
+            (fs.readdir as unknown as jest.Mock).mockResolvedValue([]);
 
             // The facade polls for up to ~5 minutes before giving up
             await triggerClose(0, 310000);

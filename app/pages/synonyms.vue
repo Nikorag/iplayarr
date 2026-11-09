@@ -3,11 +3,19 @@
     <div class="inner-content">
         <legend>Synonyms</legend>
         <p>iPlayer don't save their videos in an *arr friendly way. You can use synonyms to help you bridge the gap</p>
-        <ListEditor v-slot="{ item }" :items="synonyms" :actions="[['trash', removeSynonym]]" @create="openForm">
-            <div class="major" @click="openForm(item)">
+        <ListEditor
+            v-slot="{ item }"
+            :items="synonyms"
+            :actions="[['trash', removeSynonym, 'Delete synonym']]"
+            selectable
+            add-label="Add synonym"
+            @create="openForm"
+            @select="openForm"
+        >
+            <div class="major">
                 {{ item.from }}
             </div>
-            <div class="minor" @click="openForm(item)">
+            <div class="minor">
                 {{ item.target }}
             </div>
             <div class="featureList">
@@ -39,12 +47,21 @@ import ArrLookupDialog from '@/components/modals/ArrLookupDialog.vue';
 import SynonymForm from '@/components/modals/SynonymForm.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
+import toastService from '@/lib/toastService';
 import { deepCopy, getCleanSceneTitle } from '@/lib/utils';
 
 const synonyms = ref([]);
 
 const refreshSynonyms = async () => {
-    synonyms.value = (await ipFetch('json-api/synonym')).data;
+    try {
+        const response = await ipFetch('json-api/synonym');
+        if (!response.ok) {
+            throw new Error(response.data?.message || 'The server returned an error');
+        }
+        synonyms.value = response.data;
+    } catch (err) {
+        toastService.error(`Unable to load synonyms: ${err.message || 'the server could not be reached'}`);
+    }
 };
 
 onMounted(refreshSynonyms);
@@ -56,24 +73,29 @@ const openForm = (synonym, inputApp) => {
             inputObj: deepCopy(synonym),
             inputApp,
             action: synonym ? 'Edit' : 'Create',
-            onSave(synonym) {
-                saveSynonym(synonym);
+            save: saveSynonym,
+            onSaved: () => {
                 formModal.close();
+                refreshSynonyms();
             },
         },
     });
     formModal.open();
 };
 
-const saveSynonym = async (synonym) => {
-    const method = synonym.id ? 'PUT' : 'POST';
-    await ipFetch('json-api/synonym', method, synonym);
-    refreshSynonyms();
-};
+// Returns the response so the form can show what went wrong and stay open until the save works
+const saveSynonym = (synonym) => ipFetch('json-api/synonym', synonym.id ? 'PUT' : 'POST', synonym);
 
 const removeSynonym = async ({ id }) => {
     if (await dialogService.confirm('Delete Synonym', 'Are you sure you want to delete this Synonym?')) {
-        await ipFetch('json-api/synonym', 'DELETE', { id });
+        try {
+            const { ok, data } = await ipFetch('json-api/synonym', 'DELETE', { id });
+            if (!ok) {
+                toastService.error(`Failed to delete synonym: ${data?.message ?? 'unknown error'}`);
+            }
+        } catch (err) {
+            toastService.error(`Failed to delete synonym: ${err.message}`);
+        }
         refreshSynonyms();
     }
 };

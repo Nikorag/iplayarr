@@ -1,7 +1,24 @@
 <template>
-    <button v-for="item in items" :key="JSON.stringify(item)" class="listButton clickable">
-        <slot :item="item" />
-        <div class="actionContainer">
+    <!--
+        The card is a div so the action buttons can sit next to the clickable body. Nesting a <button>
+        inside a <button> (the card) is invalid HTML and breaks keyboard and screen reader use.
+    -->
+    <div v-for="item in items" :key="itemKey(item)" class="listButton">
+        <div
+            v-if="selectable"
+            class="listBody clickable"
+            role="button"
+            tabindex="0"
+            @click="emit('select', item)"
+            @keydown.enter.self.prevent="emit('select', item)"
+            @keydown.space.self.prevent="emit('select', item)"
+        >
+            <slot :item="item" />
+        </div>
+        <div v-else class="listBody">
+            <slot :item="item" />
+        </div>
+        <div v-if="actions?.length" class="actionContainer">
             <button
                 v-for="action in actions"
                 :key="action[0]"
@@ -9,12 +26,12 @@
                 class="clickable"
                 :title="action[2]"
                 :aria-label="action[2] || action[0]"
-                @click.stop="action[1](item)"
+                @click="action[1](item)"
             >
                 <font-awesome-icon :icon="['fas', action[0]]" />
             </button>
         </div>
-    </button>
+    </div>
     <button
         v-if="showAdd"
         type="button"
@@ -32,7 +49,9 @@
 <script setup>
 import { defineEmits, defineProps } from 'vue';
 
-const emit = defineEmits(['create']);
+const emit = defineEmits(['create', 'select']);
+
+const itemKey = (item) => item?.id ?? JSON.stringify(item);
 
 defineProps({
     showAdd: {
@@ -41,7 +60,13 @@ defineProps({
         default: true,
     },
     items: Array,
+    // [icon, handler, label] tuples shown as buttons along the bottom of each card
     actions: Array,
+    // Clicking (or pressing Enter/Space on) a card emits "select" with the item
+    selectable: {
+        type: Boolean,
+        default: false,
+    },
     addLabel: {
         type: String,
         default: 'Add',
@@ -107,17 +132,43 @@ defineProps({
         color: @table-text-color;
     }
 
+    .listBody {
+        height: 100%;
+        box-sizing: border-box;
+        border-radius: 3px;
+
+        &:focus-visible {
+            outline: 2px solid @primary-color;
+            outline-offset: 4px;
+        }
+    }
+
     .actionContainer {
         text-align: right;
         position: absolute;
         width: 270px;
         bottom: 0px;
         padding-bottom: 0.5rem;
+        // Let clicks on the empty part of the strip fall through to the card body
+        pointer-events: none;
 
         button {
+            pointer-events: auto;
+            min-width: 32px;
+            min-height: 32px;
             background: none;
             border: none;
             color: white;
+            cursor: pointer;
+
+            &:hover {
+                color: @brand-color;
+            }
+
+            &:focus-visible {
+                outline: 2px solid @primary-color;
+                border-radius: 4px;
+            }
         }
     }
 }

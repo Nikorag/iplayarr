@@ -1,29 +1,37 @@
 <template>
-    <div :class="['form-group', advanced ? 'advanced' : '']">
-        <label v-if="name">{{ name }}</label>
-        <div :class="['inputBox', error ? 'error' : '']">
-            <select v-model="localValue">
-                <option v-for="option of options" :key="option.key" :value="option.key">
-                    {{ option.value }}
-                </option>
-            </select>
-            <div v-if="error" class="error">
-                {{ error }}
-            </div>
-            <div class="tooltip">
-                {{ tooltip }}
-            </div>
-        </div>
-    </div>
+    <FormField
+        :name="name"
+        :tooltip="tooltip"
+        :error="error"
+        :advanced="advanced"
+        :required="required"
+        :input-id="inputId"
+    >
+        <select
+            :id="inputId"
+            v-model="localValue"
+            :required="required"
+            :disabled="disabled"
+            :aria-invalid="error ? 'true' : undefined"
+            :aria-describedby="describedBy"
+        >
+            <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
+            <option v-for="option of options" :key="option.key" :value="option.key">
+                {{ option.value }}
+            </option>
+        </select>
+    </FormField>
 </template>
 
 <script setup>
-import { defineEmits, defineProps, ref, watch } from 'vue';
+import { computed, defineEmits, defineProps, ref, useId, watch } from 'vue';
+
+import FormField from './FormField.vue';
 
 const props = defineProps({
     name: {
         type: String,
-        required: true,
+        default: undefined,
     },
     options: {
         type: Array,
@@ -31,11 +39,17 @@ const props = defineProps({
     },
     tooltip: {
         type: String,
-        required: true,
+        default: undefined,
     },
+    // Settings can still be loading (undefined) when the control first renders
     modelValue: {
         type: [String, Boolean, Number],
-        required: true,
+        default: '',
+    },
+    // Shown (and not selectable) while nothing has been chosen yet
+    placeholder: {
+        type: String,
+        default: undefined,
     },
     error: {
         type: String,
@@ -47,9 +61,22 @@ const props = defineProps({
         required: false,
         default: false,
     },
+    required: {
+        type: Boolean,
+        default: false,
+    },
+    disabled: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const inputId = `field-${useId()}`;
+const describedBy = computed(
+    () => [props.error ? `${inputId}-error` : '', props.tooltip ? `${inputId}-hint` : ''].filter(Boolean).join(' ') || undefined
+);
 
 const localValue = ref(props.modelValue);
 
@@ -66,69 +93,3 @@ watch(
     }
 );
 </script>
-
-<style lang="less" scoped>
-.form-group {
-    display: flex;
-    max-width: 650px;
-    margin-bottom: 1rem;
-
-    label {
-        flex: 0 0 250px;
-        display: flex;
-        justify-content: flex-end;
-        margin-right: 20px;
-        padding-top: 8px;
-        min-height: 35px;
-        text-align: end;
-        font-weight: bold;
-        font-size: 14px;
-        color: @table-text-color;
-
-        @media (max-width: @mobile-breakpoint) {
-            flex: 0 0 80px;
-        }
-    }
-
-    .inputBox {
-        flex: 1 1 auto;
-        box-sizing: border-box;
-
-        select {
-            box-sizing: border-box;
-            padding: 6px 16px;
-            width: 100%;
-            height: 35px;
-            border: 1px solid @input-border-color;
-            border-radius: 4px;
-            background-color: @input-background-color;
-            box-shadow: inset 0 1px 1px @primary-box-shadow;
-            color: @input-text-color;
-        }
-
-        &.error {
-            font-size: 14px;
-            color: @error-color;
-
-            select {
-                border-color: @error-color;
-            }
-        }
-    }
-
-    .tooltip {
-        font-size: 14px;
-        color: @subtle-text-color;
-    }
-
-    &.advanced {
-        label {
-            color: @warn-color;
-        }
-
-        .tooltip {
-            color: @warn-color;
-        }
-    }
-}
-</style>

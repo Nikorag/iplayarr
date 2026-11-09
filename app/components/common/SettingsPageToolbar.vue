@@ -14,15 +14,17 @@
             <button
                 v-if="icons.some((i) => i == 'save')"
                 class="SettingsPageToolbar-button clickable"
-                :disabled="!saveEnabled"
+                :class="{ unsaved: saveEnabled && !saving }"
+                :disabled="!saveEnabled || saving"
                 @click="emit('save')"
             >
-                <font-awesome-icon :icon="['fas', 'floppy-disk']" />
-                <div class="SettingsPageToolbar-label">{{ saveEnabled ? 'Save' : 'No' }} Changes</div>
+                <font-awesome-icon :icon="['fas', saving ? 'spinner' : 'floppy-disk']" :class="{ spin: saving }" />
+                <div class="SettingsPageToolbar-label">{{ saving ? 'Saving…' : saveEnabled ? 'Save Changes' : 'No Changes' }}</div>
             </button>
             <button
                 v-if="icons.some((i) => i == 'advanced')"
-                class="SettingsPageToolbar-button clickable"
+                :class="['SettingsPageToolbar-button clickable', advancedEnabled ? 'enabled' : '']"
+                :aria-pressed="advancedEnabled"
                 @click="emit('toggleAdvanced')"
             >
                 <font-awesome-icon :icon="['fas', 'cog']" />
@@ -121,6 +123,16 @@ defineProps({
         required: false,
         default: () => [],
     },
+    saving: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
+    advancedEnabled: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
     followStatus: {
         type: Boolean,
         required: false,
@@ -183,6 +195,10 @@ const handleClickOutside = (event) => {
     background-color: @toolbar-background-color;
     display: flex;
     padding: 0px 1rem;
+    // Keep Save in reach while scrolling a long form
+    position: sticky;
+    top: 0;
+    z-index: 2;
 
     > div {
         flex: 1;
@@ -216,6 +232,32 @@ const handleClickOutside = (event) => {
                 svg {
                     color: @brand-color;
                 }
+            }
+
+            &:disabled {
+                cursor: default;
+                opacity: 0.6;
+
+                &:hover svg {
+                    color: @toolbar-text-color;
+                }
+            }
+
+            // Something to save: colour the icon and label so it reads as the primary action
+            &.unsaved {
+                svg {
+                    color: @brand-color;
+                }
+
+                .SettingsPageToolbar-label {
+                    color: @brand-color;
+                    font-weight: bold;
+                }
+            }
+
+            &:focus-visible {
+                outline: 2px solid @primary-color;
+                outline-offset: -2px;
             }
         }
 

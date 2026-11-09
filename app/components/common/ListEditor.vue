@@ -2,12 +2,27 @@
     <button v-for="item in items" :key="JSON.stringify(item)" class="listButton clickable">
         <slot :item="item" />
         <div class="actionContainer">
-            <button v-for="action in actions" :key="action[0]" class="clickable" @click="action[1](item)">
+            <button
+                v-for="action in actions"
+                :key="action[0]"
+                type="button"
+                class="clickable"
+                :title="action[2]"
+                :aria-label="action[2] || action[0]"
+                @click.stop="action[1](item)"
+            >
                 <font-awesome-icon :icon="['fas', action[0]]" />
             </button>
         </div>
     </button>
-    <button v-if="showAdd" class="listButton listAddButton clickable" @click="emit('create')">
+    <button
+        v-if="showAdd"
+        type="button"
+        class="listButton listAddButton clickable"
+        :title="addLabel"
+        :aria-label="addLabel"
+        @click="emit('create')"
+    >
         <div class="addButtonCenter">
             <font-awesome-icon :icon="['fas', 'plus']" />
         </div>
@@ -27,6 +42,10 @@ defineProps({
     },
     items: Array,
     actions: Array,
+    addLabel: {
+        type: String,
+        default: 'Add',
+    },
 });
 </script>
 

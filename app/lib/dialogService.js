@@ -18,7 +18,8 @@ const dialogService = {
         formModal.open();
     },
 
-    confirm: async (title, text, subtext) => {
+    // options: { confirmLabel, confirmVariant: 'primary' | 'danger' }
+    confirm: async (title, text, subtext, { confirmLabel, confirmVariant } = {}) => {
         return new Promise((resolve) => {
             const formModal = useModal({
                 component: AlertDialog,
@@ -26,6 +27,8 @@ const dialogService = {
                     title,
                     text,
                     subtext,
+                    confirmLabel,
+                    confirmVariant,
                     showCancel: true,
                     onConfirm: () => {
                         resolve(true);

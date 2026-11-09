@@ -7,7 +7,7 @@
         </InfoBar>
         <div class="block-reset" />
         <AppsList :apps="apps" @create="openForm" />
-        <ListEditor v-slot="{ item }" :items="apps" :actions="[['trash', deleteApp]]" @create="openForm">
+        <ListEditor v-slot="{ item }" :items="apps" :actions="[['trash', deleteApp, 'Delete app']]" add-label="Add app" @create="openForm">
             <a @click="openForm(item)">
                 <div class="major">
                     <img class="appImg" :src="`/img/${item.type.toLowerCase()}.svg`" />
@@ -60,9 +60,16 @@ const apps = ref([]);
 const features = ref([]);
 
 const refreshApps = async () => {
-    apps.value = (await ipFetch('json-api/apps')).data;
-    features.value = (await ipFetch('json-api/apps/types')).data;
-    console.log(features.value);
+    try {
+        const [appsResponse, typesResponse] = await Promise.all([ipFetch('json-api/apps'), ipFetch('json-api/apps/types')]);
+        if (!appsResponse.ok || !typesResponse.ok) {
+            throw new Error(appsResponse.data?.message || typesResponse.data?.message || 'The server returned an error');
+        }
+        apps.value = appsResponse.data;
+        features.value = typesResponse.data;
+    } catch (err) {
+        toastService.error(`Unable to load apps: ${err.message || 'the server could not be reached'}`);
+    }
 };
 
 onMounted(refreshApps);
@@ -87,7 +94,8 @@ const deleteApp = async ({ id, name }) => {
         await dialogService.confirm(
             'Delete App',
             `Are you sure you want to delete ${name}`,
-            'Indexers and Download Clients in the target Arr, will NOT be deleted'
+            'Indexers and Download Clients in the target Arr, will NOT be deleted',
+            { confirmLabel: 'Delete', confirmVariant: 'danger' }
         )
     ) {
         try {

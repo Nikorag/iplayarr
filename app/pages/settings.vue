@@ -1,18 +1,35 @@
 <template>
     <SettingsPageToolbar
         :save-enabled="saveEnabled"
+        :saving="saving"
+        :advanced-enabled="showAdvanced"
         :icons="['save', 'advanced']"
         @save="saveConfig"
         @toggle-advanced="toggleAdvanced"
     />
-    <div v-if="!loading" class="inner-content">
+    <div v-if="loadError" class="inner-content">
+        <InfoBar clazz="danger">
+            <p class="load-error">Unable to load settings: {{ loadError }}</p>
+            <button type="button" class="clickable" @click="loadSettings">
+                <font-awesome-icon :icon="['fas', 'rotate']" /> Try again
+            </button>
+        </InfoBar>
+    </div>
+    <div v-else-if="loaded" class="inner-content">
+        <InfoBar v-if="errorCount" clazz="danger" role="alert">
+            {{ errorCount }} {{ errorCount === 1 ? 'setting needs' : 'settings need' }} attention before this can be
+            saved.
+        </InfoBar>
         <legend>iPlayarr</legend>
         <TextInput
             v-model="config.API_KEY"
             name="Api Key"
             tooltip="API Key for access from *arr apps."
             :error="validationErrors.config?.API_KEY"
-            icon-button="qrcode"
+            secret
+            copyable
+            icon-button="rotate"
+            button-tooltip="Generate a new API key"
             @action="generateApiKey"
         />
         <TextInput
@@ -38,7 +55,7 @@
             v-model="config.VIDEO_QUALITY"
             name="Video Quality"
             tooltip="Maximum video quality (Where available)"
-            :error="validationErrors.config?.ACTIVE_LIMIT"
+            :error="validationErrors.config?.VIDEO_QUALITY"
             :options="qualityProfiles"
         />
         <SelectInput
@@ -211,12 +228,12 @@
             </div>
         </template>
     </div>
-    <LoadingIndicator v-if="loading" />
+    <LoadingIndicator v-if="!loaded && !loadError" />
 </template>
 
 <script setup>
 import { v4 } from 'uuid';
-import { computed, inject, onMounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useModal } from 'vue-final-modal';
 import { onBeforeRouteLeave } from 'vue-router';
 
@@ -228,14 +245,18 @@ import SettingsPageToolbar from '@/components/common/SettingsPageToolbar.vue';
 import UpdateAppDialog from '@/components/modals/UpdateAppDialog.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
+import toastService from '@/lib/toastService';
 import { getHost } from '@/lib/utils';
 
-const loading = ref(false);
+const loaded = ref(false);
+const loadError = ref('');
+const saving = ref(false);
 let originalApiKey = undefined;
 
 const config = ref({});
 const configChanges = ref(false);
-const showAdvanced = ref(false);
+const ADVANCED_KEY = 'iplayarr.settings.showAdvanced';
+const showAdvanced = ref(readAdvancedPreference());
 const refreshGlobalSettings = inject('refreshGlobalSettings');
 
 const validationErrors = ref({
@@ -275,6 +296,17 @@ const saveEnabled = computed(() => {
     return configChanges.value;
 });
 
+const errorCount = computed(() => Object.keys(validationErrors.value.config ?? {}).length);
+
+function readAdvancedPreference() {
+    try {
+        return localStorage.getItem('iplayarr.settings.showAdvanced') === 'true';
+    } catch {
+        // Storage can be unavailable (private browsing), the default is fine
+        return false;
+    }
+}
+
 const oidcCallbackTooltip = computed(() => {
     return `${window.location.protocol}//${window.location.host}`;
 });
@@ -282,27 +314,66 @@ const oidcCallbackTooltip = computed(() => {
 const oidcTested = ref(false);
 let oidcChannel;
 
+let stopWatchingConfig;
+
+const loadSettings = async () => {
+    loadError.value = '';
+    try {
+        const [configResponse, qpResponse] = await Promise.all([
+            ipFetch('json-api/config'),
+            ipFetch('json-api/config/qualityProfiles'),
+        ]);
+        if (!configResponse.ok || !qpResponse.ok) {
+            throw new Error(configResponse.data?.message || qpResponse.data?.message || 'The server returned an error');
+        }
+
+        stopWatchingConfig?.();
+        config.value = configResponse.data;
+        originalApiKey = configResponse.data.API_KEY;
+        qualityProfiles.value = qpResponse.data.map(({ id, name, quality }) => ({
+            key: id,
+            value: `${name} (${quality})`,
+        }));
+        configChanges.value = false;
+        loaded.value = true;
+
+        // Only start tracking edits once the loaded values are in place
+        await nextTick();
+        stopWatchingConfig = watch(
+            config,
+            () => {
+                configChanges.value = true;
+                oidcTested.value = false;
+            },
+            { deep: true }
+        );
+    } catch (err) {
+        loadError.value = err.message || 'The server could not be reached';
+    }
+};
+
+const onBeforeUnload = (event) => {
+    if (saveEnabled.value) {
+        // Browsers show their own generic "leave site?" prompt
+        event.preventDefault();
+        event.returnValue = '';
+    }
+};
+
+const onKeydown = (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        if (saveEnabled.value && !saving.value) {
+            saveConfig();
+        }
+    }
+};
+
 onMounted(async () => {
-    const [configResponse, qpResponse] = await Promise.all([
-        ipFetch('json-api/config'),
-        ipFetch('json-api/config/qualityProfiles'),
-    ]);
+    window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('keydown', onKeydown);
 
-    config.value = configResponse.data;
-    originalApiKey = configResponse.data.API_KEY;
-    qualityProfiles.value = qpResponse.data.map(({ id, name, quality }) => ({
-        key: id,
-        value: `${name} (${quality})`,
-    }));
-
-    watch(
-        config,
-        () => {
-            configChanges.value = true;
-            oidcTested.value = false;
-        },
-        { deep: true }
-    );
+    await loadSettings();
 
     oidcChannel = new BroadcastChannel('oidc-test');
     oidcChannel.onmessage = (event) => {
@@ -316,7 +387,22 @@ onMounted(async () => {
     };
 });
 
+onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', onBeforeUnload);
+    window.removeEventListener('keydown', onKeydown);
+    stopWatchingConfig?.();
+    oidcChannel?.close();
+});
+
+const scrollToFirstError = async () => {
+    await nextTick();
+    document.querySelector('.has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
 const saveConfig = async () => {
+    if (saving.value || !configChanges.value) {
+        return;
+    }
     if (config.value.AUTH_TYPE == 'oidc' && !oidcTested.value) {
         if (
             !(await dialogService.confirm(
@@ -327,26 +413,36 @@ const saveConfig = async () => {
             return;
         }
     }
-    loading.value = true;
-    if (configChanges.value) {
+
+    saving.value = true;
+    try {
         validationErrors.value.config = {};
 
         const configResponse = await ipFetch('json-api/config', 'PUT', config.value);
 
         if (!configResponse.ok) {
-            const errorData = configResponse.data;
-            validationErrors.value.config = errorData.invalid_fields;
-            loading.value = false;
+            validationErrors.value.config = configResponse.data?.invalid_fields ?? {};
+            if (errorCount.value) {
+                await scrollToFirstError();
+            } else {
+                // Not a field validation problem, so there is nothing inline to point at
+                toastService.error(configResponse.data?.message || 'Settings could not be saved');
+            }
             return;
-        } else {
-            dialogService.alert('Success', 'Save Successful');
-            configChanges.value = false;
-            refreshGlobalSettings();
         }
+
+        configChanges.value = false;
+        toastService.success('Settings saved');
+        refreshGlobalSettings();
+    } catch (err) {
+        toastService.error(`Settings could not be saved: ${err.message || 'the server could not be reached'}`);
+        return;
+    } finally {
+        saving.value = false;
     }
 
-    loading.value = false;
     if (config.value.API_KEY != originalApiKey) {
+        originalApiKey = config.value.API_KEY;
         if (
             await dialogService.confirm('API Key Changed', 'Api Key Changed, do you want to update any relevant apps?')
         ) {
@@ -361,11 +457,15 @@ const saveConfig = async () => {
             formModal.open();
         }
     }
-    originalApiKey = config.value.API_KEY;
 };
 
 const toggleAdvanced = () => {
     showAdvanced.value = !showAdvanced.value;
+    try {
+        localStorage.setItem(ADVANCED_KEY, String(showAdvanced.value));
+    } catch {
+        // Not being able to remember the choice isn't worth surfacing
+    }
 };
 
 const generateApiKey = async () => {
@@ -373,27 +473,23 @@ const generateApiKey = async () => {
         await dialogService.confirm(
             'Regenerate API Key',
             'Are you sure you want to regenerate the API Key?',
-            'API Key will not change until settings are saved'
+            'API Key will not change until settings are saved',
+            { confirmLabel: 'Regenerate' }
         )
     ) {
         config.value.API_KEY = v4();
     }
 };
 
-onBeforeRouteLeave(async (_, __, next) => {
+onBeforeRouteLeave(async () => {
     if (saveEnabled.value) {
-        if (
-            await dialogService.confirm(
-                'Unsaved Changes',
-                'You have unsaved changes. If you leave this page they will be lost.'
-            )
-        ) {
-            next();
-        } else {
-            next(false);
-        }
+        // Returning false cancels the navigation
+        return await dialogService.confirm(
+            'Unsaved Changes',
+            'You have unsaved changes. If you leave this page they will be lost.'
+        );
     }
-    next();
+    return true;
 });
 
 const testOIDC = () => {
@@ -431,6 +527,10 @@ const testOIDC = () => {
 </script>
 
 <style lang="less">
+.load-error {
+    margin: 0 0 12px;
+}
+
 .button-container {
     justify-content: flex-end;
     text-align: right;

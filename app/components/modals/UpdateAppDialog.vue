@@ -14,7 +14,7 @@
                 <tr v-for="app of apps" :key="app.id">
                     <td>
                         <div class="appDisplay">
-                            <img class="appImg" :src="`/img/${app.type.toLowerCase()}.svg`" />
+                            <img class="appImg" :src="assetUrl(`/img/${app.type.toLowerCase()}.svg`)" />
                             <span class="appName">
                                 {{ app.name }}
                             </span>
@@ -38,6 +38,7 @@
 import { defineEmits, inject, onBeforeUnmount, onMounted, ref } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
+import { assetUrl } from '@/lib/utils';
 
 import IPlayarrModal from './IPlayarrModal.vue';
 

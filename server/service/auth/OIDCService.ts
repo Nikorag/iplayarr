@@ -2,6 +2,7 @@ import { getRequestURL, H3Event } from 'h3';
 import * as client from 'openid-client'
 
 import { IplayarrParameter } from '../../types/IplayarrParameters';
+import { withBasePath } from '../../utils/basePath';
 import configService from '../configService';
 import sessionService from './sessionService';
 
@@ -27,7 +28,7 @@ class OIDCService {
         await sessionService.save(event);
 
         const parameters: Record<string, string> = {
-            redirect_uri: `${callback_host}/auth/oidc/callback`,
+            redirect_uri: `${callback_host}${withBasePath('/auth/oidc/callback')}`,
             scope: 'openid profile email',
             code_challenge,
             code_challenge_method: 'S256',

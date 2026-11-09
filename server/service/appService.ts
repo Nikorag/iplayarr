@@ -8,6 +8,7 @@ import { IplayarrParameter } from '../types/IplayarrParameters';
 import { QueuedStorage } from '../types/QueuedStorage';
 import { CreateDownloadClientForm } from '../types/requests/form/CreateDownloadClientForm';
 import { CreateIndexerForm } from '../types/requests/form/CreateIndexerForm';
+import { getBasePath } from '../utils/basePath';
 import configService from './configService';
 import socketService from './socketService';
 
@@ -140,6 +141,8 @@ const createUpdateFeature: Record<AppFeature, (form: App, allowCreate: boolean) 
                     host: form.iplayarr.host as string,
                     port: form.iplayarr.port as number,
                     useSSL: form.iplayarr.useSSL,
+                    // Sonarr/Radarr's "URL Base" has no leading slash
+                    urlBase: getBasePath().replace(/^\//, '') || undefined,
                     apiKey: API_KEY,
                     tags: form.tags ?? [],
                 };
@@ -172,6 +175,8 @@ const createUpdateFeature: Record<AppFeature, (form: App, allowCreate: boolean) 
                     name: form.indexer.name,
                     downloadClientId: form.download_client.id,
                     url: `http${useSSL ? 's' : ''}://${form.iplayarr.host}:${form.iplayarr.port}`,
+                    // The indexer's API path, which is where iPlayarr's URL base has to go
+                    urlBase: getBasePath() ? `${getBasePath()}/api` : undefined,
                     apiKey: API_KEY,
                     categories: appCategories[form.type],
                     priority: form.indexer.priority,

@@ -1,6 +1,7 @@
 import { SqliteDriver } from '../../server/db/sqliteDriver';
 import sessionService from '../../server/service/auth/sessionService';
 import configService from '../../server/service/configService';
+import { makeEvent, responseHeader } from '../helpers/h3';
 
 let driver: SqliteDriver;
 
@@ -47,6 +48,35 @@ describe('sessionService', () => {
             await driver.sessionSet('old', JSON.stringify({ user: { username: 'admin' } }), Date.now() - 1);
 
             expect(await sessionService.load('old')).toBeUndefined();
+        });
+    });
+
+    describe('session cookie path', () => {
+        const original = process.env.NUXT_APP_BASE_URL;
+        afterEach(() => {
+            if (original === undefined) {
+                delete process.env.NUXT_APP_BASE_URL;
+            } else {
+                process.env.NUXT_APP_BASE_URL = original;
+            }
+        });
+
+        const cookieAfterSave = async () => {
+            const event = makeEvent();
+            await sessionService.save(event);
+            return String(responseHeader(event, 'set-cookie'));
+        };
+
+        it('is the whole site when iPlayarr is served from the root', async () => {
+            delete process.env.NUXT_APP_BASE_URL;
+
+            expect(await cookieAfterSave()).toContain('Path=/;');
+        });
+
+        it('is scoped to the URL base, so other apps on the same host never receive it', async () => {
+            process.env.NUXT_APP_BASE_URL = '/iplayarr';
+
+            expect(await cookieAfterSave()).toContain('Path=/iplayarr;');
         });
     });
 });

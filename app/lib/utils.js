@@ -1,5 +1,17 @@
-// The API is served by the same Nuxt server as the frontend
-export const getHost = () => '';
+// iPlayarr can be served under a URL prefix (for example behind a reverse proxy at /iplayarr). Nuxt embeds the prefix
+// it is running with in the page, so read it from there rather than baking it into the build.
+// Returns '' at the root, otherwise '/prefix' with no trailing slash.
+export const getBasePath = () => {
+    const base = (typeof window !== 'undefined' && window.__NUXT__?.config?.app?.baseURL) || '/';
+    const trimmed = String(base).replace(/^\/+|\/+$/g, '');
+    return trimmed ? `/${trimmed}` : '';
+};
+
+// The API is served by the same Nuxt server as the frontend, so requests go to the same origin under the prefix
+export const getHost = () => getBasePath();
+
+// Prefixes a public asset path ('/img/sonarr.svg') with the URL prefix, which Nuxt doesn't do for absolute paths
+export const assetUrl = (path) => `${getBasePath()}${path.startsWith('/') ? path : `/${path}`}`;
 
 export const getPidFromBBCUrl = (url) => {
     if (!url) {

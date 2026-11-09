@@ -5,6 +5,7 @@ import sessionService from '../../../service/auth/sessionService';
 import configService from '../../../service/configService';
 import { IplayarrParameter } from '../../../types/IplayarrParameters';
 import { ApiError, ApiResponse } from '../../../types/responses/ApiResponse';
+import { withBasePath } from '../../../utils/basePath';
 
 export default defineEventHandler(async (event) => {
     const allowedEmailsList = (await configService.getParameter(IplayarrParameter.OIDC_ALLOWED_EMAILS)) || '';
@@ -59,5 +60,5 @@ export default defineEventHandler(async (event) => {
 
     session.data.user = { username: email };
     await sessionService.save(event);
-    return sendRedirect(event, '/queue');
+    return sendRedirect(event, withBasePath('/queue'));
 });

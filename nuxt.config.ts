@@ -1,5 +1,12 @@
 import { fileURLToPath } from 'node:url';
 
+// URL_BASE ("iplayarr" or "/iplayarr") serves iPlayarr under that prefix, like Sonarr/Radarr's URL Base. Nuxt itself reads
+// NUXT_APP_BASE_URL, which is also what the server-side code uses, so set that from it (an explicit value wins).
+const urlBase = (process.env.URL_BASE ?? '').trim().replace(/^\/+|\/+$/g, '');
+if (urlBase) {
+    process.env.NUXT_APP_BASE_URL ??= `/${urlBase}`;
+}
+
 const lessGlobals = ['variables', 'global']
     .map((name) => `@import "${fileURLToPath(new URL(`./app/assets/styles/${name}.less`, import.meta.url))}";`)
     .join('\n');
@@ -22,9 +29,10 @@ export default defineNuxtConfig({
                 { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
             ],
             link: [
-                { rel: 'icon', href: '/favicon.ico' },
-                { rel: 'apple-touch-icon', href: '/iplayarr.png' },
-                { rel: 'manifest', href: '/manifest.webmanifest' },
+                // Relative on purpose: pages are all one level deep, so these resolve under the URL base too
+                { rel: 'icon', href: 'favicon.ico' },
+                { rel: 'apple-touch-icon', href: 'iplayarr.png' },
+                { rel: 'manifest', href: 'manifest.webmanifest' },
             ],
         },
     },

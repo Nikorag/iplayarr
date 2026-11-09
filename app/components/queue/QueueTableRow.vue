@@ -31,7 +31,7 @@
         <td>
             <template v-if="item.appId && getAppForId(item.appId)">
                 <div class="appDisplay">
-                    <img class="appImg" :src="`/img/${getAppForId(item.appId).type.toLowerCase()}.svg`" />
+                    <img class="appImg" :src="assetUrl(`/img/${getAppForId(item.appId).type.toLowerCase()}.svg`)" />
                     <span class="appName">
                         {{ getAppForId(item.appId).name }}
                     </span>
@@ -58,7 +58,7 @@ import { defineExpose, defineProps, inject, ref } from 'vue';
 
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
-import { formatStorageSize } from '@/lib/utils';
+import { assetUrl, formatStorageSize } from '@/lib/utils';
 
 import CheckInput from '../common/form/CheckInput.vue';
 import ProgressBar from '../common/ProgressBar.vue';

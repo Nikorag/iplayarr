@@ -187,7 +187,7 @@
         </template>
         <template v-if="config.AUTH_TYPE == 'oidc'">
             <InfoBar>
-                OIDC Callback URL must be set to: <strong>{{ config.OIDC_CALLBACK_HOST }}/auth/oidc/callback</strong>
+                OIDC Callback URL must be set to: <strong>{{ config.OIDC_CALLBACK_HOST }}{{ basePath }}/auth/oidc/callback</strong>
             </InfoBar>
             <TextInput
                 v-model="config.OIDC_CONFIG_URL"
@@ -246,7 +246,7 @@ import UpdateAppDialog from '@/components/modals/UpdateAppDialog.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import toastService from '@/lib/toastService';
-import { getHost } from '@/lib/utils';
+import { getBasePath, getHost } from '@/lib/utils';
 
 const loaded = ref(false);
 const loadError = ref('');
@@ -274,7 +274,9 @@ const liveTvModes = ref([
     { key: 'proxy', value: 'Proxy (via iPlayarr)' },
 ]);
 
-const liveTvUrl = (file) => `${window.location.origin}/tv/${config.value.API_KEY}/${file}`;
+const basePath = getBasePath();
+
+const liveTvUrl = (file) => `${window.location.origin}${getBasePath()}/tv/${config.value.API_KEY}/${file}`;
 
 const authTypes = ref([
     { key: 'form', value: 'Form' },

@@ -145,4 +145,68 @@ describe('appService', () => {
             expect(arrFacade.upsertDownloadClient).not.toHaveBeenCalled();
         });
     });
+
+    describe('creating the download client and indexer with a URL base', () => {
+        const original = process.env.NUXT_APP_BASE_URL;
+        afterEach(() => {
+            if (original === undefined) {
+                delete process.env.NUXT_APP_BASE_URL;
+            } else {
+                process.env.NUXT_APP_BASE_URL = original;
+            }
+        });
+
+        const form = (): App =>
+            ({
+                id: 'abc',
+                type: AppType.SONARR,
+                url: 'http://sonarr',
+                api_key: 'key',
+                iplayarr: { host: 'iplayarr', port: 4404, useSSL: false },
+                download_client: { name: 'iPlayarr' },
+                indexer: { name: 'iPlayarr', priority: 25 },
+            }) as any;
+
+        beforeEach(() => {
+            (appService.createUpdateIntegrations as unknown as jest.SpyInstance).mockRestore?.();
+            (configService.getParameter as jest.Mock).mockResolvedValue('the-api-key');
+            (arrFacade.upsertDownloadClient as jest.Mock).mockResolvedValue(7);
+            (arrFacade.upsertIndexer as jest.Mock).mockResolvedValue(9);
+        });
+
+        it('passes the URL base to the *arr app', async () => {
+            process.env.NUXT_APP_BASE_URL = '/iplayarr';
+
+            await appService.createUpdateIntegrations(form());
+
+            // Sonarr/Radarr's download client "URL Base" has no leading slash, the indexer takes the full API path
+            expect(arrFacade.upsertDownloadClient).toHaveBeenCalledWith(
+                expect.objectContaining({ urlBase: 'iplayarr' }),
+                expect.anything(),
+                true
+            );
+            expect(arrFacade.upsertIndexer).toHaveBeenCalledWith(
+                expect.objectContaining({ urlBase: '/iplayarr/api', url: 'http://iplayarr:4404' }),
+                expect.anything(),
+                true
+            );
+        });
+
+        it('sends no URL base when iPlayarr is served from the root', async () => {
+            delete process.env.NUXT_APP_BASE_URL;
+
+            await appService.createUpdateIntegrations(form());
+
+            expect(arrFacade.upsertDownloadClient).toHaveBeenCalledWith(
+                expect.objectContaining({ urlBase: undefined }),
+                expect.anything(),
+                true
+            );
+            expect(arrFacade.upsertIndexer).toHaveBeenCalledWith(
+                expect.objectContaining({ urlBase: undefined }),
+                expect.anything(),
+                true
+            );
+        });
+    });
 });

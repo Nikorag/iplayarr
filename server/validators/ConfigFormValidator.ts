@@ -18,8 +18,9 @@ export class ConfigFormValidator extends Validator {
         }
         if (!this.isNumber(input.ACTIVE_LIMIT)) {
             validatorError['ACTIVE_LIMIT'] = 'Download limit must be a number';
-        } else if (input.ACTIVE_LIMIT < 0) {
-            validatorError['ACTIVE_LIMIT'] = 'Download limit must be a positive number';
+        } else if (!Number.isInteger(Number(input.ACTIVE_LIMIT)) || Number(input.ACTIVE_LIMIT) < 1) {
+            // 0 would be accepted as "valid" but means nothing is ever allowed to start downloading
+            validatorError['ACTIVE_LIMIT'] = 'Download limit must be a positive whole number (at least 1)';
         }
 
         if (!this.isNumber(input.RSS_FEED_HOURS)) {

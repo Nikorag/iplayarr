@@ -10,8 +10,15 @@ export const ipFetch = async (endpoint, method = 'GET', body) => {
         options.body = JSON.stringify(body);
     }
     const response = await fetch(`${getHost()}/${endpoint}`, options);
+    let data;
+    try {
+        data = await response.json();
+    } catch {
+        // Non-JSON body, for example a proxy error page
+        data = { message: `${response.status} ${response.statusText}`.trim() };
+    }
     return {
-        data: await response.json(),
+        data,
         ok: response.ok,
     };
 };

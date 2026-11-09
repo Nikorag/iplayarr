@@ -145,7 +145,9 @@
 <script setup>
 import { computed, defineEmits, defineProps, onMounted, ref, watch } from 'vue';
 
+import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
+import toastService from '@/lib/toastService';
 import { capitalize } from '@/lib/utils';
 
 import AppTestButton from '../apps/AppTestButton.vue';
@@ -221,12 +223,23 @@ const saveApp = async () => {
     form.value.tags = form.value.tags.filter((tag) => tag !== '');
     const method = form.value.id ? 'PUT' : 'POST';
     loading.value = true;
-    const response = await ipFetch('json-api/apps', method, form.value);
-    loading.value = false;
-    if (response.ok) {
-        emit('saved');
-    } else {
-        validationErrors.value = response.data.invalid_fields;
+    try {
+        const response = await ipFetch('json-api/apps', method, form.value);
+        if (response.ok) {
+            toastService.success(`${form.value.name} saved`);
+            emit('saved');
+        } else {
+            const { invalid_fields: invalidFields, message } = response.data;
+            validationErrors.value = invalidFields ?? {};
+            // Plain validation failures are shown against their fields, anything else needs a modal
+            if (message || !invalidFields) {
+                dialogService.alert('Error Saving App', message || 'The app could not be saved');
+            }
+        }
+    } catch (err) {
+        dialogService.alert('Error Saving App', err.message || 'The server could not be reached');
+    } finally {
+        loading.value = false;
     }
 };
 </script>

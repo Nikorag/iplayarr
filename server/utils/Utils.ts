@@ -19,6 +19,7 @@ import { IPlayerSearchResult, VideoType } from '../types/IPlayerSearchResult';
 import { QualityProfile, qualityProfiles } from '../types/QualityProfiles';
 import { IPlayerProgramMetadata } from '../types/responses/IPlayerMetadataResponse';
 import { Synonym } from '../types/Synonym';
+import { getBasePath } from './basePath';
 
 const removeUnsafeCharsRegex = /[^a-zA-Z0-9\s\\/._-]/g;
 
@@ -64,7 +65,7 @@ export async function createNZBName(result: IPlayerSearchResult | IPlayerDetails
 
 export function getBaseUrl(event: H3Event): string {
     const protocol = getRequestProtocol(event, { xForwardedProto: false });
-    return `${protocol}://${getRequestURL(event).hostname}:${event.node.req.socket.localPort}`;
+    return `${protocol}://${getRequestURL(event).hostname}:${event.node.req.socket.localPort}${getBasePath()}`;
 }
 
 const BCRYPT_SALT_ROUNDS = 10;
@@ -98,7 +99,7 @@ export async function createNZBDownloadLink(
         const appObj = await appService.getApp(app);
         if (appObj) {
             const useSSL = typeof appObj.iplayarr.useSSL === 'boolean' ? appObj.iplayarr.useSSL : appObj.iplayarr.useSSL === 'true';
-            baseUrl = `${useSSL ? 'https' : 'http'}://${appObj.iplayarr.host}:${appObj.iplayarr.port}`;
+            baseUrl = `${useSSL ? 'https' : 'http'}://${appObj.iplayarr.host}:${appObj.iplayarr.port}${getBasePath()}`;
         }
     }
     return `${baseUrl}/api?mode=nzb-download&pid=${pid}&nzbName=${nzbName}&type=${type}&apikey=${apiKey}${app ? `&app=${app}` : ''}`;

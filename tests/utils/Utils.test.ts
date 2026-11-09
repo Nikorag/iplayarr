@@ -83,6 +83,43 @@ describe('Utils', () => {
         });
     });
 
+    describe('with a URL base configured', () => {
+        const original = process.env.NUXT_APP_BASE_URL;
+        beforeEach(() => {
+            process.env.NUXT_APP_BASE_URL = '/iplayarr';
+        });
+        afterEach(() => {
+            if (original === undefined) {
+                delete process.env.NUXT_APP_BASE_URL;
+            } else {
+                process.env.NUXT_APP_BASE_URL = original;
+            }
+        });
+
+        it('getBaseUrl includes the URL base', () => {
+            const event = makeEvent({ headers: { host: 'localhost:8080' }, localPort: 3000 });
+
+            expect(Utils.getBaseUrl(event)).toBe('http://localhost:3000/iplayarr');
+        });
+
+        it('NZB download links include the URL base, for the request host and for an app', async () => {
+            const result = { pid: '123', nzbName: 'test.nzb', type: VideoType.MOVIE } as IPlayerSearchResult;
+            const event = makeEvent({ headers: { host: 'localhost:4404' }, localPort: 4404 });
+
+            await expect(Utils.createNZBDownloadLink(event, result, 'apikey')).resolves.toBe(
+                'http://localhost:4404/iplayarr/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey'
+            );
+
+            mockedAppService.getApp.mockResolvedValue({
+                id: 'radarr-id',
+                iplayarr: { host: 'iplayarr.example.com', port: 443, useSSL: true },
+            } as unknown as App);
+            await expect(Utils.createNZBDownloadLink(event, result, 'apikey', 'radarr')).resolves.toBe(
+                'https://iplayarr.example.com:443/iplayarr/api?mode=nzb-download&pid=123&nzbName=test.nzb&type=MOVIE&apikey=apikey&app=radarr'
+            );
+        });
+    });
+
     describe('getBaseUrl', () => {
         it('returns correct base URL', () => {
             const event = makeEvent({ headers: { host: 'localhost:8080' }, localPort: 3000 });

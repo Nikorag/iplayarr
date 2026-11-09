@@ -3,7 +3,7 @@
         <div>
             <div class="panel">
                 <div class="panel-header">
-                    <img src="/iplayarr.png" alt="Image" class="logo" />
+                    <img :src="assetUrl('/iplayarr.png')" alt="Image" class="logo" />
                 </div>
                 <div v-if="!forgot" class="panel-body">
                     <div class="sign-in">SIGN IN TO CONTINUE</div>
@@ -62,6 +62,7 @@ import { useRouter } from 'vue-router';
 
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
+import { assetUrl } from '@/lib/utils';
 
 const router = useRouter();
 

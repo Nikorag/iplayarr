@@ -59,7 +59,7 @@
                 :aria-label="buttonTooltip || `${name} lookup`"
                 @click="emit('action')"
             >
-                <img class="brand" :src="`/img/${brandButton.toLowerCase()}.svg`" alt="" />
+                <img class="brand" :src="assetUrl(`/img/${brandButton.toLowerCase()}.svg`)" alt="" />
             </button>
         </div>
     </FormField>
@@ -69,6 +69,7 @@
 import { computed, defineEmits, defineProps, ref, useId, watch } from 'vue';
 
 import toastService from '@/lib/toastService';
+import { assetUrl } from '@/lib/utils';
 
 import FormField from './FormField.vue';
 

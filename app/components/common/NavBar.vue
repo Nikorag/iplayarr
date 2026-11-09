@@ -3,7 +3,7 @@
         <div class="left">
             <div class="logoPanel">
                 <RouterLink to="/queue">
-                    <img src="/iplayarr.png" alt="Logo" />
+                    <img :src="assetUrl('/iplayarr.png')" alt="Logo" />
                     <p class="desktopOnly">iPlayarr</p>
                 </RouterLink>
                 <font-awesome-icon
@@ -38,7 +38,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
-import { getPidFromBBCUrl } from '@/lib/utils';
+import { assetUrl, getPidFromBBCUrl } from '@/lib/utils';
 
 const route = useRoute();
 const router = useRouter();

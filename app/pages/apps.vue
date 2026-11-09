@@ -10,7 +10,7 @@
         <ListEditor v-slot="{ item }" :items="apps" :actions="[['trash', deleteApp, 'Delete app']]" add-label="Add app" @create="openForm">
             <a @click="openForm(item)">
                 <div class="major">
-                    <img class="appImg" :src="`/img/${item.type.toLowerCase()}.svg`" />
+                    <img class="appImg" :src="assetUrl(`/img/${item.type.toLowerCase()}.svg`)" />
                     <span class="appName">
                         {{ item.name }}
                     </span>
@@ -54,7 +54,7 @@ import AppForm from '@/components/modals/AppForm.vue';
 import dialogService from '@/lib/dialogService';
 import { ipFetch } from '@/lib/ipFetch';
 import toastService from '@/lib/toastService';
-import { deepCopy } from '@/lib/utils';
+import { assetUrl, deepCopy } from '@/lib/utils';
 
 const apps = ref([]);
 const features = ref([]);

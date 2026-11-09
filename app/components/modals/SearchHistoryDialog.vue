@@ -24,7 +24,7 @@
                             <div class="appDisplay">
                                 <img
                                     class="appImg"
-                                    :src="`/img/${getAppForId(history.appId).type.toLowerCase()}.svg`"
+                                    :src="assetUrl(`/img/${getAppForId(history.appId).type.toLowerCase()}.svg`)"
                                 />
                                 <span class="appName">
                                     {{ getAppForId(history.appId).name }}
@@ -45,6 +45,7 @@
 import { defineEmits, onMounted, ref } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
+import { assetUrl } from '@/lib/utils';
 
 import IPlayarrModal from './IPlayarrModal.vue';
 

@@ -3,7 +3,7 @@
         <ListEditor v-slot="{ item }" :show-add="false" :items="apps">
             <a @click.prevent="emit('selectApp', item)">
                 <div class="major">
-                    <img class="appImg" :src="`/img/${item.type.toLowerCase()}.svg`" />
+                    <img class="appImg" :src="assetUrl(`/img/${item.type.toLowerCase()}.svg`)" />
                     <span class="appName">
                         {{ item.name }}
                     </span>
@@ -20,6 +20,7 @@
 import { defineEmits, onMounted, ref } from 'vue';
 
 import { ipFetch } from '@/lib/ipFetch';
+import { assetUrl } from '@/lib/utils';
 
 import ListEditor from '../common/ListEditor.vue';
 import IPlayarrModal from './IPlayarrModal.vue';

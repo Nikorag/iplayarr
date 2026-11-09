@@ -123,6 +123,22 @@ describe('Live TV routes', () => {
             expect(invalid.body).not.toContain('?mode=');
         });
 
+        it('puts the URL base in the playlist URLs when one is configured', async () => {
+            const original = process.env.NUXT_APP_BASE_URL;
+            process.env.NUXT_APP_BASE_URL = 'iplayarr';
+            try {
+                const res = await getText('/tv/secret/playlist.m3u', { Host: 'iplayarr.lan:4404' });
+
+                expect(res.body).toContain('http://iplayarr.lan:4404/iplayarr/tv/secret/stream/bbc-one/index.m3u8\n');
+            } finally {
+                if (original === undefined) {
+                    delete process.env.NUXT_APP_BASE_URL;
+                } else {
+                    process.env.NUXT_APP_BASE_URL = original;
+                }
+            }
+        });
+
         it('respects forwarded host and protocol from a reverse proxy', async () => {
             const res = await getText('/tv/secret/playlist.m3u', {
                 'X-Forwarded-Host': 'tv.example.com',

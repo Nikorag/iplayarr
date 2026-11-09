@@ -1,3 +1,5 @@
+import { getBasePath } from './utils.js';
+
 const RECONNECT_DELAY_MS = 2000;
 
 /**
@@ -11,7 +13,7 @@ export const connectSocket = () => {
 
     const connect = () => {
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        ws = new WebSocket(`${protocol}://${window.location.host}/_ws`);
+        ws = new WebSocket(`${protocol}://${window.location.host}${getBasePath()}/_ws`);
 
         ws.onmessage = ({ data }) => {
             try {

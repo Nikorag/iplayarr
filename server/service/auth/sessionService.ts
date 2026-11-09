@@ -4,6 +4,7 @@ import { deleteCookie, getCookie, H3Event, setCookie } from 'h3';
 import { getDatabase } from '../../db/database';
 import { IplayarrParameter } from '../../types/IplayarrParameters';
 import User from '../../types/User';
+import { getBasePath } from '../../utils/basePath';
 import configService from '../configService';
 
 export interface SessionData {
@@ -79,7 +80,8 @@ const sessionService = {
             httpOnly: true,
             sameSite: 'lax',
             secure: false,
-            path: '/',
+            // Scoped to the URL base so the cookie isn't sent to other apps on the same host
+            path: getBasePath() || '/',
             maxAge: SESSION_TTL_MS / 1000,
         });
     },
@@ -90,7 +92,7 @@ const sessionService = {
             await sessionService.remove(cookieId);
         }
         event.context.session = undefined;
-        deleteCookie(event, COOKIE_NAME, { path: '/' });
+        deleteCookie(event, COOKIE_NAME, { path: getBasePath() || '/' });
     },
 
     /**

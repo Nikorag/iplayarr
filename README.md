@@ -128,6 +128,7 @@ There's a few more optional settings too:
 | HIDE_DONATE      | If you don't like the Kofi donate links you can hide them                                 |
 | PUID             | User ID iPlayarr runs as. Set it to the same ID as Sonarr/Radarr, see [Permissions](#permissions-and-files-left-in-the-complete-folder) |
 | PGID             | Group ID iPlayarr runs as. Set it to the same ID as Sonarr/Radarr                         |
+| URL_BASE         | Serve iPlayarr under a URL prefix such as `/iplayarr`, see [Reverse proxy](#running-behind-a-reverse-proxy) |
 | DATABASE_URL     | Use Postgres instead of SQLite, see [Database](#database)                                 |
 | REDIS_HOST       | Use Redis for caching instead of memory, see [Caching](#caching)                          |
 
@@ -175,6 +176,36 @@ iPlayarr presents itself as both an indexer and a download client on port 4404. 
 | URL             | http://Your_Docker_Host:4404 |
 | API Key         | API_KEY from above           |
 | Download Client | iPlayarr (created above)     |
+
+### Running behind a reverse proxy
+
+To serve iPlayarr under a path, for example `https://example.com/iplayarr`, set **`URL_BASE`** (like Sonarr and Radarr's *URL Base*):
+
+```yml
+environment:
+    - 'URL_BASE=/iplayarr'
+```
+
+iPlayarr then serves the web UI, the API (Newznab and SABnzbd endpoints) and the websocket only under that path, so the proxy should pass the path **through unchanged** (don't strip the prefix). For nginx:
+
+```nginx
+location /iplayarr/ {
+    proxy_pass http://iplayarr:4404;   # no trailing slash, so /iplayarr/... is forwarded as-is
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;       # the live queue/log updates use a websocket
+    proxy_set_header Connection "upgrade";
+}
+```
+
+Things that include the prefix automatically once it is set:
+
+- Sonarr/Radarr entries created from the **Apps** page get the matching indexer API path and download client *URL Base*. Entries you created by hand need the same values (`/iplayarr/api` for the indexer, `iplayarr` for the download client's URL Base).
+- Live TV playlist and guide URLs, and the OIDC callback URL (`<callback host>/iplayarr/auth/oidc/callback`, so update it in your identity provider).
+- The session cookie is limited to the prefix.
+
+If your proxy strips the prefix instead, leave `URL_BASE` unset: the UI and API work, but links iPlayarr builds itself (Live TV playlists, NZB download links) won't include the prefix. If you don't use Docker, `NUXT_APP_BASE_URL` does the same thing.
 
 ### Permissions and files left in the complete folder
 

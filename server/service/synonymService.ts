@@ -8,17 +8,19 @@ import { normalizeTitle, normalizeTitleWithoutYear } from '../utils/titleMatchin
 const storage: QueuedStorage = new QueuedStorage();
 
 const synonymService = {
-    getSynonym: async (inputTerm: string): Promise<Synonym | undefined> => {
+    getSynonym: async (inputTerm: string, options?: { fromOnly?: boolean }): Promise<Synonym | undefined> => {
         const allSynonyms = await synonymService.getAllSynonyms();
         const matches = (value: string, candidate: string) => !!candidate && normalizeTitle(value) === candidate;
+        const matchesSynonym = ({ from, target }: Synonym, candidate: string) =>
+            matches(from, candidate) || (!options?.fromOnly && matches(target, candidate));
 
         // The closest match wins: the spelling as given (ignoring case, punctuation, accents and "&" vs "and"),
         // then the same without a trailing year, since a search for "Show 2020" is run as a search for "Show"
         const exact = normalizeTitle(inputTerm);
         const withoutYear = normalizeTitleWithoutYear(inputTerm);
         return (
-            allSynonyms.find(({ from, target }) => matches(from, exact) || matches(target, exact)) ??
-            allSynonyms.find(({ from, target }) => matches(from, withoutYear) || matches(target, withoutYear))
+            allSynonyms.find((synonym) => matchesSynonym(synonym, exact)) ??
+            allSynonyms.find((synonym) => matchesSynonym(synonym, withoutYear))
         );
     },
 

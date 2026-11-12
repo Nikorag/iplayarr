@@ -77,6 +77,12 @@ describe('synonymService', () => {
             expect(result).toBeUndefined();
         });
 
+        it('should not match on target when fromOnly is set', async () => {
+            mockStorageData['synonyms'] = [testSynonym];
+            expect(await synonymService.getSynonym('British Broadcasting Corporation', { fromOnly: true })).toBeUndefined();
+            expect(await synonymService.getSynonym('BBC', { fromOnly: true })).toEqual(testSynonym);
+        });
+
         describe('tolerant matching', () => {
             const synonym = (from: string, target: string): Synonym => ({ id: from, from, target, exemptions: '' }) as Synonym;
 

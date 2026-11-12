@@ -49,7 +49,8 @@ class SearchFacade {
         const filteredResults = await this.#filterForSeasonAndEpisode(
             results as IPlayerSearchResult[],
             season,
-            episode
+            episode,
+            synonym
         );
 
         const processedResults: IPlayerSearchResult[] = await service.processCompletedSearch(filteredResults, inputTerm, synonym, season, episode);
@@ -64,16 +65,25 @@ class SearchFacade {
 
     async #getTerm(inputTerm: string, season?: number): Promise<SearchTerm> {
         const term = !season ? removeLastFourDigitNumber(inputTerm) : inputTerm;
-        const synonym = await synonymService.getSynonym(inputTerm);
+        const synonym = await synonymService.getSynonym(inputTerm, { fromOnly: true });
         return {
             term: synonym ? synonym.target : term,
             synonym,
         };
     }
 
-    async #filterForSeasonAndEpisode(results: IPlayerSearchResult[], season?: number, episode?: number) {
+    async #filterForSeasonAndEpisode(
+        results: IPlayerSearchResult[],
+        season?: number,
+        episode?: number,
+        synonym?: Synonym
+    ) {
+        const offset = synonym?.seasonOffset ?? 0;
         return results.filter((result) => {
-            return (!season || result.series == season) && (!episode || result.episode == episode);
+            return (
+                (!season || (result.series != null && result.series + offset == season)) &&
+                (!episode || result.episode == episode)
+            );
         });
     }
 

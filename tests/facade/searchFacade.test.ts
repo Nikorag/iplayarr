@@ -46,12 +46,30 @@ describe('SearchFacade', () => {
     const results = await searchFacade.search('Test Show', 1, 1);
 
     expect(configService.getParameter).toHaveBeenCalledWith('NATIVE_SEARCH');
-    expect(synonymService.getSynonym).toHaveBeenCalledWith('Test Show');
+    expect(synonymService.getSynonym).toHaveBeenCalledWith('Test Show', { fromOnly: true });
     expect(nativeSearchService.search).toHaveBeenCalledWith('Test Show', undefined);
     expect(results).toHaveLength(1);
     expect(results[0].title).toBe('Test Show');
     expect(results[0].series).toBe(1);
     expect(results[0].episode).toBe(1);
+  });
+
+  it('should apply the synonym season offset when filtering by season', async () => {
+    const synonym = { id: '1', from: 'Spin Off', target: 'Test Show', exemptions: '', seasonOffset: -49 };
+    const results50 = [
+      { title: 'Test Show', series: 1, episode: 5, pubDate: new Date(0) } as IPlayerSearchResult,
+      { title: 'Test Show', series: 50, episode: 5, pubDate: new Date(0) } as IPlayerSearchResult,
+    ];
+    (configService.getParameter as jest.Mock).mockResolvedValue('true');
+    (synonymService.getSynonym as jest.Mock).mockResolvedValue(synonym);
+    (CacheService.prototype.get as jest.Mock).mockResolvedValue(undefined);
+    (nativeSearchService.search as jest.Mock).mockResolvedValue(results50);
+    (nativeSearchService.processCompletedSearch as jest.Mock).mockImplementation((results) => results);
+
+    const results = await searchFacade.search('Spin Off', 1, 5);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].series).toBe(50);
   });
 
   it('should use cached results if available', async () => {
